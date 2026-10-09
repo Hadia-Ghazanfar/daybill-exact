@@ -2947,26 +2947,26 @@ html.phone-layout .mobile-back-to-bills {
 /* Main views animate in on navigation */
 .dashboard-view, .manage-view, .profile-view, .create-view,
 .invoice-detail-view, .contact-history-view, .auth-view {
-  animation: db-fade-rise .45s cubic-bezier(.2,.8,.3,1) both;
+  animation: db-fade-rise .45s cubic-bezier(.2,.8,.3,1) backwards;
 }
 /* Stagger direct cards inside views */
-.dashboard-view > *:nth-child(2), .manage-view > *:nth-child(2) { animation: db-fade-rise .5s .05s cubic-bezier(.2,.8,.3,1) both; }
-.dashboard-view > *:nth-child(3), .manage-view > *:nth-child(3) { animation: db-fade-rise .5s .1s cubic-bezier(.2,.8,.3,1) both; }
-.dashboard-view > *:nth-child(4), .manage-view > *:nth-child(4) { animation: db-fade-rise .5s .15s cubic-bezier(.2,.8,.3,1) both; }
-.dashboard-view > *:nth-child(5), .manage-view > *:nth-child(5) { animation: db-fade-rise .5s .2s cubic-bezier(.2,.8,.3,1) both; }
+.dashboard-view > *:nth-child(2), .manage-view > *:nth-child(2) { animation: db-fade-rise .5s .05s cubic-bezier(.2,.8,.3,1) backwards; }
+.dashboard-view > *:nth-child(3), .manage-view > *:nth-child(3) { animation: db-fade-rise .5s .1s cubic-bezier(.2,.8,.3,1) backwards; }
+.dashboard-view > *:nth-child(4), .manage-view > *:nth-child(4) { animation: db-fade-rise .5s .15s cubic-bezier(.2,.8,.3,1) backwards; }
+.dashboard-view > *:nth-child(5), .manage-view > *:nth-child(5) { animation: db-fade-rise .5s .2s cubic-bezier(.2,.8,.3,1) backwards; }
 
 /* Stat / KPI cards pop */
 .stat-card, .kpi-card, .received-card, .overview-stat {
-  animation: db-pop .45s cubic-bezier(.2,.9,.3,1.15) both;
+  animation: db-pop .45s cubic-bezier(.2,.9,.3,1.15) backwards;
 }
 
 /* List rows cascade */
-.record-list > *:nth-child(1), .invoice-list > *:nth-child(1) { animation: db-fade-rise .4s .03s ease both; }
-.record-list > *:nth-child(2), .invoice-list > *:nth-child(2) { animation: db-fade-rise .4s .08s ease both; }
-.record-list > *:nth-child(3), .invoice-list > *:nth-child(3) { animation: db-fade-rise .4s .13s ease both; }
-.record-list > *:nth-child(4), .invoice-list > *:nth-child(4) { animation: db-fade-rise .4s .18s ease both; }
-.record-list > *:nth-child(5), .invoice-list > *:nth-child(5) { animation: db-fade-rise .4s .23s ease both; }
-.record-list > *:nth-child(n+6), .invoice-list > *:nth-child(n+6) { animation: db-fade-in .4s .25s ease both; }
+.record-list > *:nth-child(1), .invoice-list > *:nth-child(1) { animation: db-fade-rise .4s .03s ease backwards; }
+.record-list > *:nth-child(2), .invoice-list > *:nth-child(2) { animation: db-fade-rise .4s .08s ease backwards; }
+.record-list > *:nth-child(3), .invoice-list > *:nth-child(3) { animation: db-fade-rise .4s .13s ease backwards; }
+.record-list > *:nth-child(4), .invoice-list > *:nth-child(4) { animation: db-fade-rise .4s .18s ease backwards; }
+.record-list > *:nth-child(5), .invoice-list > *:nth-child(5) { animation: db-fade-rise .4s .23s ease backwards; }
+.record-list > *:nth-child(n+6), .invoice-list > *:nth-child(n+6) { animation: db-fade-in .4s .25s ease backwards; }
 
 /* Buttons: press + hover feedback */
 button { transition: transform .15s ease, filter .15s ease, background-color .2s ease; }
@@ -2990,17 +2990,17 @@ button:active { transform: scale(.96); }
 .filter-tabs button:active, .segmented button:active { transform: scale(.94); }
 
 /* Sheets & dialogs */
-.sheet, .dialog, .modal-card { animation: db-pop .35s cubic-bezier(.2,.9,.3,1.1) both; }
-.sheet-backdrop, .dialog-backdrop { animation: db-fade-in .25s ease both; }
+.sheet, .dialog, .modal-card { animation: db-pop .35s cubic-bezier(.2,.9,.3,1.1) backwards; }
+.sheet-backdrop, .dialog-backdrop { animation: db-fade-in .25s ease backwards; }
 
 /* Toast */
-.toast { animation: db-slide-in-right .35s cubic-bezier(.2,.9,.3,1.1) both; }
+.toast { animation: db-slide-in-right .35s cubic-bezier(.2,.9,.3,1.1) backwards; }
 
 /* Invoice paper subtle entrance */
-.paper, .invoice-paper { animation: db-fade-rise .5s ease both; }
+.paper, .invoice-paper { animation: db-fade-rise .5s ease backwards; }
 
 /* Splash logo gentle pulse */
-.splash-logo { animation: db-pop .8s cubic-bezier(.2,.9,.3,1.15) both; }
+.splash-logo { animation: db-pop .8s cubic-bezier(.2,.9,.3,1.15) backwards; }
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
