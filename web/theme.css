@@ -3205,3 +3205,21 @@ button:active { transform: scale(.96); }
   .product-search { max-width: 100% !important; }
   .product-search input { max-width: 100% !important; box-sizing: border-box !important; }
 }
+
+/* === Product catalog: categories, featured, sizes === */
+.category-chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 10px; margin-top: 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.category-chips::-webkit-scrollbar { display: none; }
+.category-chips button { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--dim); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .2s ease; }
+.category-chips button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.category-chips button.chip-featured { border-color: #f0c420; color: #b8860b; }
+.category-chips button.chip-featured.active { background: #f0c420; border-color: #f0c420; color: #5a4300; }
+.featured-toggle { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); cursor: pointer; margin: 10px 0; }
+.featured-toggle input[type="checkbox"] { width: 20px; height: 20px; accent-color: #f0c420; cursor: pointer; }
+.featured-toggle .featured-star { color: #f0c420; font-size: 20px; }
+.featured-toggle span { font-weight: 600; font-size: 14px; color: var(--text); }
+.featured-toggle small { color: var(--dim); font-size: 12px; margin-left: auto; }
+.cell-top .featured-star { color: #f0c420; font-size: 16px; flex-shrink: 0; }
+.cell-category { color: var(--accent); font-weight: 600; }
+@media (max-width: 720px) {
+  .category-chips { margin-left: -2px; margin-right: -2px; padding-left: 2px; padding-right: 2px; }
+}
