@@ -327,6 +327,9 @@ const urduUi: Record<string, string> = {
   "Delete": "حذف کریں",
   "No products here": "یہاں کوئی پروڈکٹ نہیں",
   "Add products to fill invoices automatically.": "رسیدیں خودکار بھرنے کے لیے پروڈکٹس شامل کریں۔",
+  "Help": "مدد",
+  "Logout": "لاگ آؤٹ",
+  "Toggle theme": "تھیم تبدیل کریں",
   "Choose a customer": "گاہک چُنیں",
   "No phone saved": "فون نمبر محفوظ نہیں",
   "Select a customer to unlock Step 2.": "مرحلہ 2 کھولنے کے لیے گاہک منتخب کریں۔",
@@ -900,6 +903,11 @@ function Icon({ name }: { name: "dashboard" | "plus" | "box" | "people" | "invoi
     wallet: <><path d="M4 6h14a2 2 0 0 1 2 2v10H4a2 2 0 0 1-2-2V6a3 3 0 0 1 3-3h12" /><path d="M16 11h6v4h-6a2 2 0 0 1 0-4Z" /></>,
     collapse: <><path d="m15 18-6-6 6-6" /><path d="M21 12H9" /></>,
     expand: <><path d="m9 18 6-6-6-6" /><path d="M3 12h12" /></>,
+    help: <><circle cx="12" cy="12" r="9" /><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.6-3 4" /><circle cx="12" cy="17.5" r=".5" fill="currentColor" /></>,
+    logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5M21 12H9" /></>,
+    moon: <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />,
+    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>,
+    search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>,
   };
   return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
@@ -1383,6 +1391,7 @@ function SessionExpiredNotice({ onLogout }: { onLogout: () => void }) {
 function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const queryClient = useQueryClient();
   const { language } = useLanguage();
+  const { theme, setTheme } = useTheme();
   const workspace = useQuery({ queryKey: ["workspace"], queryFn: () => api.getWorkspace({}) });
   const restoreBillsOnMount = useRef(isMobileAppLayout() && sessionStorage.getItem(MOBILE_BILLS_RETURN_KEY) === "1");
   const [tab, setTab] = useState<Tab>(restoreBillsOnMount.current ? "history" : "dashboard");
@@ -1391,6 +1400,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const [savedPurchaseId, setSavedPurchaseId] = useState<number | null>(null);
   const [step, setStep] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHelpFeedback, setShowHelpFeedback] = useState(false);
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [issueDate, setIssueDate] = useState(localDate());
   const [dueDate, setDueDate] = useState("");
@@ -1782,7 +1792,13 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         : tab === "history" ? <HistoryView invoices={workspace.data.invoices} purchases={workspace.data.purchases} settings={settings} onOpen={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} />
         : <ProfileView settings={settings} account={workspace.data.account} onEdit={() => setShowSettings(true)} onLogout={onLogout} />}
       </main>
-      <nav className="bottom-nav" aria-label="Primary navigation">{nav.map((item, index) => <div className="nav-entry" key={item.id}>{index === 0 || nav[index - 1]?.group !== item.group ? <span className="nav-group-label">{item.group}</span> : null}<button title={sidebarCollapsed ? item.label : undefined} aria-label={item.label} className={tab === item.id ? "active" : ""} onClick={() => { sessionStorage.removeItem(MOBILE_BILLS_RETURN_KEY); mobileDetailHistoryPushed.current = false; setSelectedContactId(null); setTab(item.id); setMessage(""); }}><Icon name={item.icon} /><span>{item.label}</span></button></div>)}</nav>
+      <nav className="bottom-nav" aria-label="Primary navigation">
+        <div className="sidebar-profile">{settings.logo_url ? <img src={settings.logo_url} alt="" /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="" /> : <span className="sidebar-avatar-fallback"><Icon name="profile" /></span>}<div><strong>{workspace.data.account.shopkeeper_name || settings.business_name || "Shop owner"}</strong><small>{workspace.data.account.phone ? formatPhoneDisplay(workspace.data.account.phone) : ""}</small></div></div>
+        {nav.map((item, index) => <div className="nav-entry" key={item.id}>{index === 0 || nav[index - 1]?.group !== item.group ? <span className="nav-group-label">{item.group}</span> : null}<button title={sidebarCollapsed ? item.label : undefined} aria-label={item.label} className={tab === item.id ? "active" : ""} onClick={() => { sessionStorage.removeItem(MOBILE_BILLS_RETURN_KEY); mobileDetailHistoryPushed.current = false; setSelectedContactId(null); setTab(item.id); setMessage(""); }}><Icon name={item.icon} /><span>{item.label}</span></button></div>)}
+        <div className="sidebar-bottom"><button className="sidebar-help" onClick={() => setShowHelpFeedback(true)}><Icon name="help" /><span>{ui(language, "Help")}</span></button><button className="sidebar-logout" onClick={onLogout}><Icon name="logout" /><span>{ui(language, "Logout")}</span></button></div>
+      </nav>
+      <button className="theme-fab" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")} title={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button>
+      {showHelpFeedback ? <FeedbackSheet onClose={() => setShowHelpFeedback(false)} /> : null}
       {showSettings ? <SettingsSheet settings={settings} onClose={() => setShowSettings(false)} /> : null}
       {transferSheet ? <TransferStatusSheet state={transferSheet} language={language} onDismiss={() => setTransferSheet(null)} onManualSave={() => { if (preparedInvoiceFile) openFileForManualSave(preparedInvoiceFile); }} onOpenWhatsApp={() => { openSavedInvoiceChat(); setTransferSheet(null); }} /> : null}
     </div>
