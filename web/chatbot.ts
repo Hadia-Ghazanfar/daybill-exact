@@ -316,10 +316,24 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
 
   // stock of a product
   const product = findProduct(ctx, q);
-  if (product && (q.includes("stock") || q.includes("left") || q.includes("quantity") || q.includes("kitna") || q.includes("available"))) {
+  if (product && (q.includes("stock") || q.includes("left") || q.includes("quantity") || q.includes("kitna") || q.includes("available") || q.includes("how much") || q.includes("ands"))) {
     return lang === "ur"
       ? `${product.name} کا اسٹاک: ${product.stock_quantity} یونٹ (قیمت ${money(product.unit_price, ctx.currency)})۔`
       : `${product.name}: ${product.stock_quantity} in stock at ${money(product.unit_price, ctx.currency)} each.`;
+  }
+  // "is any product quantity below 32" — parse threshold
+  const belowMatch = q.match(/(?:below|under|less than|kam)\s*(\d+)/);
+  if (belowMatch && (q.includes("product") || q.includes("prduct") || q.includes("prodct") || q.includes("quantity") || q.includes("stock") || q.includes("item"))) {
+    const limit = parseInt(belowMatch[1], 10);
+    const matches = ctx.products.filter((p) => p.stock_quantity < limit).sort((a, b) => a.stock_quantity - b.stock_quantity);
+    if (!matches.length) {
+      return lang === "ur"
+        ? `کوئی پروڈکٹ ${limit} سے کم اسٹاک میں نہیں ✓`
+        : `No products below ${limit} in stock ✓`;
+    }
+    const lines = matches.slice(0, 10).map((p) => `• ${p.name}: ${p.stock_quantity}`);
+    const more = matches.length > 10 ? (lang === "ur" ? `\n...اور ${matches.length - 10} مزید` : `\n...and ${matches.length - 10} more`) : "";
+    return (lang === "ur" ? `${limit} سے کم اسٹاک (${matches.length} پروڈکٹس):\n` : `Products below ${limit} in stock (${matches.length}):\n`) + lines.join("\n") + more;
   }
   // low stock
   if (q.includes("low stock") || (q.includes("stock") && (q.includes("low") || q.includes("kam") || q.includes("finish")))) {

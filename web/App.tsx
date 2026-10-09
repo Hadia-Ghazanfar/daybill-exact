@@ -1873,6 +1873,7 @@ function ChatBot({ workspace }: { workspace: { data: { invoices: any[]; contacts
       <div className="chatbot-header">
         <img src={mascotAvatar} alt="" />
         <div><strong>{language === "ur" ? "Daybill اسسٹنٹ" : "Daybill Assistant"}</strong><small><span className="chatbot-dot" />{language === "ur" ? "آن لائن" : "Online"}</small></div>
+        <button className="chatbot-close" onClick={() => setOpen(false)} aria-label={language === "ur" ? "بند کریں" : "Close chat"}>✕</button>
       </div>
       <div className="chatbot-messages" ref={listRef}>
         {messages.map((m, i) => <div key={i} className={`chatbot-msg ${m.from}`}>{m.from === "bot" ? <img src={mascotAvatar} alt="" className="chatbot-msg-avatar" /> : null}<div className="chatbot-bubble">{m.text}</div></div>)}
