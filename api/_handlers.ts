@@ -306,6 +306,7 @@ export const Actions = {
           stock_quantity: row.stockQuantity, supplier_id: row.supplierId,
           supplier_name: row.supplierId ? contactsById.get(row.supplierId)?.name ?? null : null,
           brand: row.brand ?? "", product_type: row.productType ?? "", shelf_code: row.shelfCode ?? "",
+          category: row.category ?? "", is_featured: row.isFeatured ?? false, sizes: row.sizes ?? "",
           image_url: row.imageBlobKey && row.imageBlobKey.startsWith("data:") ? row.imageBlobKey : null,
         })),
         invoices: invoiceRows.map((row) => {
@@ -482,6 +483,9 @@ export const Actions = {
           brand: args.brand ?? "",
           productType: args.product_type ?? "",
           shelfCode: args.shelf_code ?? "",
+          category: args.category ?? "",
+          isFeatured: args.is_featured ?? false,
+          sizes: args.sizes ?? "",
           ...(imageKey ? { imageBlobKey: imageKey } : {}),
           updatedAt: new Date(),
         }).where(and(eq(schema.products.id, args.id), eq(schema.products.accountId, account.id))).returning({ id: schema.products.id });
@@ -501,6 +505,9 @@ export const Actions = {
         brand: args.brand ?? "",
         productType: args.product_type ?? "",
         shelfCode: args.shelf_code ?? "",
+        category: args.category ?? "",
+        isFeatured: args.is_featured ?? false,
+        sizes: args.sizes ?? "",
         ...(imageKey ? { imageBlobKey: imageKey } : {}),
       }).returning({ id: schema.products.id });
       const inserted = rows[0];

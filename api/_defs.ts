@@ -50,6 +50,9 @@ const productShape = z.object({
   brand: z.string().optional(),
   product_type: z.string().optional(),
   shelf_code: z.string().optional(),
+  category: z.string().optional(),
+  is_featured: z.boolean().optional(),
+  sizes: z.string().optional(),
   image_url: z.string().nullable().optional(),
 });
 
@@ -300,6 +303,9 @@ export const actionDefs = {
       brand: z.string().trim().max(80).optional(),
       product_type: z.string().trim().max(60).optional(),
       shelf_code: z.string().trim().max(40).optional(),
+      category: z.string().trim().max(60).optional(),
+      is_featured: z.boolean().optional(),
+      sizes: z.string().trim().max(120).optional(),
       image_data_base64: z.string().max(6_000_000).optional(),
       image_mime_type: z.enum(["image/jpeg", "image/png"]).optional(),
     }),
