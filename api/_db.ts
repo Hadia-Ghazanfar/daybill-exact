@@ -231,5 +231,15 @@ export async function ensureInit(): Promise<void> {
     const trimmed = stmt.trim();
     if (trimmed) await sql.unsafe(trimmed);
   }
+  // Create owner admin account if none exists (for first-time setup)
+  try {
+    const ownerCheck = await getSql().unsafe("SELECT id FROM accounts WHERE is_owner = true LIMIT 1");
+    if (ownerCheck.length === 0) {
+      await getSql().unsafe(`
+        INSERT INTO accounts (shopkeeper_name, admin_email, is_owner, claimed, created_at, updated_at)
+        VALUES ('Hadia', 'hadiaghazanfar354@gmail.com', true, true, NOW(), NOW())
+      `);
+    }
+  } catch { /* ignore */ }
   migrated = true;
 }
