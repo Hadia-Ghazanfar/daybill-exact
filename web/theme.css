@@ -3048,6 +3048,7 @@ button:active { transform: scale(.96); }
 .product-image-placeholder { width: 64px; height: 64px; border-radius: 14px; background: var(--bg); display: grid; place-items: center; color: var(--dim); }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .hide-desktop { display: none; }
+.cell-edit-left { display: none; }
 @media (max-width: 720px) {
   .product-table-wrap { background: transparent; border: 0; overflow: visible; padding: 2px; margin: 0 -2px; }
   .product-table { width: 100%; max-width: 100%; table-layout: fixed; }
@@ -3067,9 +3068,14 @@ button:active { transform: scale(.96); }
   .product-table .cell-meta .price { font-weight: 800; color: var(--text); font-size: 13px; }
   .product-table .cell-id, .product-table .cell-brand, .product-table .cell-count,
   .product-table .cell-type, .product-table .cell-shelf, .product-table .cell-supplier { display: none; }
+  .product-table .cell-edit-left { display: block !important; flex: 0 0 auto; order: -1; }
+  .product-table .cell-edit-left button { width: 38px; height: 38px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border)); color: var(--accent); display: grid; place-items: center; cursor: pointer; }
+  .product-table .cell-edit-left button svg { width: 17px; height: 17px; }
+  .product-table .cell-edit-left button:active { transform: scale(.93); }
   .product-table .row-actions { flex: 0 0 auto !important; display: flex !important; gap: 4px; margin-left: auto; }
-  .product-table .row-actions button { padding: 9px; border-radius: 10px; color: var(--dim); background: var(--bg); border: 1px solid var(--border); display: grid; place-items: center; }
-  .product-table .row-actions button svg { width: 16px; height: 16px; }
+  .product-table .row-actions .btn-edit { display: none !important; }
+  .product-table .row-actions button { padding: 9px; border-radius: 10px; color: #d33f3f; background: #fdecec; border: 1px solid #f5c6c6; display: grid; place-items: center; }
+  .product-table .row-actions button svg { width: 15px; height: 15px; }
   .product-table .hide-desktop { display: none; }
 }
 
