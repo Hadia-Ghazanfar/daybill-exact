@@ -2235,6 +2235,7 @@ function AdminProfile({ session, onLogout }: { session: AccountSession; onLogout
 }
 
 function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: () => void }) {
+  const { language } = useLanguage();
   const [view, setView] = useState<"dashboard" | "profile">("dashboard");
   const [directoryView, setDirectoryView] = useState<"accounts" | "feedback">("accounts");
   const dashboard = useQuery({ queryKey: ["admin-dashboard"], queryFn: () => api.getAdminDashboard({}) });
@@ -2395,6 +2396,7 @@ function SetupPrompt({ onOpen }: { onOpen: () => void }) {
 }
 
 function SettingsSheet({ settings, onClose }: { settings: Workspace["settings"]; onClose: () => void }) {
+  const { language } = useLanguage();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ business_name: settings.business_name, phone: formatPhoneDisplay(settings.phone), address: settings.address, currency: settings.currency, accent_color: settings.accent_color });
@@ -2420,6 +2422,7 @@ function SettingsSheet({ settings, onClose }: { settings: Workspace["settings"];
 }
 
 function ProductsView({ products, contacts, currency, onDone }: { products: Product[]; contacts: Contact[]; currency: string; onDone: () => void }) {
+  const { language } = useLanguage();
   const queryClient = useQueryClient();
   const suppliers = contacts.filter((contact) => contact.kind === "supplier");
   const [editing, setEditing] = useState<Product | null>(null);
