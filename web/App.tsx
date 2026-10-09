@@ -1317,6 +1317,11 @@ function TransferStatusSheet({ state, language, onDismiss, onManualSave, onOpenW
   </div>;
 }
 
+function SessionExpiredNotice({ onLogout }: { onLogout: () => void }) {
+  useEffect(() => { onLogout(); }, [onLogout]);
+  return <div className="loading"><div className="loader" /><p>Session expired — taking you to login…</p></div>;
+}
+
 function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const queryClient = useQueryClient();
   const { language } = useLanguage();
@@ -1601,7 +1606,11 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   };
 
   if (workspace.isPending) return <div className="loading"><div className="loader" /><p>Opening the ledger…</p></div>;
-  if (workspace.error || !workspace.data) return <div className="fatal"><h2>Couldn’t open your records</h2><p>{String(workspace.error ?? "Unknown error")}</p><button onClick={() => workspace.refetch()}>Try again</button></div>;
+  if (workspace.error || !workspace.data) {
+    const errMsg = String(workspace.error ?? "Unknown error");
+    if (/session|expired|unauthori|please log in|log in again/i.test(errMsg)) return <SessionExpiredNotice onLogout={onLogout} />;
+    return <div className="fatal"><h2>Couldn’t open your records</h2><p>{errMsg}</p><button onClick={() => workspace.refetch()}>Try again</button></div>;
+  }
 
   const nav = [
     { id: "dashboard" as const, label: "Home", icon: "dashboard" as const, group: "MENU" },
@@ -2240,7 +2249,11 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
   const [directoryView, setDirectoryView] = useState<"accounts" | "feedback">("accounts");
   const dashboard = useQuery({ queryKey: ["admin-dashboard"], queryFn: () => api.getAdminDashboard({}) });
   if (dashboard.isPending) return <div className="loading"><div className="loader" /><p>Opening the ledger…</p></div>;
-  if (dashboard.error || !dashboard.data) return <div className="fatal"><h2>Couldn’t open your records</h2><p>{String(dashboard.error ?? "Unknown error")}</p><button className="secondary" onClick={() => dashboard.refetch()}>Try again</button></div>;
+  if (dashboard.error || !dashboard.data) {
+    const adminErr = String(dashboard.error ?? "Unknown error");
+    if (/session|expired|unauthori|please log in|log in again/i.test(adminErr)) return <SessionExpiredNotice onLogout={onLogout} />;
+    return <div className="fatal"><h2>Couldn’t open your records</h2><p>{adminErr}</p><button className="secondary" onClick={() => dashboard.refetch()}>Try again</button></div>;
+  }
   const totals = dashboard.data.totals;
   return <div className="app-shell admin-shell">
     <SafeAreaTopScrim backgroundColor="var(--bg)" />
