@@ -3049,14 +3049,27 @@ button:active { transform: scale(.96); }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .hide-desktop { display: none; }
 @media (max-width: 720px) {
+  .product-table-wrap { background: transparent; border: 0; overflow: visible; }
   .product-table thead { display: none; }
-  .product-table, .product-table tbody, .product-table tr, .product-table td { display: block; width: 100%; }
-  .product-table tbody tr { border-bottom: 1px solid var(--border); padding: 8px 4px; }
-  .product-table tbody td { border: 0; padding: 4px 14px; display: flex; align-items: center; gap: 10px; }
-  .product-table tbody td:nth-child(4), .product-table tbody td:nth-child(6),
-  .product-table tbody td:nth-child(7), .product-table tbody td:nth-child(8) { display: none; }
-  .hide-desktop { display: block; font-size: 12px; color: var(--dim); font-weight: 400; }
-  .product-table .row-actions { display: flex; gap: 4px; }
+  .product-table, .product-table tbody { display: block; }
+  .product-table tbody { display: flex; flex-direction: column; gap: 12px; }
+  .product-table tr.product-row { display: grid; grid-template-columns: 56px 1fr auto; grid-template-areas: "img main actions" "img meta actions"; gap: 4px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; align-items: center; }
+  .product-table td { border: 0 !important; padding: 0 !important; display: block; }
+  .product-table .cell-image { grid-area: img; }
+  .product-table .cell-image .product-thumb { width: 56px; height: 56px; border-radius: 14px; }
+  .product-table .cell-main { grid-area: main; min-width: 0; }
+  .product-table .cell-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .product-table .cell-top strong { font-size: 15px; color: var(--text); }
+  .product-table .stock-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #e3f7ec; color: #149a5b; white-space: nowrap; }
+  .product-table .stock-badge.low { background: #fdecec; color: #d33f3f; }
+  .product-table .cell-meta { font-size: 12.5px; color: var(--dim); margin-top: 3px; }
+  .product-table .cell-meta .price { font-weight: 800; color: var(--text); font-size: 14px; }
+  .product-table .cell-id, .product-table .cell-brand, .product-table .cell-count,
+  .product-table .cell-type, .product-table .cell-shelf, .product-table .cell-supplier { display: none; }
+  .product-table .row-actions { grid-area: actions; display: flex; flex-direction: column; gap: 2px; }
+  .product-table .row-actions button { padding: 8px; border-radius: 10px; color: var(--dim); }
+  .product-table .row-actions button:hover { background: var(--bg); color: var(--text); }
+  .hide-desktop { display: none; }
 }
 
 /* Sidebar profile (top) — desktop only */
