@@ -1,0 +1,1 @@
+{"name":"daybill-exact","private":true,"scripts":{"build":"npm --prefix web run build","typecheck":"npm --prefix web run typecheck && npm --prefix api run typecheck"},"type":"module"}

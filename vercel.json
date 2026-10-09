@@ -1,0 +1,1 @@
+{"$schema":"https://openapi.vercel.sh/vercel.json","buildCommand":"npm --prefix web install --no-audit --no-fund && npm --prefix api install --no-audit --no-fund && npm --prefix web run build","framework":null,"functions":{"api/[action].ts":{"maxDuration":30}},"outputDirectory":"web/dist","rewrites":[{"destination":"/index.html","source":"/((?!api/).*)"}]}
