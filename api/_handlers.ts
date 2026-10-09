@@ -305,6 +305,8 @@ export const Actions = {
           id: row.id, name: row.name, unit: row.unit, unit_price: row.unitPrice, unit_cost: row.unitCost,
           stock_quantity: row.stockQuantity, supplier_id: row.supplierId,
           supplier_name: row.supplierId ? contactsById.get(row.supplierId)?.name ?? null : null,
+          brand: row.brand ?? "", product_type: row.productType ?? "", shelf_code: row.shelfCode ?? "",
+          image_url: row.imageBlobKey && row.imageBlobKey.startsWith("data:") ? row.imageBlobKey : null,
         })),
         invoices: invoiceRows.map((row) => {
           const contact = contactsById.get(row.customerId);
@@ -468,6 +470,7 @@ export const Actions = {
         const supplierRows = await db.select().from(schema.contacts).where(and(eq(schema.contacts.id, args.supplier_id), eq(schema.contacts.accountId, account.id), eq(schema.contacts.active, true))).limit(1);
         if (supplierRows[0]?.kind !== "supplier") throw new Error("Choose an active supplier");
       }
+      const imageKey = args.image_data_base64 && args.image_mime_type ? `data:${args.image_mime_type};base64,${args.image_data_base64}` : undefined;
       if (args.id) {
         const rows = await db.update(schema.products).set({
           name: args.name,
@@ -476,6 +479,10 @@ export const Actions = {
           unitCost: args.unit_cost,
           stockQuantity: args.stock_quantity,
           supplierId: args.supplier_id,
+          brand: args.brand ?? "",
+          productType: args.product_type ?? "",
+          shelfCode: args.shelf_code ?? "",
+          ...(imageKey ? { imageBlobKey: imageKey } : {}),
           updatedAt: new Date(),
         }).where(and(eq(schema.products.id, args.id), eq(schema.products.accountId, account.id))).returning({ id: schema.products.id });
         const updated = rows[0];
@@ -491,6 +498,10 @@ export const Actions = {
         unitCost: args.unit_cost,
         stockQuantity: args.stock_quantity,
         supplierId: args.supplier_id,
+        brand: args.brand ?? "",
+        productType: args.product_type ?? "",
+        shelfCode: args.shelf_code ?? "",
+        ...(imageKey ? { imageBlobKey: imageKey } : {}),
       }).returning({ id: schema.products.id });
       const inserted = rows[0];
       if (!inserted) throw new Error("Could not save product");

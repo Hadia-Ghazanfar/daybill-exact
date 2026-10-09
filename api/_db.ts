@@ -129,6 +129,10 @@ CREATE TABLE IF NOT EXISTS products (
   unit_cost INTEGER NOT NULL DEFAULT 0,
   stock_quantity INTEGER NOT NULL DEFAULT 0,
   supplier_id INTEGER,
+  brand TEXT NOT NULL DEFAULT '',
+  product_type TEXT NOT NULL DEFAULT '',
+  shelf_code TEXT NOT NULL DEFAULT '',
+  image_blob_key TEXT,
   active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
@@ -243,6 +247,10 @@ export async function ensureInit(): Promise<void> {
     await getSql().unsafe(`ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS bank_account_title TEXT NOT NULL DEFAULT ''`);
     await getSql().unsafe(`ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS bank_account_number TEXT NOT NULL DEFAULT ''`);
     await getSql().unsafe(`ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS bank_iban TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS product_type TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS shelf_code TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS image_blob_key TEXT`);
   } catch { /* ignore */ }
   // Create owner admin account if none exists (for first-time setup)
   try {

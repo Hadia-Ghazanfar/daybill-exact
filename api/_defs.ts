@@ -47,6 +47,10 @@ const productShape = z.object({
   stock_quantity: z.number(),
   supplier_id: z.number().nullable(),
   supplier_name: z.string().nullable(),
+  brand: z.string().optional(),
+  product_type: z.string().optional(),
+  shelf_code: z.string().optional(),
+  image_url: z.string().nullable().optional(),
 });
 
 const invoiceSummaryShape = z.object({
@@ -293,6 +297,11 @@ export const actionDefs = {
       unit_cost: z.number().int().nonnegative().max(100_000_000_000),
       stock_quantity: z.number().int().nonnegative().max(100_000_000),
       supplier_id: z.number().int().positive().nullable(),
+      brand: z.string().trim().max(80).optional(),
+      product_type: z.string().trim().max(60).optional(),
+      shelf_code: z.string().trim().max(40).optional(),
+      image_data_base64: z.string().max(6_000_000).optional(),
+      image_mime_type: z.enum(["image/jpeg", "image/png"]).optional(),
     }),
     response: z.object({ id: z.number() }),
   },
