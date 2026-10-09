@@ -3178,8 +3178,8 @@ button:active { transform: scale(.96); }
   }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav) button svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav) button span { display: block !important; font-size: 13px !important; font-weight: 600 !important; max-width: none !important; overflow: visible !important; }
-  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active { background: #ffffff !important; color: #0b2b26 !important; font-weight: 700 !important; border-radius: 999px !important; }
-  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active svg { color: #0b2b26 !important; }
+  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active { background: var(--accent) !important; color: #052b20 !important; font-weight: 700 !important; border-radius: 999px !important; }
+  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active svg { color: #052b20 !important; }
   /* Collapsed (icon-only) sidebar */
   html:not(.phone-layout) .sidebar-collapsed.app-shell { padding-left: 82px !important; }
   html:not(.phone-layout) .sidebar-collapsed .app-brand-bar { width: 82px !important; justify-content: center !important; padding: 22px 12px !important; }
@@ -3244,17 +3244,6 @@ button:active { transform: scale(.96); }
 @media (max-width: 720px) {
   .category-chips { margin-left: -2px; margin-right: -2px; padding-left: 2px; padding-right: 2px; }
 }
-
-/* === Phone OTP verification === */
-#otp-recaptcha { position: absolute; visibility: hidden; pointer-events: none; }
-.otp-section { margin: 14px 0; padding: 14px; border: 1px dashed var(--border); border-radius: 12px; background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
-.otp-section label { margin-bottom: 10px; }
-.otp-actions { display: flex; gap: 10px; margin-top: 4px; }
-.otp-actions .secondary, .otp-actions .primary { flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-.otp-actions .secondary { border: 1px solid var(--border); background: var(--surface); color: var(--text); }
-.otp-actions .primary { border: 0; background: var(--accent); color: #fff; }
-.otp-actions button:disabled { opacity: .5; cursor: not-allowed; }
-.otp-verified { color: #149a5b; font-weight: 700; font-size: 14px; margin: 10px 0; }
 
 /* ---- Daybill Assistant chatbot ---- */
 .chatbot-fab { position: fixed; right: 22px; bottom: 22px; z-index: 200; width: 60px; height: 60px; border-radius: 50%; border: 3px solid #fff; background: #0d3b42; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,.25); display: grid; place-items: center; overflow: hidden; padding: 0; }
