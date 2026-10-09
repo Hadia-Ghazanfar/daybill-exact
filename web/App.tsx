@@ -591,7 +591,72 @@ const urduUi: Record<string, string> = {
   "← Back to invoice": "رسید پر واپس جائیں ←",
   "· cost": "· لاگت",
   "· current stock": "· موجودہ اسٹاک",
-  "· due": "· واجب الادا"
+  "· due": "· واجب الادا",
+  "4-digit PIN": "4 ہندسوں کا پن",
+  "ACCOUNT DIRECTORY": "اکاؤنٹ ڈائریکٹری",
+  "Active shop accounts": "فعال دکان اکاؤنٹس",
+  "Add Item": "شے شامل کریں",
+  "Add product to catalog": "کیٹلاگ میں پروڈکٹ شامل کریں",
+  "Add purchase": "خریداری شامل کریں",
+  "Administrator": "ایڈمنسٹریٹر",
+  "BILLING RECORDS": "بلنگ ریکارڈز",
+  "CASH FLOW": "کیش فلو",
+  "Confirm PIN": "پن کی تصدیق کریں",
+  "Delivered purchases awaiting payment": "ادائیگی کے منتظر ڈیلیور شدہ خریداریاں",
+  "Description": "تفصیل",
+  "Don’t have an account?": "اکاؤنٹ نہیں ہے؟",
+  "Draft": "مسودہ",
+  "Due date": "واجب الادا تاریخ",
+  "FEEDBACK": "رائے",
+  "Find, review and follow up on every invoice.": "ہر رسید تلاش کریں، جائزہ لیں اور فالو اپ کریں۔",
+  "INVOICE DETAILS": "رسید کی تفصیلات",
+  "Invoice number": "رسید نمبر",
+  "Issued date": "جاری کرنے کی تاریخ",
+  "Items sold": "فروخت شدہ اشیاء",
+  "LATEST": "تازہ ترین",
+  "New invoice": "نئی رسید",
+  "Notes / project": "نوٹس / پروجیکٹ",
+  "Oversight panel": "نگرانی پینل",
+  "Overview": "جائزہ",
+  "PINs do not match.": "پن مماثل نہیں ہیں۔",
+  "PLATFORM OVERVIEW": "پلیٹ فارم کا جائزہ",
+  "Payments collected from paid invoices": "ادا شدہ رسیدوں سے وصول شدہ ادائیگیاں",
+  "Phone number": "فون نمبر",
+  "Phone number must use the 0300-0000000 format.": "فون نمبر 0300-0000000 فارمیٹ میں ہونا چاہیے۔",
+  "Preview invoice": "رسید کا پیش نظارہ",
+  "Price": "قیمت",
+  "Received": "موصول شدہ",
+  "Recent Activity": "حالیہ سرگرمی",
+  "Revenue minus cost": "آمدنی منفی لاگت",
+  "Sales total": "کل فروخت",
+  "Saved customer records": "محفوظ شدہ گاہک ریکارڈز",
+  "Saved supplier records": "محفوظ شدہ سپلائر ریکارڈز",
+  "Search bills": "بل تلاش کریں",
+  "Secure owner account": "محفوظ مالک اکاؤنٹ",
+  "Send Reminder": "یاد دہانی بھیجیں",
+  "Signup": "سائن اپ",
+  "Total amount": "کل رقم",
+  "USER MESSAGES": "صارف پیغامات",
+  "Unpaid": "غیر ادا شدہ",
+  "Use the local format 0300-0000000.": "مقامی فارمیٹ 0300-0000000 استعمال کریں۔",
+  "SENT": "بھیجا گیا",
+  "Admin records": "ایڈمن ریکارڈز",
+  "Chart time range": "چارٹ کی مدت",
+  "Confirm 4-digit PIN": "4 ہندسوں کے پن کی تصدیق کریں",
+  "Daybill administrator header": "ڈے بل ایڈمنسٹریٹر ہیڈر",
+  "Daybill app sidebar": "ڈے بل ایپ سائڈبار",
+  "Daybill business overview": "ڈے بل کاروباری جائزہ",
+  "Daybill login": "ڈے بل لاگ ان",
+  "No activity yet": "ابھی کوئی سرگرمی نہیں",
+  "No matching invoices": "کوئی مماثل رسید نہیں",
+  "No matching supplier invoices": "کوئی مماثل سپلائر رسید نہیں",
+  "Platform totals": "پلیٹ فارم کل",
+  "Project, payment terms, or a short thank-you": "پروجیکٹ، ادائیگی کی شرائط، یا مختصر شکریہ",
+  "Received total": "کل موصول شدہ",
+  "Search name or invoice number": "نام یا رسید نمبر تلاش کریں",
+  "Street, area and city": "گلی، علاقہ اور شہر",
+  "e.g. Ali Raza": "مثلاً علی رضا",
+
 };
 
 function translateUiText(value: string) {
@@ -1559,7 +1624,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         {selectedContactId !== null ? <ContactHistoryView contact={contacts.find((item) => item.id === selectedContactId) ?? null} invoices={workspace.data.invoices} purchases={workspace.data.purchases} currency={settings.currency} onBack={() => setSelectedContactId(null)} onOpenInvoice={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} /> : tab === "dashboard" ? <DashboardView workspace={workspace.data} onCreate={() => { setCreateKind("sale"); setTab("create"); }} onCreatePurchase={() => { setCreateKind("purchase"); setSavedPurchaseId(null); setTab("create"); }} onOpenInvoice={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} onInventory={() => setTab("products")} /> : tab === "create" ? (
           <section className="create-view">
             <div className="create-header reference-create-header">
-              <div><p className="eyebrow">{createKind === "sale" ? "SALES INVOICE" : "SUPPLIER INVOICE"}</p><h1>Create</h1><p className="create-subtitle">{createKind === "sale" ? (savedInvoiceId ? "Ready to send" : "Build a customer invoice") : (savedPurchaseId ? "Supplier document ready" : "Record a supplier document")}</p></div>
+              <div><p className="eyebrow">{createKind === "sale" ? "SALES INVOICE" : "SUPPLIER INVOICE"}</p><h1>{ui(language, "Create")}</h1><p className="create-subtitle">{createKind === "sale" ? (savedInvoiceId ? "Ready to send" : "Build a customer invoice") : (savedPurchaseId ? "Supplier document ready" : "Record a supplier document")}</p></div>
               <div className="create-head-actions"><div className="draft-number"><span>Invoice number</span><strong>{createKind === "sale" ? (savedInvoiceId ? displayInvoice.invoice_number : "DRAFT") : (savedPurchaseId ? "SAVED" : "DRAFT")}</strong></div><button className="icon-button" aria-label="Edit shop details" onClick={() => setShowSettings(true)}><Icon name="settings" /></button></div>
             </div>
             <div className="transaction-switch" role="group" aria-label="Invoice type"><button className={createKind === "sale" ? "active" : ""} onClick={() => setCreateKind("sale")}><Icon name="invoice" />Sales invoice</button><button className={createKind === "purchase" ? "active" : ""} onClick={() => setCreateKind("purchase")}><Icon name="truck" />Supplier invoice</button></div>
@@ -1740,6 +1805,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   const [shopAddress, setShopAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const [adminEmail, setAdminEmail] = useState("hadiaghazanfar354@gmail.com");
   const [adminPassword, setAdminPassword] = useState("");
@@ -1814,8 +1880,8 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
         <div className="login-mobile-brand"><BrandIdentity compact /></div>
         <div className="login-card">
           <p className="auth-kicker">WELCOME BACK</p>
-          <h1>{isCreating ? "Create new account" : "Welcome back"}</h1>
-          <p className="auth-intro">{isCreating ? "Each account keeps its products, contacts, invoices, purchases and shop settings separate." : "Sign in to continue to your business."}</p>
+          <h1>{isCreating ? ui(language, "Create new account") : ui(language, "Welcome back")}</h1>
+          <p className="auth-intro">{isCreating ? ui(language, "Each account keeps its products, contacts, invoices, purchases and shop settings separate.") : ui(language, "Sign in to continue to your business.")}</p>
 
           <div className="login-role-tabs" role="tablist" aria-label="Choose how to sign in">
             <button type="button" role="tab" aria-selected={mode !== "admin"} className={mode !== "admin" ? "active" : ""} onClick={() => changeMode("user-login")}><Icon name="profile" />User</button>
@@ -1825,9 +1891,9 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
           {mode === "admin" ? <form className="login-form admin-form" onSubmit={(event) => { event.preventDefault(); if (adminFormValid) adminLogin.mutate(); }}>
             <label><span>Admin email</span><input autoFocus aria-label="Admin email" type="email" autoComplete="username" value={adminEmail} onChange={(event) => { setAdminEmail(event.target.value); setAdminPassword(""); setAdminConfirmation(""); adminLogin.reset(); }} /></label>
             {adminStatus.isLoading ? <p className="auth-field-help" role="status">Checking administrator account…</p> : null}
-            <label><span>{adminSetupRequired ? "Set password" : "Password"}</span><input aria-label={adminSetupRequired ? "Set admin password" : "Admin password"} type="password" autoComplete={adminSetupRequired ? "new-password" : "current-password"} minLength={10} maxLength={128} placeholder="••••••••••" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} /></label>
+            <label><span>{adminSetupRequired ? "Set password" : "Password"}</span><span className="password-field"><input aria-label={adminSetupRequired ? "Set admin password" : "Admin password"} type={showPassword ? "text" : "password"} autoComplete={adminSetupRequired ? "new-password" : "current-password"} minLength={10} maxLength={128} placeholder="••••••••••" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? "🙈" : "👁️"}</button></span></label>
             <p className="auth-field-help">Use at least 10 characters.</p>
-            {adminSetupRequired ? <label><span>Confirm password</span><input aria-label="Confirm admin password" type="password" autoComplete="new-password" minLength={10} maxLength={128} placeholder="••••••••••" value={adminConfirmation} onChange={(event) => setAdminConfirmation(event.target.value)} /></label> : null}
+            {adminSetupRequired ? <label><span>Confirm password</span><span className="password-field"><input aria-label="Confirm admin password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={10} maxLength={128} placeholder="••••••••••" value={adminConfirmation} onChange={(event) => setAdminConfirmation(event.target.value)} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? "🙈" : "👁️"}</button></span></label> : null}
             {!emailValid && adminEmail.length > 0 ? <p className="auth-error" role="alert">Enter a valid email address.</p> : null}
             {adminSetupRequired && adminConfirmation.length >= 10 && adminPassword !== adminConfirmation ? <p className="auth-error" role="alert">Passwords do not match.</p> : null}
             {error ? <p className="auth-error" role="alert">{error instanceof Error ? error.message : "Could not continue. Try again."}</p> : null}
@@ -1849,8 +1915,8 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             </> : null}
             <label><span>Phone number</span><input autoFocus={!isCreating} aria-label="Phone number" inputMode="numeric" autoComplete="tel" maxLength={12} value={phone} onChange={(event) => setPhone(normalizePhone(event.target.value))} placeholder="0300-0000000" /></label>
             <p className="auth-field-help">Use the local format 0300-0000000.</p>
-            <label><span>4-digit PIN</span><input aria-label={isCreating ? "Set 4-digit PIN" : "4-digit PIN"} type="password" inputMode="numeric" autoComplete={isCreating ? "new-password" : "current-password"} maxLength={4} pattern="[0-9]{4}" placeholder="••••" value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 4))} /></label>
-            {isCreating ? <label><span>Confirm PIN</span><input aria-label="Confirm 4-digit PIN" type="password" inputMode="numeric" autoComplete="new-password" maxLength={4} pattern="[0-9]{4}" placeholder="••••" value={confirmation} onChange={(event) => setConfirmation(event.target.value.replace(/\D/g, "").slice(0, 4))} /></label> : null}
+            <label><span>4-digit PIN</span><span className="password-field"><input aria-label={isCreating ? "Set 4-digit PIN" : "4-digit PIN"} type={showPassword ? "text" : "password"} inputMode="numeric" autoComplete={isCreating ? "new-password" : "current-password"} maxLength={4} pattern="[0-9]{4}" placeholder="••••" value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 4))} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide PIN" : "Show PIN"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? "🙈" : "👁️"}</button></span></label>
+            {isCreating ? <label><span>Confirm PIN</span><span className="password-field"><input aria-label="Confirm 4-digit PIN" type={showPassword ? "text" : "password"} inputMode="numeric" autoComplete="new-password" maxLength={4} pattern="[0-9]{4}" placeholder="••••" value={confirmation} onChange={(event) => setConfirmation(event.target.value.replace(/\D/g, "").slice(0, 4))} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide PIN" : "Show PIN"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? "🙈" : "👁️"}</button></span></label> : null}
             {!phoneValid && phone.length > 0 ? <p className="auth-error" role="alert">Phone number must use the 0300-0000000 format.</p> : null}
             {isCreating && confirmation.length === 4 && pin !== confirmation ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
             {error ? <p className="auth-error" role="alert">{error instanceof Error ? error.message : "Could not continue. Try again."}</p> : null}
@@ -2192,7 +2258,7 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
       </div>
       {directoryView === "accounts" ? <RegisteredAccountsPanel accounts={dashboard.data.accounts} /> : <UserFeedbackPanel feedback={dashboard.data.feedback} />}
     </section> : <AdminProfile session={session} onLogout={onLogout} />}</main>
-    <nav className="bottom-nav admin-nav" aria-label="Primary navigation"><button className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><Icon name="dashboard" /><span>Home</span></button><button className={view === "profile" ? "active" : ""} onClick={() => setView("profile")}><Icon name="profile" /><span>Profile</span></button></nav>
+    <nav className="bottom-nav admin-nav" aria-label="Primary navigation"><button className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><Icon name="dashboard" /><span>{ui(language, "Home")}</span></button><button className={view === "profile" ? "active" : ""} onClick={() => setView("profile")}><Icon name="profile" /><span>{ui(language, "Profile")}</span></button></nav>
   </div>;
 }
 
@@ -2305,9 +2371,9 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const attentionCount = overdue.length + overduePurchases.length;
 
   return <section className="dashboard-view overview-view">
-    <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>Business overview</p><h1>Overview</h1></div></div><div className="overview-header-actions"><button className="notification-button" aria-label={`${attentionCount} payment alerts`} onClick={() => document.getElementById(attentionCount ? "attention-section" : "recent-activity")?.scrollIntoView({ behavior: "smooth", block: "start" })}><Icon name="bell" />{attentionCount ? <span>{attentionCount}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
+    <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="notification-button" aria-label={`${attentionCount} payment alerts`} onClick={() => document.getElementById(attentionCount ? "attention-section" : "recent-activity")?.scrollIntoView({ behavior: "smooth", block: "start" })}><Icon name="bell" />{attentionCount ? <span>{attentionCount}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
     <section className="received-card" aria-label="Received total">
-      <div className="received-copy"><span>Received <i className={`trend-badge ${trendPercent < 0 ? "down" : ""}`}>{trendPercent >= 0 ? "+" : ""}{trendPercent}%</i></span><strong>{money(paidRevenue, workspace.settings.currency)}</strong><small>Payments collected from paid invoices</small></div>
+      <div className="received-copy"><span>Received <i className={`trend-badge ${trendPercent < 0 ? "down" : ""}`}>{trendPercent >= 0 ? "+" : ""}{trendPercent}%</i></span><strong>{money(paidRevenue, workspace.settings.currency)}</strong><small>{ui(language, "Payments collected from paid invoices")}</small></div>
       <div className="received-chart" role="img" aria-label="Daily invoice sales for the last seven days"><ResponsiveContainer width="100%" height="100%"><AreaChart data={salesSeries} margin={{ top: 10, right: 4, left: 4, bottom: 0 }}><defs><linearGradient id="overviewFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#34d995" stopOpacity={0.45} /><stop offset="100%" stopColor="#34d995" stopOpacity={0.02} /></linearGradient></defs><Area type="monotone" dataKey="sales" stroke="#54e6aa" strokeWidth={2.5} fill="url(#overviewFill)" dot={false} /></AreaChart></ResponsiveContainer></div>
     </section>
     <section className="stat-tiles" aria-label="Business totals">
@@ -2346,7 +2412,7 @@ function SettingsSheet({ settings, onClose }: { settings: Workspace["settings"];
     <div className="logo-control">{logoUrl ? <img src={logoUrl} alt="Current shop logo" /> : <div className="logo-placeholder">LOGO</div>}<div><strong>Shop logo</strong><p>Optional · PNG or JPEG</p><button type="button" className="secondary compact" disabled={upload.isPending} onClick={() => fileRef.current?.click()}>{upload.isPending ? "Uploading…" : logoUrl ? "Replace logo" : "Upload logo"}</button><input ref={fileRef} hidden tabIndex={-1} type="file" accept="image/png,image/jpeg" onChange={(event) => { const file = event.target.files?.[0]; if (file) upload.mutate(file); }} /></div></div>
     <label className="field"><span>Business / shop name</span><input required value={form.business_name} onChange={(event) => setForm({ ...form, business_name: event.target.value })} placeholder="e.g. Noor Traders" /></label>
     <div className="field-row"><label className="field"><span>Phone</span><input inputMode="tel" maxLength={12} pattern="03[0-9]{2}-[0-9]{7}" value={form.phone} onChange={(event) => setForm({ ...form, phone: formatLocalPhoneInput(event.target.value) })} placeholder="0300-0000000" /></label><label className="field currency"><span>Currency</span><input required minLength={3} maxLength={6} value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value.toUpperCase() })} /></label></div>
-    <label className="field"><span>Address</span><textarea rows={2} value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Shop address" /></label>
+    <label className="field"><span>{ui(language, "Address")}</span><textarea rows={2} value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Shop address" /></label>
     <label className="field"><span>Invoice accent</span><div className="color-field"><input aria-label="Invoice accent color" type="color" value={form.accent_color} onChange={(event) => setForm({ ...form, accent_color: event.target.value })} /><code>{form.accent_color.toUpperCase()}</code></div></label>
     {(save.error || upload.error) ? <p className="error" role="alert">{String(save.error ?? upload.error)}</p> : null}
     <button className="primary wide" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save shop details"}</button>
@@ -2362,14 +2428,15 @@ function ProductsView({ products, contacts, currency, onDone }: { products: Prod
   const save = useMutation({ mutationFn: () => api.saveProduct({ id: editing?.id, name: form.name, unit: form.unit, unit_price: Math.round(Number(form.price) * 100), unit_cost: Math.round(Number(form.cost || 0) * 100), stock_quantity: Math.max(0, Math.floor(Number(form.stock) || 0)), supplier_id: form.supplierId ? Number(form.supplierId) : null }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); setShowForm(false); setEditing(null); setForm({ name: "", unit: "item", price: "", cost: "", stock: "", supplierId: "" }); } });
   const archive = useMutation({ mutationFn: (id: number) => api.archiveProduct({ id }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workspace"] }) });
   const startEdit = (product: Product) => { setEditing(product); setForm({ name: product.name, unit: product.unit, price: String(product.unit_price / 100), cost: String(product.unit_cost / 100), stock: String(product.stock_quantity), supplierId: product.supplier_id ? String(product.supplier_id) : "" }); setShowForm(true); };
-  return <section className="manage-view"><div className="manage-head"><div><p className="eyebrow">SAVED CATALOG</p><h1>Products</h1><p>Prices added here fill invoices automatically.</p></div><button className="primary compact" onClick={() => { setEditing(null); setForm({ name: "", unit: "item", price: "", cost: "", stock: "", supplierId: "" }); setShowForm(true); }}><Icon name="plus" />Add</button></div>
+  return <section className="manage-view"><div className="manage-head"><div><p className="eyebrow">SAVED CATALOG</p><h1>Products</h1><p>Prices added here fill invoices automatically.</p></div><button className="primary compact" onClick={() => { setEditing(null); setForm({ name: "", unit: "item", price: "", cost: "", stock: "", supplierId: "" }); setShowForm(true); }}><Icon name="plus" />{ui(language, "Add")}</button></div>
     {showForm ? <form className="inline-form" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}><div className="section-heading"><h2>{editing ? "Edit product" : "New product"}</h2><button type="button" className="close-button" aria-label="Close product form" onClick={() => setShowForm(false)}>×</button></div><label className="field"><span>Product name</span><input autoFocus required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="e.g. Cooking oil 1L" /></label><div className="field-row"><label className="field"><span>Selling price ({currency})</span><input required type="number" min="0" step="0.01" value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} /></label><label className="field"><span>Cost price ({currency})</span><input required type="number" min="0" step="0.01" value={form.cost} onChange={(event) => setForm({ ...form, cost: event.target.value })} /></label></div><div className="field-row"><label className="field"><span>Unit</span><input required value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} placeholder="item, kg, box" /></label><label className="field"><span>Units in stock</span><input required type="number" min="0" step="1" value={form.stock} onChange={(event) => setForm({ ...form, stock: event.target.value })} /></label></div><label className="field"><span>Supplier</span><select aria-label="Supplier for product" value={form.supplierId} onChange={(event) => setForm({ ...form, supplierId: event.target.value })}><option value="">No supplier linked</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></label>{!suppliers.length ? <p className="form-hint">Add a supplier under Contacts, then return here to link it with this item.</p> : null}{save.error ? <p className="error">{String(save.error)}</p> : null}<button className="primary wide" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save product"}</button></form> : null}
     {products.length ? <div className="record-list">{products.map((product) => <article className="record" key={product.id}><div className="record-icon"><Icon name="box" /></div><div><strong>{product.name}</strong><span>{money(product.unit_price, currency)} · cost {money(product.unit_cost, currency)}</span><span>{product.supplier_name ? `Supplier: ${product.supplier_name}` : "No supplier linked"}</span><span className={product.stock_quantity <= 5 ? "stock-low" : ""}>{product.stock_quantity} {product.unit} in stock</span></div><button aria-label={`Edit ${product.name}`} onClick={() => startEdit(product)}><Icon name="pencil" /></button><button aria-label={`Archive ${product.name}`} onClick={() => archive.mutate(product.id)}><Icon name="trash" /></button></article>)}</div> : !showForm ? <Empty title="No products saved" body="Add the items you sell and their usual prices." /> : null}
-    <button className="return-link" onClick={onDone}>← Back to invoice</button>
+    <button className="return-link" onClick={onDone}>← {ui(language, "Back to invoice")}</button>
   </section>;
 }
 
 function ContactsView({ contacts, onDone, onOpenContact }: { contacts: Contact[]; onDone: () => void; onOpenContact: (id: number) => void }) {
+  const { language } = useLanguage();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<Contact | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -2379,11 +2446,11 @@ function ContactsView({ contacts, onDone, onOpenContact }: { contacts: Contact[]
   const archive = useMutation({ mutationFn: (id: number) => api.archiveContact({ id }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workspace"] }) });
   const visible = filter === "all" ? contacts : contacts.filter((contact) => contact.kind === filter);
   const startEdit = (contact: Contact) => { setEditing(contact); setForm({ name: contact.name, phone: formatPhoneDisplay(contact.phone), address: contact.address, kind: contact.kind }); setShowForm(true); };
-  return <section className="manage-view"><div className="manage-head"><div><p className="eyebrow">ADDRESS BOOK</p><h1>Contacts</h1><p>Customers appear in invoices; suppliers stay organized here.</p></div><button className="primary compact" onClick={() => { setEditing(null); setForm({ name: "", phone: "", address: "", kind: "customer" }); setShowForm(true); }}><Icon name="plus" />Add</button></div>
-    {showForm ? <form className="inline-form" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}><div className="section-heading"><h2>{editing ? "Edit contact" : "New contact"}</h2><button type="button" className="close-button" aria-label="Close contact form" onClick={() => setShowForm(false)}>×</button></div><div className="segmented" role="group" aria-label="Contact type"><button type="button" className={form.kind === "customer" ? "active" : ""} onClick={() => setForm({ ...form, kind: "customer" })}>Customer</button><button type="button" className={form.kind === "supplier" ? "active" : ""} onClick={() => setForm({ ...form, kind: "supplier" })}>Supplier</button></div><label className="field"><span>Name</span><input autoFocus required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label><label className="field"><span>WhatsApp / phone</span><input inputMode="tel" maxLength={12} pattern="03[0-9]{2}-[0-9]{7}" value={form.phone} onChange={(event) => setForm({ ...form, phone: formatLocalPhoneInput(event.target.value) })} placeholder="0300-0000000" /></label><label className="field"><span>Address</span><textarea rows={2} value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} /></label>{save.error ? <p className="error">{String(save.error)}</p> : null}<button className="primary wide" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save contact"}</button></form> : null}
-    <div className="filter-tabs"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>All</button><button className={filter === "customer" ? "active" : ""} onClick={() => setFilter("customer")}>Customers</button><button className={filter === "supplier" ? "active" : ""} onClick={() => setFilter("supplier")}>Suppliers</button></div>
+  return <section className="manage-view"><div className="manage-head"><div><p className="eyebrow">{ui(language, "ADDRESS BOOK")}</p><h1>{ui(language, "Contacts")}</h1><p>{ui(language, "Customers appear in invoices; suppliers stay organized here.")}</p></div><button className="primary compact" onClick={() => { setEditing(null); setForm({ name: "", phone: "", address: "", kind: "customer" }); setShowForm(true); }}><Icon name="plus" />{ui(language, "Add")}</button></div>
+    {showForm ? <form className="inline-form" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}><div className="section-heading"><h2>{editing ? ui(language, "Edit contact") : ui(language, "New contact")}</h2><button type="button" className="close-button" aria-label="Close contact form" onClick={() => setShowForm(false)}>×</button></div><div className="segmented" role="group" aria-label="Contact type"><button type="button" className={form.kind === "customer" ? "active" : ""} onClick={() => setForm({ ...form, kind: "customer" })}>{ui(language, "Customer")}</button><button type="button" className={form.kind === "supplier" ? "active" : ""} onClick={() => setForm({ ...form, kind: "supplier" })}>{ui(language, "Supplier")}</button></div><label className="field"><span>{ui(language, "Name")}</span><input autoFocus required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label><label className="field"><span>{ui(language, "WhatsApp / phone")}</span><input inputMode="tel" maxLength={12} pattern="03[0-9]{2}-[0-9]{7}" value={form.phone} onChange={(event) => setForm({ ...form, phone: formatLocalPhoneInput(event.target.value) })} placeholder="0300-0000000" /></label><label className="field"><span>{ui(language, "Address")}</span><textarea rows={2} value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} /></label>{save.error ? <p className="error">{String(save.error)}</p> : null}<button className="primary wide" disabled={save.isPending}>{save.isPending ? ui(language, "Saving…") : ui(language, "Save contact")}</button></form> : null}
+    <div className="filter-tabs"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>{ui(language, "All")}</button><button className={filter === "customer" ? "active" : ""} onClick={() => setFilter("customer")}>{ui(language, "Customers")}</button><button className={filter === "supplier" ? "active" : ""} onClick={() => setFilter("supplier")}>{ui(language, "Suppliers")}</button></div>
     {visible.length ? <div className="record-list">{visible.map((contact) => <article className="record contact-record" key={contact.id}><button type="button" className="contact-record-main" onClick={() => onOpenContact(contact.id)} aria-label={`View ${contact.name} history`}><ContactAvatar name={contact.name} kind={contact.kind} contactKey={String(contact.id)} /><span><strong>{contact.name}</strong><small>{contact.phone ? formatPhoneDisplay(contact.phone) : contact.kind}</small></span><span className="chevron">›</span></button><button aria-label={`Edit ${contact.name}`} onClick={() => startEdit(contact)}><Icon name="pencil" /></button><button aria-label={`Archive ${contact.name}`} onClick={() => archive.mutate(contact.id)}><Icon name="trash" /></button></article>)}</div> : !showForm ? <Empty title="No contacts here" body="Add a customer for invoicing or a supplier for your records." /> : null}
-    <button className="return-link" onClick={onDone}>← Back to invoice</button>
+    <button className="return-link" onClick={onDone}>← {ui(language, "Back to invoice")}</button>
   </section>;
 }
 
@@ -2458,11 +2525,11 @@ function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, on
     return typeMatches && (!normalizedSearch || purchase.supplier_name.toLowerCase().includes(normalizedSearch) || purchase.purchase_number.toLowerCase().includes(normalizedSearch));
   });
   return <section className="manage-view bills-view">
-    <div className="manage-head"><div><p className="eyebrow">BILLING RECORDS</p><h1>Bills</h1><p>Find, review and follow up on every invoice.</p></div></div>
+    <div className="manage-head"><div><p className="eyebrow">BILLING RECORDS</p><h1>{ui(language, "Bills")}</h1><p>Find, review and follow up on every invoice.</p></div></div>
     <section className="bill-summary"><div><span>Paid</span><strong>{salesCounts.paid}</strong></div><div><span>Unpaid</span><strong>{salesCounts.unpaid}</strong></div><div><span>Overdue</span><strong>{salesCounts.overdue}</strong></div><div><span>Draft</span><strong>{salesCounts.draft}</strong></div></section>
     <div className="filter-tabs bill-kind-tabs"><button className={kind === "sales" ? "active" : ""} onClick={() => setKind("sales")}>Sales invoices</button><button className={kind === "purchases" ? "active" : ""} onClick={() => setKind("purchases")}>Supplier invoices</button></div>
     <label className="bill-search"><span className="sr-only">Search bills</span><Icon name="history" /><input aria-label="Search bills" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or invoice number" /></label>
-    {kind === "sales" ? <div className="filter-tabs bill-status-tabs" aria-label="Invoice status filter">{(["all", "paid", "unpaid", "overdue"] as const).map((status) => <button key={status} className={salesFilter === status ? "active" : ""} onClick={() => setSalesFilter(status)}>{status[0]?.toUpperCase()}{status.slice(1)}</button>)}</div> : <div className="filter-tabs purchase-status-tabs" aria-label="Supplier document type filter"><button className={purchaseFilter === "all" ? "active" : ""} onClick={() => setPurchaseFilter("all")}>All</button><button className={purchaseFilter === "orders" ? "active" : ""} onClick={() => setPurchaseFilter("orders")}>Purchase Orders</button><button className={purchaseFilter === "delivered" ? "active" : ""} onClick={() => setPurchaseFilter("delivered")}>Delivered</button></div>}
+    {kind === "sales" ? <div className="filter-tabs bill-status-tabs" aria-label="Invoice status filter">{(["all", "paid", "unpaid", "overdue"] as const).map((status) => <button key={status} className={salesFilter === status ? "active" : ""} onClick={() => setSalesFilter(status)}>{status[0]?.toUpperCase()}{status.slice(1)}</button>)}</div> : <div className="filter-tabs purchase-status-tabs" aria-label="Supplier document type filter"><button className={purchaseFilter === "all" ? "active" : ""} onClick={() => setPurchaseFilter("all")}>{ui(language, "All")}</button><button className={purchaseFilter === "orders" ? "active" : ""} onClick={() => setPurchaseFilter("orders")}>Purchase Orders</button><button className={purchaseFilter === "delivered" ? "active" : ""} onClick={() => setPurchaseFilter("delivered")}>Delivered</button></div>}
     {kind === "sales" ? (visibleInvoices.length ? <div className="invoice-list structured-invoice-list">{visibleInvoices.map((invoice) => {
       const overdue = isOverdue(invoice); const status = overdue ? "overdue" : invoice.payment_status;
       return <article className={`history-invoice-row ${status}`} key={invoice.id}><button type="button" className="history-contact-avatar" onClick={() => onOpenContact(invoice.customer_id)} aria-label={`View ${invoice.customer_name} history`}><ContactAvatar name={invoice.customer_name} kind="customer" contactKey={String(invoice.customer_id)} /></button><button className="invoice-main" onClick={() => onOpen(invoice.id)}><span className="invoice-customer"><strong>{invoice.customer_name}</strong><small>{invoice.invoice_number} · {invoice.issue_date}{invoice.due_date ? ` · due ${invoice.due_date}` : ""}</small></span><span className="invoice-amount"><strong>{money(invoice.total, invoice.currency)}</strong><small className={`mini-status ${status}`}>{status}</small></span><span className="chevron">›</span></button>{overdue ? <button className="reminder-button" disabled={!whatsappDigits(invoice.customer_phone)} onClick={() => openWhatsAppReminder(invoice, settings.business_name, language)}><Icon name="whatsapp" />{whatsappDigits(invoice.customer_phone) ? "Send Reminder on WhatsApp" : "WhatsApp number missing"}</button> : null}</article>;
