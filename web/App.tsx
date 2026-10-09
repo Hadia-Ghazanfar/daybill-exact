@@ -303,6 +303,30 @@ const urduUi: Record<string, string> = {
   "Account title": "اکاؤنٹ کا عنوان",
   "Account number": "اکاؤنٹ نمبر",
   "IBAN": "آئی بین",
+  "New": "نیا",
+  "Search products…": "مصنوعات تلاش کریں…",
+  "SAVED CATALOG": "محفوظ کیٹلاگ",
+  "Products": "مصنوعات",
+  "Prices added here fill invoices automatically.": "یہاں شامل کردہ قیمتیں رسیدوں میں خودکار بھری جاتی ہیں۔",
+  "Edit product": "پروڈکٹ میں ترمیم",
+  "New product": "نیا پروڈکٹ",
+  "Product image": "پروڈکٹ کی تصویر",
+  "Brand": "برانڈ",
+  "Type": "قسم",
+  "Shelf code": "شیلف کوڈ",
+  "Unit": "یونٹ",
+  "Selling price": "فروخت قیمت",
+  "Cost price": "لاگت قیمت",
+  "Stock count": "اسٹاک تعداد",
+  "Supplier": "سپلائر",
+  "No supplier": "کوئی سپلائر نہیں",
+  "Save product": "پروڈکٹ محفوظ کریں",
+  "Image": "تصویر",
+  "Count": "تعداد",
+  "Edit": "ترمیم",
+  "Delete": "حذف کریں",
+  "No products here": "یہاں کوئی پروڈکٹ نہیں",
+  "Add products to fill invoices automatically.": "رسیدیں خودکار بھرنے کے لیے پروڈکٹس شامل کریں۔",
   "Choose a customer": "گاہک چُنیں",
   "No phone saved": "فون نمبر محفوظ نہیں",
   "Select a customer to unlock Step 2.": "مرحلہ 2 کھولنے کے لیے گاہک منتخب کریں۔",
@@ -2476,13 +2500,35 @@ function ProductsView({ products, contacts, currency, onDone }: { products: Prod
   const suppliers = contacts.filter((contact) => contact.kind === "supplier");
   const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", unit: "item", price: "", cost: "", stock: "", supplierId: "" });
-  const save = useMutation({ mutationFn: () => api.saveProduct({ id: editing?.id, name: form.name, unit: form.unit, unit_price: Math.round(Number(form.price) * 100), unit_cost: Math.round(Number(form.cost || 0) * 100), stock_quantity: Math.max(0, Math.floor(Number(form.stock) || 0)), supplier_id: form.supplierId ? Number(form.supplierId) : null }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); setShowForm(false); setEditing(null); setForm({ name: "", unit: "item", price: "", cost: "", stock: "", supplierId: "" }); } });
+  const [search, setSearch] = useState("");
+  const [form, setForm] = useState({ name: "", unit: "item", price: "", cost: "", stock: "", supplierId: "", brand: "", product_type: "", shelf_code: "" });
+  const [formImage, setFormImage] = useState<string | null>(null);
+  const [formImageMime, setFormImageMime] = useState<string>("image/png");
+  const imgRef = useRef<HTMLInputElement>(null);
+  const save = useMutation({ mutationFn: () => api.saveProduct({ id: editing?.id, name: form.name, unit: form.unit, unit_price: Math.round(Number(form.price) * 100), unit_cost: Math.round(Number(form.cost || 0) * 100), stock_quantity: Math.max(0, Math.floor(Number(form.stock) || 0)), supplier_id: form.supplierId ? Number(form.supplierId) : null, brand: form.brand, product_type: form.product_type, shelf_code: form.shelf_code, ...(formImage ? { image_data_base64: formImage, image_mime_type: formImageMime as "image/png" | "image/jpeg" } : {}) }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); setShowForm(false); setEditing(null); setForm({ name: "", unit: "item", price: "", cost: "", stock: "", supplierId: "", brand: "", product_type: "", shelf_code: "" }); setFormImage(null); } });
   const archive = useMutation({ mutationFn: (id: number) => api.archiveProduct({ id }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workspace"] }) });
-  const startEdit = (product: Product) => { setEditing(product); setForm({ name: product.name, unit: product.unit, price: String(product.unit_price / 100), cost: String(product.unit_cost / 100), stock: String(product.stock_quantity), supplierId: product.supplier_id ? String(product.supplier_id) : "" }); setShowForm(true); };
-  return <section className="manage-view"><div className="manage-head"><div><p className="eyebrow">SAVED CATALOG</p><h1>Products</h1><p>Prices added here fill invoices automatically.</p></div><button className="primary compact" onClick={() => { setEditing(null); setForm({ name: "", unit: "item", price: "", cost: "", stock: "", supplierId: "" }); setShowForm(true); }}><Icon name="plus" />{ui(language, "Add")}</button></div>
-    {showForm ? <form className="inline-form" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}><div className="section-heading"><h2>{editing ? "Edit product" : "New product"}</h2><button type="button" className="close-button" aria-label="Close product form" onClick={() => setShowForm(false)}>×</button></div><label className="field"><span>Product name</span><input autoFocus required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="e.g. Cooking oil 1L" /></label><div className="field-row"><label className="field"><span>Selling price ({currency})</span><input required type="number" min="0" step="0.01" value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} /></label><label className="field"><span>Cost price ({currency})</span><input required type="number" min="0" step="0.01" value={form.cost} onChange={(event) => setForm({ ...form, cost: event.target.value })} /></label></div><div className="field-row"><label className="field"><span>Unit</span><input required value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} placeholder="item, kg, box" /></label><label className="field"><span>Units in stock</span><input required type="number" min="0" step="1" value={form.stock} onChange={(event) => setForm({ ...form, stock: event.target.value })} /></label></div><label className="field"><span>Supplier</span><select aria-label="Supplier for product" value={form.supplierId} onChange={(event) => setForm({ ...form, supplierId: event.target.value })}><option value="">No supplier linked</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></label>{!suppliers.length ? <p className="form-hint">Add a supplier under Contacts, then return here to link it with this item.</p> : null}{save.error ? <p className="error">{String(save.error)}</p> : null}<button className="primary wide" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save product"}</button></form> : null}
-    {products.length ? <div className="record-list">{products.map((product) => <article className="record" key={product.id}><div className="record-icon"><Icon name="box" /></div><div><strong>{product.name}</strong><span>{money(product.unit_price, currency)} · cost {money(product.unit_cost, currency)}</span><span>{product.supplier_name ? `Supplier: ${product.supplier_name}` : "No supplier linked"}</span><span className={product.stock_quantity <= 5 ? "stock-low" : ""}>{product.stock_quantity} {product.unit} in stock</span></div><button aria-label={`Edit ${product.name}`} onClick={() => startEdit(product)}><Icon name="pencil" /></button><button aria-label={`Archive ${product.name}`} onClick={() => archive.mutate(product.id)}><Icon name="trash" /></button></article>)}</div> : !showForm ? <Empty title="No products saved" body="Add the items you sell and their usual prices." /> : null}
+  const startEdit = (product: Product) => { setEditing(product); setForm({ name: product.name, unit: product.unit, price: String(product.unit_price / 100), cost: String(product.unit_cost / 100), stock: String(product.stock_quantity), supplierId: product.supplier_id ? String(product.supplier_id) : "", brand: product.brand ?? "", product_type: product.product_type ?? "", shelf_code: product.shelf_code ?? "" }); setFormImage(null); setShowForm(true); };
+  const newProduct = () => { setEditing(null); setForm({ name: "", unit: "item", price: "", cost: "", stock: "", supplierId: "", brand: "", product_type: "", shelf_code: "" }); setFormImage(null); setShowForm(true); };
+  const onImagePick = async (file: File) => {
+    if (file.type !== "image/png" && file.type !== "image/jpeg") return;
+    const reader = new FileReader();
+    reader.onload = () => { const url = String(reader.result || ""); setFormImage(url.split(",")[1] || ""); setFormImageMime(file.type); };
+    reader.readAsDataURL(file);
+  };
+  const q = search.trim().toLowerCase();
+  const visible = q ? products.filter((pr) => (pr.name + " " + (pr.brand ?? "") + " " + (pr.shelf_code ?? "") + " " + pr.id).toLowerCase().includes(q)) : products;
+  const supplierName = (id: number | null) => id ? suppliers.find((s) => s.id === id)?.name ?? "—" : "—";
+  return <section className="manage-view products-view"><div className="manage-head"><div><p className="eyebrow">{ui(language, "SAVED CATALOG")}</p><h1>{ui(language, "Products")}</h1><p>{ui(language, "Prices added here fill invoices automatically.")}</p></div><button className="primary compact" onClick={newProduct}><Icon name="plus" />{ui(language, "New")}</button></div>
+    <div className="product-toolbar"><div className="product-search"><Icon name="search" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={ui(language, "Search products…")} /></div></div>
+    {showForm ? <form className="inline-form" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}><div className="section-heading"><h2>{editing ? ui(language, "Edit product") : ui(language, "New product")}</h2><button type="button" className="close-button" aria-label={ui(language, "Close")} onClick={() => setShowForm(false)}>×</button></div>
+      <div className="product-image-picker">{formImage ? <img src={`data:${formImageMime};base64,${formImage}`} alt="" /> : editing?.image_url ? <img src={editing.image_url} alt="" /> : <div className="product-image-placeholder"><Icon name="box" /></div>}<button type="button" className="secondary compact" onClick={() => imgRef.current?.click()}>{ui(language, "Product image")}</button><input ref={imgRef} hidden type="file" accept="image/png,image/jpeg" onChange={(e) => { const f = e.target.files?.[0]; if (f) onImagePick(f); }} /></div>
+      <label className="field"><span>{ui(language, "Name")}</span><input autoFocus required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+      <div className="form-row-2"><label className="field"><span>{ui(language, "Brand")}</span><input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="No brand" /></label><label className="field"><span>{ui(language, "Type")}</span><input value={form.product_type} onChange={(e) => setForm({ ...form, product_type: e.target.value })} placeholder="Simple" /></label></div>
+      <div className="form-row-2"><label className="field"><span>{ui(language, "Shelf code")}</span><input value={form.shelf_code} onChange={(e) => setForm({ ...form, shelf_code: e.target.value })} placeholder="A-01" /></label><label className="field"><span>{ui(language, "Unit")}</span><input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></label></div>
+      <div className="form-row-2"><label className="field"><span>{ui(language, "Selling price")}</span><input required inputMode="decimal" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></label><label className="field"><span>{ui(language, "Cost price")}</span><input inputMode="decimal" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} /></label></div>
+      <div className="form-row-2"><label className="field"><span>{ui(language, "Stock count")}</span><input inputMode="numeric" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} /></label><label className="field"><span>{ui(language, "Supplier")}</span><select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })}><option value="">{ui(language, "No supplier")}</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label></div>
+      {save.error ? <p className="error">{String(save.error)}</p> : null}<button className="primary wide" disabled={save.isPending}>{save.isPending ? ui(language, "Saving…") : ui(language, "Save product")}</button></form> : null}
+    {visible.length ? <div className="product-table-wrap"><table className="product-table"><thead><tr><th>{ui(language, "Image")}</th><th>ID</th><th>{ui(language, "Name")}</th><th>{ui(language, "Brand")}</th><th>{ui(language, "Count")}</th><th>{ui(language, "Type")}</th><th>{ui(language, "Shelf code")}</th><th>{ui(language, "Supplier")}</th><th></th></tr></thead><tbody>{visible.map((product) => <tr key={product.id}><td>{product.image_url ? <img className="product-thumb" src={product.image_url} alt="" /> : <span className="product-thumb empty"><Icon name="box" /></span>}</td><td className="mono">{product.id}</td><td><strong>{product.name}</strong><small className="hide-desktop">{money(product.unit_price, currency)} · {ui(language, "Count")}: {product.stock_quantity}</small></td><td>{product.brand || <span className="dim">—</span>}</td><td><span className={product.stock_quantity <= 5 ? "low-stock" : ""}>{product.stock_quantity}</span></td><td>{product.product_type || <span className="dim">—</span>}</td><td className="mono">{product.shelf_code || <span className="dim">—</span>}</td><td>{supplierName(product.supplier_id)}</td><td className="row-actions"><button aria-label={ui(language, "Edit")} onClick={() => startEdit(product)}><Icon name="pencil" /></button><button aria-label={ui(language, "Delete")} onClick={() => archive.mutate(product.id)}><Icon name="trash" /></button></td></tr>)}</tbody></table></div> : !showForm ? <Empty title={ui(language, "No products here")} body={ui(language, "Add products to fill invoices automatically.")} /> : null}
     <button className="return-link" onClick={onDone}>← {ui(language, "Back to invoice")}</button>
   </section>;
 }
