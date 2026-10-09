@@ -512,6 +512,53 @@ export const Actions = {
       }).returning({ id: schema.products.id });
       const inserted = rows[0];
       if (!inserted) throw new Error("Could not save product");
+      // Auto-create a delivered purchase invoice when a new product is created
+      // with opening stock from a supplier — records the stock in the supplier's ledger
+      if (args.supplier_id && args.stock_quantity > 0) {
+        try {
+          const supplierRows = await db.select().from(schema.contacts).where(and(eq(schema.contacts.id, args.supplier_id), eq(schema.contacts.accountId, account.id))).limit(1);
+          const supplier = supplierRows[0];
+          const settingsRows = await db.select().from(schema.businessSettings).where(eq(schema.businessSettings.accountId, account.id)).limit(1);
+          const settings = settingsRows[0];
+          if (supplier && settings?.businessName) {
+            const today = new Date().toISOString().slice(0, 10);
+            const lineTotal = args.unit_cost * args.stock_quantity;
+            const tempNumber = `PENDING-${crypto.randomUUID()}`;
+            const purchaseRows = await db.insert(schema.purchaseInvoices).values({
+              accountId: account.id,
+              purchaseNumber: tempNumber,
+              supplierId: supplier.id,
+              supplierName: supplier.name,
+              supplierPhone: supplier.phone,
+              supplierAddress: supplier.address,
+              issueDate: today,
+              dueDate: null,
+              documentType: "delivered_purchase",
+              deliveryStatus: "delivered",
+              paymentStatus: args.unit_cost > 0 ? "pending" : "paid",
+              paymentMethod: "credit",
+              supplierReference: "",
+              notes: `Opening stock for ${args.name}`,
+              currency: settings.currency,
+              total: lineTotal,
+            }).returning({ id: schema.purchaseInvoices.id });
+            const purchase = purchaseRows[0];
+            if (purchase) {
+              const purchaseNumber = `PUR-${String(purchase.id).padStart(4, "0")}`;
+              await db.update(schema.purchaseInvoices).set({ purchaseNumber }).where(eq(schema.purchaseInvoices.id, purchase.id));
+              await db.insert(schema.purchaseInvoiceItems).values({
+                purchaseInvoiceId: purchase.id,
+                productId: inserted.id,
+                description: args.name,
+                unit: args.unit,
+                quantity: args.stock_quantity,
+                unitCost: args.unit_cost,
+                lineTotal,
+              });
+            }
+          }
+        } catch { /* auto-purchase is best-effort; product is already saved */ }
+      }
       ctx.invalidateQueries();
       return { id: inserted.id };
     },
