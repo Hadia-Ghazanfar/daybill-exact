@@ -12,11 +12,11 @@
 //   3. Run the handler (auth errors → 401, business-rule errors → 400)
 //   4. Validate the result against the response schema and return it
 import { z } from "zod";
-import { Actions } from "./_handlers";
-import type { Ctx } from "./_handlers";
-import { AuthError } from "./_auth";
-import { blobs } from "./_blobs";
-import { ensureInit, getDb } from "./_db";
+import { Actions } from "./_handlers.js";
+import type { Ctx } from "./_handlers.js";
+import { AuthError } from "./_auth.js";
+import { blobs } from "./_blobs.js";
+import { ensureInit, getDb } from "./_db.js";
 
 type HandlerDef = {
   request: z.ZodTypeAny;

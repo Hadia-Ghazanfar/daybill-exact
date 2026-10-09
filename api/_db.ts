@@ -7,7 +7,7 @@
 // is safe to run on every cold start.
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import * as schema from "./_schema";
+import * as schema from "./_schema.js";
 
 function connectionString(): string {
   const url = process.env.DATABASE_URL;

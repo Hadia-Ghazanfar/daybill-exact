@@ -11,11 +11,11 @@
 // Request/response zod schemas live in ./_defs.ts (extracted verbatim).
 import { z } from "zod";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
-import * as schema from "./_schema";
-import { actionDefs, type ActionName } from "./_defs";
-import { hashAdminPassword, hashPin, randomSalt, requireAccount, requireAdminAccount, requireUserAccount, secureEqual } from "./_auth";
-import type { Db } from "./_db";
-import type { Blobs } from "./_blobs";
+import * as schema from "./_schema.js";
+import { actionDefs, type ActionName } from "./_defs.js";
+import { hashAdminPassword, hashPin, randomSalt, requireAccount, requireAdminAccount, requireUserAccount, secureEqual } from "./_auth.js";
+import type { Db } from "./_db.js";
+import type { Blobs } from "./_blobs.js";
 
 export type Ctx = {
   db: Db;

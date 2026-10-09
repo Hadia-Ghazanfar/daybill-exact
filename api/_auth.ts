@@ -5,8 +5,8 @@
 // password hashing (PBKDF2-SHA256, 210k iterations), same session-token
 // validation and error messages.
 import { and, eq } from "drizzle-orm";
-import { getDb } from "./_db";
-import * as schema from "./_schema";
+import { getDb } from "./_db.js";
+import * as schema from "./_schema.js";
 
 export async function hashPin(pin: string, salt: string) {
   const bytes = new TextEncoder().encode(`${salt}:${pin}`);
