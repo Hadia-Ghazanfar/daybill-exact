@@ -211,12 +211,25 @@ export const actionDefs = {
       shop_address: z.string().trim().min(3).max(300),
       phone: phoneSchema,
       pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      otp_code: z.string().regex(/^\d{3,8}$/, "Invalid verification code"),
     }),
     response: z.object({ account_id: z.number(), session_token: z.string(), session_kind: z.literal("user"), shopkeeper_name: z.string(), phone: z.string(), claimed_existing_data: z.boolean() }),
   },
   login: {
     request: z.object({ phone: phoneSchema, pin: z.string().regex(/^\d{4}$/) }),
     response: z.object({ account_id: z.number(), session_token: z.string(), session_kind: z.literal("user"), shopkeeper_name: z.string(), phone: z.string() }),
+  },
+  sendOtpCode: {
+    request: z.object({ phone: phoneSchema }),
+    response: z.object({ sent: z.literal(true), expires_at: z.string() }),
+  },
+  resetPin: {
+    request: z.object({
+      phone: phoneSchema,
+      new_pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      otp_code: z.string().regex(/^\d{3,8}$/, "Invalid verification code"),
+    }),
+    response: z.object({ ok: z.literal(true) }),
   },
   getAdminDashboard: {
     request: z.object({ ...authFields }),

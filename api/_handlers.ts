@@ -9,6 +9,7 @@
 //   - `ctx.invalidateQueries()` -> no-op (the web client invalidates via
 //     react-query directly, exactly as the artifact UI already did)
 // Request/response zod schemas live in ./_defs.ts (extracted verbatim).
+import { sendOtp, verifyOtp } from "./_myotp.js";
 import { z } from "zod";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import * as schema from "./_schema.js";
@@ -87,10 +88,23 @@ export const Actions = {
       return { account_id: account.id, session_token: sessionToken, session_kind: "admin", shopkeeper_name: account.shopkeeperName, phone: account.phone ?? "" };
     },
   }),
+  sendOtpCode: defineAction({
+    ...actionDefs.sendOtpCode,
+    async handler(ctx, args): Promise<{ sent: true; expires_at: string }> {
+      const result = await sendOtp(args.phone);
+      return { sent: true as const, expires_at: result.expiresAt };
+    },
+  }),
   createAccount: defineAction({
     ...actionDefs.createAccount,
     async handler(ctx, args) {
       const db = ctx.db;
+      // Phone must be verified via MyOTP SMS code before account creation
+      const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
+      const submittedLocal = args.phone.replace(/\D/g, "");
+      if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
+        throw new Error("Phone number does not match the verified number");
+      }
       const existingPhone = await db.select({ id: schema.accounts.id }).from(schema.accounts).where(eq(schema.accounts.phone, args.phone)).limit(1);
       if (existingPhone[0]) throw new Error("An account already exists with this phone number. Please log in.");
       const salt = crypto.randomUUID();
@@ -168,6 +182,28 @@ export const Actions = {
       const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
       await db.update(schema.accounts).set({ sessionToken, updatedAt: new Date() }).where(eq(schema.accounts.id, account.id));
       return { account_id: account.id, session_token: sessionToken, session_kind: "user", shopkeeper_name: account.shopkeeperName, phone: account.phone ?? args.phone };
+    },
+  }),
+  resetPin: defineAction({
+    ...actionDefs.resetPin,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      // Phone must be verified via MyOTP SMS code before PIN reset
+      const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
+      const submittedLocal = args.phone.replace(/\D/g, "");
+      if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
+        throw new Error("Phone number does not match the verified number");
+      }
+      const rows = await db.select().from(schema.accounts).where(and(eq(schema.accounts.phone, args.phone), eq(schema.accounts.claimed, true))).limit(1);
+      const account = rows[0];
+      if (!account) throw new Error("No account found with this phone number");
+      const salt = crypto.randomUUID();
+      const pinHash = await hashPin(args.new_pin, salt);
+      // Invalidate all sessions by rotating the session token
+      const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+      await db.update(schema.accounts).set({ pinSalt: salt, pinHash, sessionToken, updatedAt: new Date() }).where(eq(schema.accounts.id, account.id));
+      ctx.invalidateQueries();
+      return { ok: true };
     },
   }),
   getAdminDashboard: defineAction({
