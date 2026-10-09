@@ -25,6 +25,9 @@ import avatar10 from "./assets/avatars/avatar-10.png";
 import avatar11 from "./assets/avatars/avatar-11.png";
 import avatar12 from "./assets/avatars/avatar-12.png";
 import { sendPhoneOtp, verifyPhoneOtp, toE164, isFirebaseConfigured } from "./firebase-otp";
+import mascotAvatar from "./assets/mascot.png";
+import { answerQuestion, QUICK_CHIPS } from "./chatbot";
+import type { ChatContext } from "./chatbot";
 import type { ConfirmationResult } from "firebase/auth";
 
 type Workspace = ApiResponse<typeof api, "getWorkspace">;
@@ -1819,11 +1822,72 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         <div className="sidebar-bottom"><button className="sidebar-help" onClick={() => setShowHelpFeedback(true)}><Icon name="help" /><span>{ui(language, "Help")}</span></button><button className="sidebar-logout" onClick={onLogout}><Icon name="logout" /><span>{ui(language, "Logout")}</span></button></div>
       </nav>
 
+      <ChatBot workspace={workspace} />
       {showHelpFeedback ? <FeedbackSheet onClose={() => setShowHelpFeedback(false)} /> : null}
       {showSettings ? <SettingsSheet settings={settings} onClose={() => setShowSettings(false)} /> : null}
       {transferSheet ? <TransferStatusSheet state={transferSheet} language={language} onDismiss={() => setTransferSheet(null)} onManualSave={() => { if (preparedInvoiceFile) openFileForManualSave(preparedInvoiceFile); }} onOpenWhatsApp={() => { openSavedInvoiceChat(); setTransferSheet(null); }} /> : null}
     </div>
   );
+}
+
+function ChatBot({ workspace }: { workspace: { data: { invoices: any[]; contacts: any[]; products: any[]; purchases: any[]; dashboard: any; settings: any } } }) {
+  const { language } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<{ from: "bot" | "user"; text: string }[]>([
+    { from: "bot", text: language === "ur" ? "السلام علیکم! میں Daybill اسسٹنٹ ہوں۔ ایپ کے بارے میں یا آپ کی دکان کے حساب کے بارے میں پوچھیں۔" : "Hi! I'm the Daybill assistant. Ask me how to use the app, or about your shop's numbers." },
+  ]);
+  const [input, setInput] = useState("");
+  const [typing, setTyping] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, typing, open]);
+
+  const send = (text: string) => {
+    const q = text.trim();
+    if (!q || typing) return;
+    setMessages((m) => [...m, { from: "user", text: q }]);
+    setInput("");
+    setTyping(true);
+    const ctx: ChatContext = {
+      invoices: workspace.data.invoices,
+      contacts: workspace.data.contacts,
+      products: workspace.data.products,
+      purchases: workspace.data.purchases,
+      dashboard: workspace.data.dashboard,
+      currency: workspace.data.settings.currency || "PKR",
+      language: language === "ur" ? "ur" : "en",
+    };
+    setTimeout(() => {
+      const reply = answerQuestion(q, ctx);
+      setMessages((m) => [...m, { from: "bot", text: reply }]);
+      setTyping(false);
+    }, 500);
+  };
+
+  return (<>
+    <button className="chatbot-fab" onClick={() => setOpen((o) => !o)} aria-label="Chat with assistant">
+      {open ? <span className="chatbot-fab-close">✕</span> : <img src={mascotAvatar} alt="Assistant" />}
+    </button>
+    {open ? <div className="chatbot-panel" role="dialog" aria-label="Daybill assistant">
+      <div className="chatbot-header">
+        <img src={mascotAvatar} alt="" />
+        <div><strong>{language === "ur" ? "Daybill اسسٹنٹ" : "Daybill Assistant"}</strong><small><span className="chatbot-dot" />{language === "ur" ? "آن لائن" : "Online"}</small></div>
+      </div>
+      <div className="chatbot-messages" ref={listRef}>
+        {messages.map((m, i) => <div key={i} className={`chatbot-msg ${m.from}`}>{m.from === "bot" ? <img src={mascotAvatar} alt="" className="chatbot-msg-avatar" /> : null}<div className="chatbot-bubble">{m.text}</div></div>)}
+        {typing ? <div className="chatbot-msg bot"><img src={mascotAvatar} alt="" className="chatbot-msg-avatar" /><div className="chatbot-bubble typing"><span /><span /><span /></div></div> : null}
+      </div>
+      <div className="chatbot-chips">
+        {QUICK_CHIPS.map((c, i) => <button key={i} onClick={() => send(language === "ur" ? c.ur : c.en)}>{language === "ur" ? c.ur : c.en}</button>)}
+      </div>
+      <form className="chatbot-input" onSubmit={(e) => { e.preventDefault(); send(input); }}>
+        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={language === "ur" ? "کچھ پوچھیں…" : "Ask something…"} aria-label="Message" />
+        <button type="submit" aria-label="Send">➤</button>
+      </form>
+    </div> : null}
+  </>);
 }
 
 function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolean; variant?: "auto" | "dark" | "white" }) {
