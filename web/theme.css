@@ -2918,3 +2918,91 @@ html.phone-layout .mobile-back-to-bills {
   .transfer-sheet-backdrop,
   .transfer-sheet { animation: none; }
 }
+
+/* Password visibility toggle */
+.password-field { position: relative; display: block; }
+.password-field input { width: 100%; padding-right: 44px; }
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  opacity: 0.7;
+}
+.password-toggle:hover { opacity: 1; }
+[dir="rtl"] .password-field input { padding-right: 12px; padding-left: 44px; }
+[dir="rtl"] .password-toggle { right: auto; left: 8px; }
+
+/* ============ UI animations (motion only — no layout changes) ============ */
+@keyframes db-fade-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes db-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes db-pop { 0% { opacity: 0; transform: scale(.96); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes db-slide-in-right { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: translateX(0); } }
+
+/* Main views animate in on navigation */
+.dashboard-view, .manage-view, .profile-view, .create-view,
+.invoice-detail-view, .contact-history-view, .auth-view {
+  animation: db-fade-rise .45s cubic-bezier(.2,.8,.3,1) both;
+}
+/* Stagger direct cards inside views */
+.dashboard-view > *:nth-child(2), .manage-view > *:nth-child(2) { animation: db-fade-rise .5s .05s cubic-bezier(.2,.8,.3,1) both; }
+.dashboard-view > *:nth-child(3), .manage-view > *:nth-child(3) { animation: db-fade-rise .5s .1s cubic-bezier(.2,.8,.3,1) both; }
+.dashboard-view > *:nth-child(4), .manage-view > *:nth-child(4) { animation: db-fade-rise .5s .15s cubic-bezier(.2,.8,.3,1) both; }
+.dashboard-view > *:nth-child(5), .manage-view > *:nth-child(5) { animation: db-fade-rise .5s .2s cubic-bezier(.2,.8,.3,1) both; }
+
+/* Stat / KPI cards pop */
+.stat-card, .kpi-card, .received-card, .overview-stat {
+  animation: db-pop .45s cubic-bezier(.2,.9,.3,1.15) both;
+}
+
+/* List rows cascade */
+.record-list > *:nth-child(1), .invoice-list > *:nth-child(1) { animation: db-fade-rise .4s .03s ease both; }
+.record-list > *:nth-child(2), .invoice-list > *:nth-child(2) { animation: db-fade-rise .4s .08s ease both; }
+.record-list > *:nth-child(3), .invoice-list > *:nth-child(3) { animation: db-fade-rise .4s .13s ease both; }
+.record-list > *:nth-child(4), .invoice-list > *:nth-child(4) { animation: db-fade-rise .4s .18s ease both; }
+.record-list > *:nth-child(5), .invoice-list > *:nth-child(5) { animation: db-fade-rise .4s .23s ease both; }
+.record-list > *:nth-child(n+6), .invoice-list > *:nth-child(n+6) { animation: db-fade-in .4s .25s ease both; }
+
+/* Buttons: press + hover feedback */
+button { transition: transform .15s ease, filter .15s ease, background-color .2s ease; }
+button:active { transform: scale(.96); }
+.primary:active, .round-create:active { transform: scale(.92); filter: brightness(1.08); }
+@media (hover: hover) {
+  .primary:hover, .round-create:hover { filter: brightness(1.07); }
+  .invoice-list > button:hover, .record:hover { filter: brightness(.985); }
+}
+
+/* Bottom nav + sidebar nav transitions */
+.bottom-nav button, .sidebar-nav button, .nav-item {
+  transition: color .2s ease, background-color .25s ease, transform .15s ease;
+}
+.bottom-nav button:active, .sidebar-nav button:active { transform: scale(.9); }
+
+/* Tabs / segmented controls */
+.filter-tabs button, .segmented button, .tab {
+  transition: background-color .3s ease, color .3s ease, box-shadow .3s ease, transform .15s ease;
+}
+.filter-tabs button:active, .segmented button:active { transform: scale(.94); }
+
+/* Sheets & dialogs */
+.sheet, .dialog, .modal-card { animation: db-pop .35s cubic-bezier(.2,.9,.3,1.1) both; }
+.sheet-backdrop, .dialog-backdrop { animation: db-fade-in .25s ease both; }
+
+/* Toast */
+.toast { animation: db-slide-in-right .35s cubic-bezier(.2,.9,.3,1.1) both; }
+
+/* Invoice paper subtle entrance */
+.paper, .invoice-paper { animation: db-fade-rise .5s ease both; }
+
+/* Splash logo gentle pulse */
+.splash-logo { animation: db-pop .8s cubic-bezier(.2,.9,.3,1.15) both; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
