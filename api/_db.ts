@@ -251,6 +251,9 @@ export async function ensureInit(): Promise<void> {
     await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS product_type TEXT NOT NULL DEFAULT ''`);
     await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS shelf_code TEXT NOT NULL DEFAULT ''`);
     await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS image_blob_key TEXT`);
+    await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_featured BOOLEAN NOT NULL DEFAULT false`);
+    await getSql().unsafe(`ALTER TABLE products ADD COLUMN IF NOT EXISTS sizes TEXT NOT NULL DEFAULT ''`);
   } catch { /* ignore */ }
   // Create owner admin account if none exists (for first-time setup)
   try {
