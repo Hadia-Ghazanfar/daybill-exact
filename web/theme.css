@@ -3178,7 +3178,8 @@ button:active { transform: scale(.96); }
   }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav) button svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav) button span { display: block !important; font-size: 13px !important; font-weight: 600 !important; max-width: none !important; overflow: visible !important; }
-  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active { background: var(--accent) !important; color: #052b20 !important; font-weight: 700 !important; }
+  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active { background: #ffffff !important; color: #0b2b26 !important; font-weight: 700 !important; border-radius: 999px !important; }
+  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active svg { color: #0b2b26 !important; }
   /* Collapsed (icon-only) sidebar */
   html:not(.phone-layout) .sidebar-collapsed.app-shell { padding-left: 82px !important; }
   html:not(.phone-layout) .sidebar-collapsed .app-brand-bar { width: 82px !important; justify-content: center !important; padding: 22px 12px !important; }
