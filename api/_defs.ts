@@ -24,6 +24,10 @@ const settingsShape = z.object({
   accent_color: z.string(),
   logo_url: z.string().nullable(),
   avatar_choice: z.string().optional(),
+  bank_name: z.string().optional(),
+  bank_account_title: z.string().optional(),
+  bank_account_number: z.string().optional(),
+  bank_iban: z.string().optional(),
 });
 
 const contactShape = z.object({
@@ -248,6 +252,10 @@ export const actionDefs = {
       currency: z.string().trim().min(3).max(6),
       accent_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
       avatar_choice: z.string().trim().max(20).optional(),
+      bank_name: z.string().trim().max(120).optional(),
+      bank_account_title: z.string().trim().max(120).optional(),
+      bank_account_number: z.string().trim().max(60).optional(),
+      bank_iban: z.string().trim().max(60).optional(),
     }),
     response: z.object({ ok: z.literal(true) }),
   },

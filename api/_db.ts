@@ -103,6 +103,10 @@ CREATE TABLE IF NOT EXISTS business_settings (
   accent_color TEXT NOT NULL DEFAULT '#17765A',
   logo_blob_key TEXT,
   avatar_choice TEXT NOT NULL DEFAULT '',
+  bank_name TEXT NOT NULL DEFAULT '',
+  bank_account_title TEXT NOT NULL DEFAULT '',
+  bank_account_number TEXT NOT NULL DEFAULT '',
+  bank_iban TEXT NOT NULL DEFAULT '',
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 CREATE TABLE IF NOT EXISTS contacts (
@@ -235,6 +239,10 @@ export async function ensureInit(): Promise<void> {
   // Add avatar_choice column to existing business_settings tables
   try {
     await getSql().unsafe(`ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS avatar_choice TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS bank_name TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS bank_account_title TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS bank_account_number TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS bank_iban TEXT NOT NULL DEFAULT ''`);
   } catch { /* ignore */ }
   // Create owner admin account if none exists (for first-time setup)
   try {

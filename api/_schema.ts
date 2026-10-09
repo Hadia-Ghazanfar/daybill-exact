@@ -52,6 +52,10 @@ export const businessSettings = pgTable("business_settings", {
   accentColor: text("accent_color").notNull().default("#17765A"),
   logoBlobKey: text("logo_blob_key"),
   avatarChoice: text("avatar_choice").notNull().default(""),
+  bankName: text("bank_name").notNull().default(""),
+  bankAccountTitle: text("bank_account_title").notNull().default(""),
+  bankAccountNumber: text("bank_account_number").notNull().default(""),
+  bankIban: text("bank_iban").notNull().default(""),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });
 

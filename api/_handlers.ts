@@ -295,6 +295,10 @@ export const Actions = {
           accent_color: saved?.accentColor ?? "#17765A",
           logo_url: logoUrl,
           avatar_choice: saved?.avatarChoice ?? "",
+          bank_name: saved?.bankName ?? "",
+          bank_account_title: saved?.bankAccountTitle ?? "",
+          bank_account_number: saved?.bankAccountNumber ?? "",
+          bank_iban: saved?.bankIban ?? "",
         },
         contacts: contactRows.map((row) => ({ id: row.id, name: row.name, phone: row.phone, address: row.address, kind: row.kind })),
         products: productRows.map((row) => ({
@@ -340,6 +344,10 @@ export const Actions = {
         currency: args.currency.toUpperCase(),
         accentColor: args.accent_color,
         avatarChoice: args.avatar_choice ?? "",
+        bankName: args.bank_name ?? "",
+        bankAccountTitle: args.bank_account_title ?? "",
+        bankAccountNumber: args.bank_account_number ?? "",
+        bankIban: args.bank_iban ?? "",
         updatedAt: new Date(),
       }).onConflictDoUpdate({
         target: schema.businessSettings.id,
@@ -350,6 +358,10 @@ export const Actions = {
           currency: args.currency.toUpperCase(),
           accentColor: args.accent_color,
           ...(args.avatar_choice !== undefined ? { avatarChoice: args.avatar_choice } : {}),
+          ...(args.bank_name !== undefined ? { bankName: args.bank_name } : {}),
+          ...(args.bank_account_title !== undefined ? { bankAccountTitle: args.bank_account_title } : {}),
+          ...(args.bank_account_number !== undefined ? { bankAccountNumber: args.bank_account_number } : {}),
+          ...(args.bank_iban !== undefined ? { bankIban: args.bank_iban } : {}),
           updatedAt: new Date(),
         },
       });
