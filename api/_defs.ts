@@ -23,6 +23,7 @@ const settingsShape = z.object({
   currency: z.string(),
   accent_color: z.string(),
   logo_url: z.string().nullable(),
+  avatar_choice: z.string().optional(),
 });
 
 const contactShape = z.object({
@@ -246,6 +247,7 @@ export const actionDefs = {
       address: z.string().trim().max(300),
       currency: z.string().trim().min(3).max(6),
       accent_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      avatar_choice: z.string().trim().max(20).optional(),
     }),
     response: z.object({ ok: z.literal(true) }),
   },

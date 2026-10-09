@@ -294,6 +294,7 @@ export const Actions = {
           currency: saved?.currency ?? "PKR",
           accent_color: saved?.accentColor ?? "#17765A",
           logo_url: logoUrl,
+          avatar_choice: saved?.avatarChoice ?? "",
         },
         contacts: contactRows.map((row) => ({ id: row.id, name: row.name, phone: row.phone, address: row.address, kind: row.kind })),
         products: productRows.map((row) => ({
@@ -338,6 +339,7 @@ export const Actions = {
         address: args.address,
         currency: args.currency.toUpperCase(),
         accentColor: args.accent_color,
+        avatarChoice: args.avatar_choice ?? "",
         updatedAt: new Date(),
       }).onConflictDoUpdate({
         target: schema.businessSettings.id,
@@ -347,6 +349,7 @@ export const Actions = {
           address: args.address,
           currency: args.currency.toUpperCase(),
           accentColor: args.accent_color,
+          ...(args.avatar_choice !== undefined ? { avatarChoice: args.avatar_choice } : {}),
           updatedAt: new Date(),
         },
       });

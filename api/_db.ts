@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS business_settings (
   currency TEXT NOT NULL DEFAULT 'PKR',
   accent_color TEXT NOT NULL DEFAULT '#17765A',
   logo_blob_key TEXT,
+  avatar_choice TEXT NOT NULL DEFAULT '',
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 CREATE TABLE IF NOT EXISTS contacts (
@@ -231,6 +232,10 @@ export async function ensureInit(): Promise<void> {
     const trimmed = stmt.trim();
     if (trimmed) await sql.unsafe(trimmed);
   }
+  // Add avatar_choice column to existing business_settings tables
+  try {
+    await getSql().unsafe(`ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS avatar_choice TEXT NOT NULL DEFAULT ''`);
+  } catch { /* ignore */ }
   // Create owner admin account if none exists (for first-time setup)
   try {
     const ownerCheck = await getSql().unsafe("SELECT id FROM accounts WHERE is_owner = true LIMIT 1");

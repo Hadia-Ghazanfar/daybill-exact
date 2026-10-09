@@ -51,6 +51,7 @@ export const businessSettings = pgTable("business_settings", {
   currency: text("currency").notNull().default("PKR"),
   accentColor: text("accent_color").notNull().default("#17765A"),
   logoBlobKey: text("logo_blob_key"),
+  avatarChoice: text("avatar_choice").notNull().default(""),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });
 
