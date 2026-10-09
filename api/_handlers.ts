@@ -377,9 +377,16 @@ export const Actions = {
       const existing = await db.select().from(schema.businessSettings).where(eq(schema.businessSettings.accountId, account.id)).limit(1);
       const oldKey = existing[0]?.logoBlobKey;
       const ext = args.mime_type === "image/png" ? "png" : "jpg";
-      const key = `business/${account.id}/logo-${Date.now()}.${ext}`;
-      const bytes = Uint8Array.from(Buffer.from(args.data_base64, "base64"));
-      await ctx.blobs.put(key, bytes, { contentType: args.mime_type });
+      const { isBlobStorageConfigured } = await import("./_blobs.js");
+      let key: string;
+      if (isBlobStorageConfigured()) {
+        key = `business/${account.id}/logo-${Date.now()}.${ext}`;
+        const bytes = Uint8Array.from(Buffer.from(args.data_base64, "base64"));
+        await ctx.blobs.put(key, bytes, { contentType: args.mime_type });
+      } else {
+        // Fallback: store logo inline as data URL (no Supabase configured)
+        key = `data:${args.mime_type};base64,${args.data_base64}`;
+      }
       const current = existing[0];
       if (current) {
         await db.update(schema.businessSettings).set({ logoBlobKey: key, updatedAt: new Date() }).where(eq(schema.businessSettings.accountId, account.id));
@@ -396,7 +403,7 @@ export const Actions = {
           updatedAt: new Date(),
         });
       }
-      if (oldKey && oldKey !== key) await ctx.blobs.delete(oldKey);
+      if (oldKey && oldKey !== key && !oldKey.startsWith("data:")) await ctx.blobs.delete(oldKey);
       ctx.invalidateQueries();
       return { logo_url: await ctx.blobs.getUrl(key) };
     },

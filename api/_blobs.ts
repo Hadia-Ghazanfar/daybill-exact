@@ -46,6 +46,10 @@ export interface Blobs {
   delete(key: string): Promise<void>;
 }
 
+export function isBlobStorageConfigured(): boolean {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
 export const blobs: Blobs = {
   async put(key, bytes, opts) {
     await ensureBucket();
@@ -56,6 +60,7 @@ export const blobs: Blobs = {
     if (error) throw new Error(`Logo upload failed: ${error.message}`);
   },
   async getUrl(key) {
+    if (key.startsWith("data:")) return key;
     await ensureBucket();
     const { data } = getClient().storage.from(bucketName()).getPublicUrl(key);
     return data.publicUrl;
