@@ -199,6 +199,28 @@ let migrated = false;
 
 export async function ensureInit(): Promise<void> {
   if (migrated) return;
+  // One-time: if old rebuild tables exist with incompatible schema
+  // (missing account_id), drop them so the exact schema can be created.
+  // This only runs when the schema is wrong, never on normal starts.
+  try {
+    const check = await getSql().unsafe(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'products' AND column_name = 'account_id'
+    `);
+    if (check.length === 0) {
+      // products exists but has old schema (or doesn't exist) — drop conflicts
+      const drops = [
+        "DROP TABLE IF EXISTS invoice_items",
+        "DROP TABLE IF EXISTS purchase_invoice_items",
+        "DROP TABLE IF EXISTS invoices",
+        "DROP TABLE IF EXISTS purchase_invoices",
+        "DROP TABLE IF EXISTS products",
+      ];
+      for (const sql of drops) {
+        try { await getSql().unsafe(sql); } catch { /* ignore */ }
+      }
+    }
+  } catch { /* ignore — tables don't exist yet */ }
   const sql = getSql();
   // Enum types first (each DO block is one statement; never split these).
   for (const stmt of ENUM_STATEMENTS) {
