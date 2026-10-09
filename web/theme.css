@@ -3049,6 +3049,11 @@ button:active { transform: scale(.96); }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .hide-desktop { display: none; }
 .cell-edit-left { display: none; }
+.mobile-only-meta { display: none; }
+@media (max-width: 720px) {
+  .mobile-only-meta { display: inline; }
+  .product-table .cell-meta.mobile-only-meta { display: block; }
+}
 @media (max-width: 720px) {
   .product-table-wrap { background: transparent; border: 0; overflow: visible; padding: 2px; margin: 0 -2px; }
   .product-table { width: 100% !important; max-width: 100% !important; min-width: 0 !important; table-layout: auto; }
