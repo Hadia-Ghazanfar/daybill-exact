@@ -1598,7 +1598,7 @@ body { background: var(--bg); color: var(--text); }
 @media (min-width: 760px) {
   .app-shell { padding: 0 0 0 240px; }
   .app-brand-bar { position: fixed; z-index: 24; inset: 0 auto 0 0; display: flex; align-items: center; align-content: flex-start; gap: 12px; width: 240px; height: 104px; padding: 24px 20px; background: #0a403d; color: #fff; }
-  .app-brand-bar > img { width: 62px; height: 62px; border-radius: 14px; background: transparent; }
+  .app-brand-bar > img { width: 72px; height: 72px; border-radius: 16px; background: transparent; object-fit: contain; }
   .app-brand-copy strong, .app-brand-copy span, .app-brand-copy small { display: block; }
   .app-brand-copy strong { color: #fff; font-size: 18px; }
   .app-brand-copy span { margin-top: 2px; color: #b8d7d2; font-size: 10px; }
@@ -3152,7 +3152,7 @@ button:active { transform: scale(.96); }
     display: flex !important; flex-direction: column !important;
     grid-template-columns: none !important; grid-template-rows: none !important;
     align-content: start !important;
-    padding: 6px 12px 12px !important; margin: 0 !important;
+    padding: 6px 0 12px 12px !important; margin: 0 !important;
     border: 0 !important; border-radius: 0 !important;
     background: #0a403d !important;
     box-shadow: none !important; transform: none !important;
@@ -3171,7 +3171,7 @@ button:active { transform: scale(.96); }
     position: relative !important;
     display: flex !important; align-items: center !important; justify-content: flex-start !important; gap: 12px !important;
     width: 100% !important; min-height: 42px !important;
-    margin: 0 0 2px !important; padding: 0 14px !important;
+    margin: 0 0 2px !important; padding: 0 26px 0 14px !important;
     border: 0 !important; border-radius: 12px !important;
     background: transparent !important; color: #b8d7d2 !important;
     font-size: 13px !important; text-align: left !important;
@@ -3179,9 +3179,11 @@ button:active { transform: scale(.96); }
   }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav) button svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav) button span { display: block !important; font-size: 13px !important; font-weight: 600 !important; max-width: none !important; overflow: visible !important; }
-  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active { background: #ffffff !important; color: #0a403d !important; font-weight: 700 !important; border-radius: 999px 0 0 999px !important; margin-right: -12px !important; padding-right: 26px !important; }
+  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active { background: #ffffff !important; color: #0a403d !important; font-weight: 700 !important; border-radius: 999px 0 0 999px !important; }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active svg { color: #0a403d !important; }
-  html:not(.phone-layout) .bottom-nav:not(.admin-nav) .sidebar-bottom button.active { border-radius: 999px 0 0 999px !important; margin-right: -12px !important; padding-right: 26px !important; }
+  html[data-theme="dark"]:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active { background: #111111 !important; color: #ffffff !important; }
+  html[data-theme="dark"]:not(.phone-layout) .bottom-nav:not(.admin-nav) button.active svg { color: #ffffff !important; }
+  html:not(.phone-layout) .bottom-nav:not(.admin-nav) .sidebar-bottom button.active { border-radius: 999px 0 0 999px !important; }
   /* Collapsed (icon-only) sidebar */
   html:not(.phone-layout) .sidebar-collapsed.app-shell { padding-left: 82px !important; }
   html:not(.phone-layout) .sidebar-collapsed .app-brand-bar { width: 82px !important; justify-content: center !important; padding: 22px 12px !important; }
@@ -3279,8 +3281,8 @@ button:active { transform: scale(.96); }
 .chatbot-input input { flex: 1; border: 1px solid var(--border); border-radius: 999px; padding: 10px 16px; font-size: 13px; background: var(--bg); color: var(--text); outline: none; }
 .chatbot-input input:focus { border-color: #0d3b42; }
 .chatbot-input button { width: 42px; height: 42px; border-radius: 50%; border: 0; background: #0d3b42; color: #fff; font-size: 16px; cursor: pointer; flex-shrink: 0; }
-.chatbot-close { margin-left: auto; width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(255,255,255,.15); color: #fff; font-size: 14px; cursor: pointer; flex-shrink: 0; }
-.chatbot-close:hover { background: rgba(255,255,255,.3); }
+.chatbot-close { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #fff; background: #fff; color: #0d3b42; font-size: 15px; font-weight: 800; cursor: pointer; flex-shrink: 0; display: grid; place-items: center; line-height: 1; }
+.chatbot-close:hover { background: #f0f0f0; transform: scale(1.08); }
 html.phone-layout .chatbot-fab { right: 16px; bottom: 96px; width: 54px; height: 54px; }
 html.phone-layout .chatbot-panel { right: 8px; left: 8px; bottom: 88px; width: auto; max-width: none; }
 
