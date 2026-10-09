@@ -117,7 +117,7 @@ function findProduct(ctx: ChatContext, q: string): ChatProduct | null {
 }
 
 // ---- help knowledge base ----
-type HelpEntry = { keys: string[]; en: string; ur: string };
+type HelpEntry = { keys: string[]; en: string; ur: string; roman?: string };
 
 const HELP: HelpEntry[] = [
   {
@@ -205,7 +205,70 @@ const HELP: HelpEntry[] = [
     en: "Your data is stored securely in the cloud under your account — it stays even if you change phones. Just log in with your phone number on the new device.",
     ur: "آپ کا ڈیٹا آپ کے اکاؤنٹ کے ساتھ کلاؤڈ میں محفوظ ہے — فون بدلنے پر بھی رہے گا۔",
   },
+  {
+    keys: ["kitny product", "kitne product", "kam stock", "se kam", "stock kam", "inventory ma"],
+    en: "",
+    ur: "",
+    roman: "stock_low",
+  },
+  {
+    keys: ["pese", "paisa", "udhaar", "udhar", "baqaya", "kon deta", "kis ne dena"],
+    en: "",
+    ur: "",
+    roman: "dues",
+  },
+  {
+    keys: ["kamai", "aamdani", "income", "kitni kamai", "is mahine"],
+    en: "",
+    ur: "",
+    roman: "revenue",
+  },
+  {
+    keys: ["munafa", "faida", "profit"],
+    en: "",
+    ur: "",
+    roman: "profit",
+  },
+  {
+    keys: ["product kese", "product kaise", "naya product", "saman kese"],
+    en: "",
+    ur: "",
+    roman: "add_product",
+  },
+  {
+    keys: ["bill kese", "bill kaise", "invoice kese", "invoice kaise", "parchi"],
+    en: "",
+    ur: "",
+    roman: "create_invoice",
+  },
 ];
+
+const ROMAN_ANSWERS: Record<string, { en: string; ur: string }> = {
+  stock_low: {
+    en: "To check low stock, ask me like: 'kitny products 30 se kam hn?' and I'll list them.",
+    ur: "کم اسٹاک چیک کرنے کے لیے پوچھیں: 'کتنے پروڈکٹس 30 سے کم ہیں؟'",
+  },
+  dues: {
+    en: "Ask 'kon pese deta hai?' and I'll list who owes you and how much.",
+    ur: "'کون پیسے دیتا ہے؟' پوچھیں۔",
+  },
+  revenue: {
+    en: "Ask 'is mahine kitni kamai hui?' for this month's collected revenue.",
+    ur: "'اس مہینے کتنی کمائی ہوئی؟' پوچھیں۔",
+  },
+  profit: {
+    en: "Ask 'is mahine kitna munafa hua?' for this month's profit.",
+    ur: "'اس مہینے کتنا منافع ہوا؟' پوچھیں۔",
+  },
+  add_product: {
+    en: "Product add karne ke liye: sidebar me Stock → New Product → naam, qeemat aur stock likhein → Save.",
+    ur: "پروڈکٹ شامل کرنے کے لیے: Stock → New Product → نام، قیمت اور اسٹاک لکھیں → Save کریں۔",
+  },
+  create_invoice: {
+    en: "Bill banane ke liye: Create dabayein → Sales invoice → customer chunein → products add karein → Save.",
+    ur: "انوائس بنانے کے لیے: Create → Sales invoice → کسٹمر چنیں → پروڈکٹس شامل کریں → Save کریں۔",
+  },
+};
 
 const FALLBACK = {
   en: "I can help with using Daybill and with your shop's numbers. Try asking things like:\n• How do I add a product?\n• Is Fajar's invoice paid?\n• Total revenue this month?\n• Stock of Sugar?\n• Who owes me money?",
@@ -275,8 +338,8 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
       : `You owe ${supplier.name} ${money(total, ctx.currency)} across ${ps.length} delivered purchase(s).`;
   }
 
-  // revenue
-  if (q.includes("revenue") || q.includes("sales total") || q.includes("kamai") || q.includes("aamdani") || (q.includes("total") && q.includes("sale"))) {
+  // revenue — incl. Roman Urdu "is mahine kitni kamai"
+  if (q.includes("revenue") || q.includes("sales total") || q.includes("kamai") || q.includes("aamdani") || q.includes("income") || (q.includes("total") && q.includes("sale"))) {
     const m = invoicesThisMonth(ctx).filter((i) => i.payment_status === "paid");
     const sum = m.reduce((s, i) => s + i.total, 0);
     return lang === "ur"
@@ -285,7 +348,7 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
   }
 
   // profit
-  if (q.includes("profit") || q.includes("munafa") || q.includes("faida")) {
+  if (q.includes("profit") || q.includes("munafa") || q.includes("faida") || q.includes("nafa")) {
     const m = invoicesThisMonth(ctx).filter((i) => i.payment_status === "paid");
     const rev = m.reduce((s, i) => s + i.total, 0);
     const cost = m.reduce((s, i) => s + i.cost_total, 0);
@@ -295,7 +358,7 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
   }
 
   // pending dues / who owes
-  if ((q.includes("due") || q.includes("owe") || q.includes("owes") || q.includes("udhaar") || q.includes("baqaya")) && !contact) {
+  if ((q.includes("due") || q.includes("owe") || q.includes("owes") || q.includes("udhaar") || q.includes("udhar") || q.includes("baqaya") || q.includes("pese") || q.includes("paisa") || q.includes("deta hai") || q.includes("dena hai")) && !contact) {
     const unpaid = ctx.invoices.filter((i) => i.payment_status !== "paid");
     if (!unpaid.length) {
       return lang === "ur" ? "کوئی واجب الادا رقم نہیں — سب وصول ہو گیا ✓" : "No pending dues — everything is collected ✓";
@@ -321,9 +384,9 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
       ? `${product.name} کا اسٹاک: ${product.stock_quantity} یونٹ (قیمت ${money(product.unit_price, ctx.currency)})۔`
       : `${product.name}: ${product.stock_quantity} in stock at ${money(product.unit_price, ctx.currency)} each.`;
   }
-  // "is any product quantity below 32" — parse threshold
-  const belowMatch = q.match(/(?:below|under|less than|kam)\s*(\d+)/);
-  if (belowMatch && (q.includes("product") || q.includes("prduct") || q.includes("prodct") || q.includes("quantity") || q.includes("stock") || q.includes("item"))) {
+  // "is any product quantity below 32" / "30 unit se kam" — parse threshold
+  const belowMatch = q.match(/(?:below|under|less than|kam)\s*(\d+)/) || q.match(/(\d+)\s*(?:unit\s*)?se\s*kam/);
+  if (belowMatch && (q.includes("product") || q.includes("prduct") || q.includes("prodct") || q.includes("quantity") || q.includes("stock") || q.includes("item") || q.includes("inventory") || q.includes("kitny") || q.includes("kitne"))) {
     const limit = parseInt(belowMatch[1], 10);
     const matches = ctx.products.filter((p) => p.stock_quantity < limit).sort((a, b) => a.stock_quantity - b.stock_quantity);
     if (!matches.length) {
@@ -368,7 +431,11 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
 
   // ---- help knowledge base ----
   for (const entry of HELP) {
-    if (entry.keys.some((k) => q.includes(k))) {
+    if (entry.keys.some((k) => k && q.includes(k))) {
+      if (entry.roman && ROMAN_ANSWERS[entry.roman]) {
+        // Roman Urdu question — answer in Roman Urdu style (English letters)
+        return ROMAN_ANSWERS[entry.roman].en;
+      }
       return lang === "ur" ? entry.ur : entry.en;
     }
   }
