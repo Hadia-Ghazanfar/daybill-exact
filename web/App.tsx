@@ -11,6 +11,7 @@ import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
 import welcomeSlideSharing from "./assets/approved/welcome-slide-sharing.png";
 import desktopShopkeeper from "./assets/approved/desktop-shopkeeper-3d.png";
 import lostMonster from "./assets/approved/404-monster.png";
+import QRCode from "qrcode";
 import avatar1 from "./assets/avatars/avatar-1.png";
 import avatar2 from "./assets/avatars/avatar-2.png";
 import avatar3 from "./assets/avatars/avatar-3.png";
@@ -295,6 +296,13 @@ const urduUi: Record<string, string> = {
   "Select customer": "گاہک منتخب کریں",
   "Choose avatar": "اوتار منتخب کریں",
   "Pick a profile picture — or upload your logo above.": "پروفائل تصویر منتخب کریں — یا اوپر اپنا لوگو اپ لوڈ کریں۔",
+  "Scan to pay": "ادائیگی کے لیے اسکین کریں",
+  "Payment account": "ادائیگی اکاؤنٹ",
+  "Add your bank details — the app creates a scannable QR for your invoices.": "اپنے بینک کی تفصیلات شامل کریں — ایپ آپ کی رسیدوں کے لیے اسکین ہونے والا کیو آر بنائے گی۔",
+  "Bank name": "بینک کا نام",
+  "Account title": "اکاؤنٹ کا عنوان",
+  "Account number": "اکاؤنٹ نمبر",
+  "IBAN": "آئی بین",
   "Choose a customer": "گاہک چُنیں",
   "No phone saved": "فون نمبر محفوظ نہیں",
   "Select a customer to unlock Step 2.": "مرحلہ 2 کھولنے کے لیے گاہک منتخب کریں۔",
@@ -882,6 +890,18 @@ type ContactAvatarProps = {
 const CONTACT_AVATARS = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6, avatar7, avatar8, avatar9, avatar10, avatar11, avatar12] as const;
 const SHOP_AVATARS = CONTACT_AVATARS;
 
+function buildPaymentQrContent(settings: { bank_name?: string; bank_account_title?: string; bank_account_number?: string; bank_iban?: string }): string | null {
+  const iban = (settings.bank_iban || "").trim();
+  const acct = (settings.bank_account_number || "").trim();
+  if (!iban && !acct) return null;
+  const lines = [];
+  if (settings.bank_name?.trim()) lines.push(settings.bank_name.trim());
+  if (settings.bank_account_title?.trim()) lines.push(settings.bank_account_title.trim());
+  if (acct) lines.push("Account: " + acct);
+  if (iban) lines.push("IBAN: " + iban);
+  return lines.join("\n");
+}
+
 function ContactAvatar({ name, kind = "customer", contactKey = "", className = "" }: ContactAvatarProps) {
   const seedText = `${kind}:${contactKey || name.trim().toLowerCase()}`;
   const seed = [...seedText].reduce((total, character, index) => (total * 33 + character.charCodeAt(0) + index) >>> 0, 5381);
@@ -979,22 +999,22 @@ function wrapCanvasText(context: CanvasRenderingContext2D, text: string, maxWidt
   return lines.length ? lines : [""];
 }
 
-function drawDemoQr(context: CanvasRenderingContext2D, x: number, y: number, size: number, seed: string) {
-  const cells = 11;
-  const cell = size / cells;
-  const hash = [...seed].reduce((sum, character) => sum + character.charCodeAt(0), 0);
-  context.fillStyle = "#ffffff";
-  context.fillRect(x, y, size, size);
-  context.fillStyle = "#17202a";
-  for (let row = 0; row < cells; row += 1) {
-    for (let column = 0; column < cells; column += 1) {
-      const finder = (row < 3 && column < 3) || (row < 3 && column > 7) || (row > 7 && column < 3);
-      const filled = finder || ((row * cells + column) * 17 + hash + row * 7) % 9 < 4;
-      if (filled) context.fillRect(x + column * cell, y + row * cell, Math.ceil(cell), Math.ceil(cell));
+function drawPaymentQr(context: CanvasRenderingContext2D, x: number, y: number, size: number, content: string) {
+  try {
+    const qr = QRCode.create(content, { errorCorrectionLevel: "M" });
+    const count = qr.modules.size;
+    const cell = size / count;
+    context.fillStyle = "#ffffff";
+    context.fillRect(x, y, size, size);
+    context.fillStyle = "#0d3b42";
+    for (let row = 0; row < count; row += 1) {
+      for (let col = 0; col < count; col += 1) {
+        if (qr.modules.get(row, col)) context.fillRect(x + col * cell, y + row * cell, Math.ceil(cell), Math.ceil(cell));
+      }
     }
-  }
-  context.strokeStyle = "#d7d4cb";
-  context.strokeRect(x - 8, y - 8, size + 16, size + 16);
+    context.strokeStyle = "#d7d4cb";
+    context.strokeRect(x - 8, y - 8, size + 16, size + 16);
+  } catch { /* leave blank on failure */ }
 }
 
 async function renderInvoicePng(invoice: Invoice | DraftInvoice, settings: Workspace["settings"], language: Language) {
@@ -1120,11 +1140,14 @@ async function renderInvoicePng(invoice: Invoice | DraftInvoice, settings: Works
 
   y += 34;
   const qrX = isUrdu ? 970 : 98;
-  drawDemoQr(context, qrX, y, 130, invoice.invoice_number);
-  setText(18, 700, "#17202a", "center");
-  context.fillText(label("PAY ONLINE"), qrX + 65, y + 154);
-  setText(16, 400, "#7a838c", "center");
-  context.fillText(label("Demo QR"), qrX + 65, y + 180);
+  const qrContent = buildPaymentQrContent(settings);
+  if (qrContent) {
+    drawPaymentQr(context, qrX, y, 130, qrContent);
+    setText(18, 700, "#17202a", "center");
+    context.fillText(label("PAY ONLINE"), qrX + 65, y + 154);
+    setText(16, 400, "#7a838c", "center");
+    context.fillText(label("Scan to pay"), qrX + 65, y + 180);
+  }
 
   const totalsLabelX = isUrdu ? 600 : 760;
   const totalsAmountX = isUrdu ? 82 : 1118;
@@ -1182,10 +1205,18 @@ type DraftInvoice = {
   items: Array<{ id: number; description: string; unit: string; quantity: number; unit_price: number; line_total: number }>;
 };
 
-function DemoPaymentQr({ seed, language }: { seed: string; language: Language }) {
-  const hash = [...seed].reduce((sum, character) => sum + character.charCodeAt(0), 0);
-  const cells = Array.from({ length: 121 }, (_, index) => ((index * 17 + hash + Math.floor(index / 11) * 7) % 9) < 4);
-  return <div className="payment-qr-wrap"><div className="payment-qr" aria-hidden="true">{cells.map((filled, index) => <i key={index} className={filled ? "filled" : ""} />)}</div><span>{ui(language, "PAY ONLINE")}</span><small>{ui(language, "Demo QR")}</small></div>;
+function PaymentQr({ content, language }: { content: string | null; language: Language }) {
+  const [svg, setSvg] = useState<string | null>(null);
+  useEffect(() => {
+    if (!content) { setSvg(null); return; }
+    let live = true;
+    QRCode.toString(content, { type: "svg", margin: 1, width: 132, color: { dark: "#0d3b42", light: "#ffffff" } })
+      .then((s) => { if (live) setSvg(s); })
+      .catch(() => { if (live) setSvg(null); });
+    return () => { live = false; };
+  }, [content]);
+  if (!content || !svg) return null;
+  return <div className="payment-qr-wrap"><div className="payment-qr real" dangerouslySetInnerHTML={{ __html: svg }} /><span>{ui(language, "PAY ONLINE")}</span><small>{ui(language, "Scan to pay")}</small></div>;
 }
 
 function InvoicePaper({ invoice, settings }: { invoice: Invoice | DraftInvoice; settings: Workspace["settings"] }) {
@@ -1224,7 +1255,7 @@ function InvoicePaper({ invoice, settings }: { invoice: Invoice | DraftInvoice; 
         )) : <p className="empty-lines">{label("Add products to see them here.")}</p>}
       </div>
       <div className="paper-summary">
-        <div className="paper-pay"><DemoPaymentQr seed={invoice.invoice_number} language={language} /></div>
+        <div className="paper-pay"><PaymentQr content={buildPaymentQrContent(settings)} language={language} /></div>
         <div className="paper-totals"><p><span>{label("Subtotal")}</span><b>{money(invoice.subtotal, invoice.currency)}</b></p>{invoice.discount_amount > 0 ? <p className="discount-line"><span>{label("Discount")}{invoice.discount_type === "percentage" ? ` (${invoice.discount_value / 100}%)` : ""}</span><b>−{money(invoice.discount_amount, invoice.currency)}</b></p> : null}<p className="paper-total"><span>{label("Total")}</span><strong>{money(invoice.total, invoice.currency)}</strong></p></div>
       </div>
       {invoice.notes ? <p className="paper-note"><strong>{label("Note")}</strong><br />{invoice.notes}</p> : null}
@@ -2415,7 +2446,7 @@ function SettingsSheet({ settings, onClose }: { settings: Workspace["settings"];
   const { language } = useLanguage();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [form, setForm] = useState({ business_name: settings.business_name, phone: formatPhoneDisplay(settings.phone), address: settings.address, currency: settings.currency, accent_color: settings.accent_color, avatar_choice: settings.avatar_choice ?? "" });
+  const [form, setForm] = useState({ business_name: settings.business_name, phone: formatPhoneDisplay(settings.phone), address: settings.address, currency: settings.currency, accent_color: settings.accent_color, avatar_choice: settings.avatar_choice ?? "", bank_name: settings.bank_name ?? "", bank_account_title: settings.bank_account_title ?? "", bank_account_number: settings.bank_account_number ?? "", bank_iban: settings.bank_iban ?? "" });
   const [logoUrl, setLogoUrl] = useState(settings.logo_url);
   const save = useMutation({ mutationFn: () => api.saveSettings(form), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); onClose(); } });
   const upload = useMutation({
@@ -2429,6 +2460,7 @@ function SettingsSheet({ settings, onClose }: { settings: Workspace["settings"];
   return <div className="sheet-backdrop" role="presentation"><section className="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div className="sheet-handle" /><div className="sheet-head"><div><p className="eyebrow">SHOP DETAILS</p><h2 id="settings-title">Invoice identity</h2></div><button className="close-button" aria-label="Close shop details" onClick={onClose}>×</button></div><form onSubmit={(event) => { event.preventDefault(); save.mutate(); }}>
     <div className="logo-control">{logoUrl ? <img src={logoUrl} alt="Current shop logo" /> : <div className="logo-placeholder">LOGO</div>}<div><strong>Shop logo</strong><p>Optional · PNG or JPEG</p><button type="button" className="secondary compact" disabled={upload.isPending} onClick={() => fileRef.current?.click()}>{upload.isPending ? "Uploading…" : logoUrl ? "Replace logo" : "Upload logo"}</button><input ref={fileRef} hidden tabIndex={-1} type="file" accept="image/png,image/jpeg" onChange={(event) => { const file = event.target.files?.[0]; if (file) upload.mutate(file); }} /></div></div>
     <div className="avatar-picker"><strong>{ui(language, "Choose avatar")}</strong><p>{ui(language, "Pick a profile picture — or upload your logo above.")}</p><div className="avatar-grid">{SHOP_AVATARS.map((src, i) => <button type="button" key={i} className={"avatar-option" + (form.avatar_choice === String(i + 1) ? " selected" : "")} onClick={() => setForm({ ...form, avatar_choice: form.avatar_choice === String(i + 1) ? "" : String(i + 1) })} aria-label={"Avatar " + (i + 1)}><img src={src} alt="" /></button>)}</div></div>
+    <div className="bank-section"><strong>{ui(language, "Payment account")}</strong><p>{ui(language, "Add your bank details — the app creates a scannable QR for your invoices.")}</p><label className="field"><span>{ui(language, "Bank name")}</span><input value={form.bank_name} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} placeholder="Meezan Bank" /></label><label className="field"><span>{ui(language, "Account title")}</span><input value={form.bank_account_title} onChange={(e) => setForm({ ...form, bank_account_title: e.target.value })} placeholder="Ahmed Traders" /></label><label className="field"><span>{ui(language, "Account number")}</span><input value={form.bank_account_number} onChange={(e) => setForm({ ...form, bank_account_number: e.target.value })} placeholder="0123456789" /></label><label className="field"><span>{ui(language, "IBAN")}</span><input value={form.bank_iban} onChange={(e) => setForm({ ...form, bank_iban: e.target.value })} placeholder="PK36MEZN0001234567890123" dir="ltr" /></label></div>
     <label className="field"><span>Business / shop name</span><input required value={form.business_name} onChange={(event) => setForm({ ...form, business_name: event.target.value })} placeholder="e.g. Noor Traders" /></label>
     <div className="field-row"><label className="field"><span>Phone</span><input inputMode="tel" maxLength={12} pattern="03[0-9]{2}-[0-9]{7}" value={form.phone} onChange={(event) => setForm({ ...form, phone: formatLocalPhoneInput(event.target.value) })} placeholder="0300-0000000" /></label><label className="field currency"><span>Currency</span><input required minLength={3} maxLength={6} value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value.toUpperCase() })} /></label></div>
     <label className="field"><span>{ui(language, "Address")}</span><textarea rows={2} value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Shop address" /></label>
