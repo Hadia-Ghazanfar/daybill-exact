@@ -3049,12 +3049,12 @@ button:active { transform: scale(.96); }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .hide-desktop { display: none; }
 @media (max-width: 720px) {
-  .product-table-wrap { background: transparent; border: 0; overflow: visible; padding: 0; }
+  .product-table-wrap { background: transparent; border: 0; overflow: visible; padding: 2px; margin: 0 -2px; }
   .product-table { width: 100%; max-width: 100%; table-layout: fixed; }
   .product-table thead { display: none; }
   .product-table, .product-table tbody { display: block; width: 100%; max-width: 100%; }
   .product-table tbody { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-  .product-table tr.product-row { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 100%; box-sizing: border-box; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; overflow: hidden; }
+  .product-table tr.product-row { display: flex; align-items: center; gap: 10px; width: auto; max-width: 100%; box-sizing: border-box; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; overflow: hidden; margin-left: 2px; margin-right: 2px; }
   .product-table td { border: 0 !important; padding: 0 !important; display: block; min-width: 0; }
   .product-table .cell-image { flex: 0 0 48px; }
   .product-table .cell-image .product-thumb { width: 48px; height: 48px; border-radius: 12px; display: block; }
