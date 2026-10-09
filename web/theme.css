@@ -3051,7 +3051,7 @@ button:active { transform: scale(.96); }
 .cell-edit-left { display: none; }
 @media (max-width: 720px) {
   .product-table-wrap { background: transparent; border: 0; overflow: visible; padding: 2px; margin: 0 -2px; }
-  .product-table { width: 100%; max-width: 100%; table-layout: fixed; }
+  .product-table { width: 100% !important; max-width: 100% !important; min-width: 0 !important; table-layout: auto; }
   .product-table thead { display: none; }
   .product-table, .product-table tbody { display: block; width: 100%; max-width: 100%; }
   .product-table tbody { display: flex; flex-direction: column; gap: 10px; width: 100%; }
