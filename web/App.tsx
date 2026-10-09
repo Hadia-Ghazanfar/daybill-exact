@@ -293,6 +293,8 @@ const urduUi: Record<string, string> = {
   "Who are you billing?": "بل کس کے نام ہے؟",
   "Add customer": "گاہک شامل کریں",
   "Select customer": "گاہک منتخب کریں",
+  "Choose avatar": "اوتار منتخب کریں",
+  "Pick a profile picture — or upload your logo above.": "پروفائل تصویر منتخب کریں — یا اوپر اپنا لوگو اپ لوڈ کریں۔",
   "Choose a customer": "گاہک چُنیں",
   "No phone saved": "فون نمبر محفوظ نہیں",
   "Select a customer to unlock Step 2.": "مرحلہ 2 کھولنے کے لیے گاہک منتخب کریں۔",
@@ -878,6 +880,7 @@ type ContactAvatarProps = {
 };
 
 const CONTACT_AVATARS = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6, avatar7, avatar8, avatar9, avatar10, avatar11, avatar12] as const;
+const SHOP_AVATARS = CONTACT_AVATARS;
 
 function ContactAvatar({ name, kind = "customer", contactKey = "", className = "" }: ContactAvatarProps) {
   const seedText = `${kind}:${contactKey || name.trim().toLowerCase()}`;
@@ -1609,7 +1612,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   if (workspace.error || !workspace.data) {
     const errMsg = String(workspace.error ?? "Unknown error");
     if (/session|expired|unauthori|please log in|log in again/i.test(errMsg)) return <SessionExpiredNotice onLogout={onLogout} />;
-    return <div className="fatal"><h2>Couldn’t open your records</h2><p>{errMsg}</p><button onClick={() => workspace.refetch()}>Try again</button></div>;
+    return <div className="fatal"><h2>Couldn’t open your records</h2><p>{errMsg}</p><div style={{display:"flex",gap:10,justifyContent:"center",marginTop:12}}><button onClick={() => workspace.refetch()}>Try again</button><button className="primary" onClick={onLogout}>Back to login</button></div></div>;
   }
 
   const nav = [
@@ -2252,7 +2255,7 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
   if (dashboard.error || !dashboard.data) {
     const adminErr = String(dashboard.error ?? "Unknown error");
     if (/session|expired|unauthori|please log in|log in again/i.test(adminErr)) return <SessionExpiredNotice onLogout={onLogout} />;
-    return <div className="fatal"><h2>Couldn’t open your records</h2><p>{adminErr}</p><button className="secondary" onClick={() => dashboard.refetch()}>Try again</button></div>;
+    return <div className="fatal"><h2>Couldn’t open your records</h2><p>{adminErr}</p><div style={{display:"flex",gap:10,justifyContent:"center",marginTop:12}}><button className="secondary" onClick={() => dashboard.refetch()}>Try again</button><button className="primary" onClick={onLogout}>Back to login</button></div></div>;
   }
   const totals = dashboard.data.totals;
   return <div className="app-shell admin-shell">
@@ -2301,7 +2304,7 @@ function ProfileView({ settings, account, onEdit, onLogout }: { settings: Worksp
   const { theme, setTheme } = useTheme();
   const [showFeedback, setShowFeedback] = useState(false);
   return <section className="profile-view">
-    <div className="profile-hero">{settings.logo_url ? <img src={settings.logo_url} alt={`${settings.business_name || "Shop"} logo`} /> : <ContactAvatar name={account.shopkeeper_name || settings.business_name || "Shop owner"} contactKey={`profile-${account.phone || account.shopkeeper_name}`} className="shopkeeper-avatar" />}<div><p className="eyebrow">{ui(language, "SHOP PROFILE")}</p><h1>{settings.business_name || ui(language, "Your shop")}</h1><p>{settings.address || ui(language, "No address added")}</p></div></div>
+    <div className="profile-hero">{settings.logo_url ? <img src={settings.logo_url} alt={`${settings.business_name || "Shop"} logo`} /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="Shop avatar" className="shopkeeper-avatar" /> : <ContactAvatar name={account.shopkeeper_name || settings.business_name || "Shop owner"} contactKey={`profile-${account.phone || account.shopkeeper_name}`} className="shopkeeper-avatar" />}<div><p className="eyebrow">{ui(language, "SHOP PROFILE")}</p><h1>{settings.business_name || ui(language, "Your shop")}</h1><p>{settings.address || ui(language, "No address added")}</p></div></div>
     <section className="account-card" aria-label="Signed in account"><div><span>{account.session_kind === "admin" ? ui(language, "Administrator session") : ui(language, "Signed in as")}</span><strong>{account.shopkeeper_name}</strong><small>{account.session_kind === "admin" ? account.admin_email : formatPhoneDisplay(account.phone)}</small></div><button className="secondary compact" type="button" onClick={onLogout}>{ui(language, "Logout / Switch account")}</button></section>
     <div className="profile-details"><article><span>{ui(language, "Phone / WhatsApp")}</span><strong>{settings.phone ? formatPhoneDisplay(settings.phone) : "Not added"}</strong></article><article><span>{ui(language, "Currency")}</span><strong>{settings.currency}</strong></article><article><span>{ui(language, "Invoice accent")}</span><strong className="accent-detail"><i style={{ background: settings.accent_color }} />{settings.accent_color.toUpperCase()}</strong></article></div>
     <section className="language-card" aria-labelledby="language-title"><div><span id="language-title">{ui(language, "Language")}</span><small>{language === "ur" ? "ایپ اردو میں دکھائی جا رہی ہے" : "Choose the app language"}</small></div><div className="language-switch" role="group" aria-label="Language"><button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button><button type="button" className={language === "ur" ? "active" : ""} aria-pressed={language === "ur"} onClick={() => setLanguage("ur")}>اردو</button></div></section>
@@ -2412,7 +2415,7 @@ function SettingsSheet({ settings, onClose }: { settings: Workspace["settings"];
   const { language } = useLanguage();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [form, setForm] = useState({ business_name: settings.business_name, phone: formatPhoneDisplay(settings.phone), address: settings.address, currency: settings.currency, accent_color: settings.accent_color });
+  const [form, setForm] = useState({ business_name: settings.business_name, phone: formatPhoneDisplay(settings.phone), address: settings.address, currency: settings.currency, accent_color: settings.accent_color, avatar_choice: settings.avatar_choice ?? "" });
   const [logoUrl, setLogoUrl] = useState(settings.logo_url);
   const save = useMutation({ mutationFn: () => api.saveSettings(form), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); onClose(); } });
   const upload = useMutation({
@@ -2425,6 +2428,7 @@ function SettingsSheet({ settings, onClose }: { settings: Workspace["settings"];
   });
   return <div className="sheet-backdrop" role="presentation"><section className="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div className="sheet-handle" /><div className="sheet-head"><div><p className="eyebrow">SHOP DETAILS</p><h2 id="settings-title">Invoice identity</h2></div><button className="close-button" aria-label="Close shop details" onClick={onClose}>×</button></div><form onSubmit={(event) => { event.preventDefault(); save.mutate(); }}>
     <div className="logo-control">{logoUrl ? <img src={logoUrl} alt="Current shop logo" /> : <div className="logo-placeholder">LOGO</div>}<div><strong>Shop logo</strong><p>Optional · PNG or JPEG</p><button type="button" className="secondary compact" disabled={upload.isPending} onClick={() => fileRef.current?.click()}>{upload.isPending ? "Uploading…" : logoUrl ? "Replace logo" : "Upload logo"}</button><input ref={fileRef} hidden tabIndex={-1} type="file" accept="image/png,image/jpeg" onChange={(event) => { const file = event.target.files?.[0]; if (file) upload.mutate(file); }} /></div></div>
+    <div className="avatar-picker"><strong>{ui(language, "Choose avatar")}</strong><p>{ui(language, "Pick a profile picture — or upload your logo above.")}</p><div className="avatar-grid">{SHOP_AVATARS.map((src, i) => <button type="button" key={i} className={"avatar-option" + (form.avatar_choice === String(i + 1) ? " selected" : "")} onClick={() => setForm({ ...form, avatar_choice: form.avatar_choice === String(i + 1) ? "" : String(i + 1) })} aria-label={"Avatar " + (i + 1)}><img src={src} alt="" /></button>)}</div></div>
     <label className="field"><span>Business / shop name</span><input required value={form.business_name} onChange={(event) => setForm({ ...form, business_name: event.target.value })} placeholder="e.g. Noor Traders" /></label>
     <div className="field-row"><label className="field"><span>Phone</span><input inputMode="tel" maxLength={12} pattern="03[0-9]{2}-[0-9]{7}" value={form.phone} onChange={(event) => setForm({ ...form, phone: formatLocalPhoneInput(event.target.value) })} placeholder="0300-0000000" /></label><label className="field currency"><span>Currency</span><input required minLength={3} maxLength={6} value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value.toUpperCase() })} /></label></div>
     <label className="field"><span>{ui(language, "Address")}</span><textarea rows={2} value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Shop address" /></label>
