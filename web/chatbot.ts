@@ -64,7 +64,7 @@ const norm = (s: string) =>
   s.toLowerCase().replace(/[؟?.,!،]/g, " ").replace(/\s+/g, " ").trim();
 
 function money(n: number, currency: string) {
-  return `${currency} ${Math.round(n).toLocaleString("en-PK")}`;
+  return `${currency} ${Math.round(n / 100).toLocaleString("en-PK")}`;
 }
 
 function monthKey(d: Date) {
@@ -406,16 +406,28 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
       low.map((p) => `• ${p.name}: ${p.stock_quantity}`).join("\n");
   }
 
-  // counts
-  if (q.includes("how many") && q.includes("customer")) {
+  // counts — English, Roman Urdu (kitny/kitne), Urdu (کتنے)
+  const isCountQ = q.includes("how many") || q.includes("kitny") || q.includes("kitne") || q.includes("کتنے");
+  const isBelowQ = q.includes("se kam") || q.includes("below") || q.includes("under") || q.includes("less than");
+  if (isCountQ && !isBelowQ && (q.includes("customer") || q.includes("gahak") || q.includes("کسٹمر"))) {
     const n = ctx.contacts.filter((c) => c.kind === "customer").length;
+    if (q.includes("kitny") || q.includes("kitne")) return `Apke pas kul ${n} customers hn.`;
     return lang === "ur" ? `کل ${n} کسٹمر ہیں۔` : `You have ${n} customers.`;
   }
-  if (q.includes("how many") && q.includes("product")) {
-    return lang === "ur" ? `کل ${ctx.products.length} پروڈکٹس ہیں۔` : `You have ${ctx.products.length} products.`;
+  if (isCountQ && !isBelowQ && (q.includes("product") || q.includes("inventory") || q.includes("stock") || q.includes("پروڈکٹ"))) {
+    const n = ctx.products.length;
+    if (q.includes("kitny") || q.includes("kitne")) return `Apki inventory ma kul ${n} products hn.`;
+    return lang === "ur" ? `کل ${n} پروڈکٹس ہیں۔` : `You have ${n} products.`;
   }
-  if (q.includes("how many") && q.includes("invoice")) {
-    return lang === "ur" ? `کل ${ctx.invoices.length} انوائس ہیں۔` : `You have ${ctx.invoices.length} invoices.`;
+  if (isCountQ && !isBelowQ && (q.includes("invoice") || q.includes("bill") || q.includes("انوائس"))) {
+    const n = ctx.invoices.length;
+    if (q.includes("kitny") || q.includes("kitne")) return `Kul ${n} invoices hn.`;
+    return lang === "ur" ? `کل ${n} انوائس ہیں۔` : `You have ${n} invoices.`;
+  }
+  if (isCountQ && !isBelowQ && (q.includes("supplier") || q.includes("سپلائر"))) {
+    const n = ctx.contacts.filter((c) => c.kind === "supplier").length;
+    if (q.includes("kitny") || q.includes("kitne")) return `Apke pas kul ${n} suppliers hn.`;
+    return lang === "ur" ? `کل ${n} سپلائر ہیں۔` : `You have ${n} suppliers.`;
   }
 
   // top customer
