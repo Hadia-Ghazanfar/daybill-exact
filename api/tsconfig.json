@@ -1,0 +1,1 @@
+{"compilerOptions":{"allowSyntheticDefaultImports":true,"esModuleInterop":true,"isolatedModules":true,"lib":["ES2022"],"module":"ESNext","moduleResolution":"bundler","noEmit":true,"skipLibCheck":true,"strict":true,"target":"ES2022","types":["node"]},"include":["_defs.ts","_schema.ts","_db.ts","_auth.ts","_blobs.ts","_handlers.ts","[action].ts"]}

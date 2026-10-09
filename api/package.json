@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@supabase/supabase-js": "2.39.0",
+    "drizzle-orm": "0.45.2",
+    "postgres": "3.4.4",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "@types/node": "^26.6.4"
+  },
+  "name": "daybill-exact-api",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module"
+}
