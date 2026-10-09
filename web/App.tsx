@@ -1389,6 +1389,16 @@ function SessionExpiredNotice({ onLogout }: { onLogout: () => void }) {
   return <div className="loading"><div className="loader" /><p>Session expired — taking you to login…</p></div>;
 }
 
+function ProductCatalogPicker({ products, currency, selectedId, onSelect, language }: { products: Product[]; currency: string; selectedId: number | null; onSelect: (id: number | null) => void; language: Language }) {
+  return <div className="catalog-strip" role="listbox" aria-label={ui(language, "Choose product")}>
+    {products.map((product) => <button type="button" key={product.id} role="option" aria-selected={product.id === selectedId} disabled={product.stock_quantity <= 0} className={"catalog-card" + (product.id === selectedId ? " selected" : "")} onClick={() => onSelect(product.id === selectedId ? null : product.id)}>
+      {product.image_url ? <img src={product.image_url} alt="" /> : <span className="catalog-thumb empty"><Icon name="box" /></span>}
+      <strong>{product.name}</strong><small>{money(product.unit_price, currency)}</small><em>{product.stock_quantity} {ui(language, "in stock")}</em>
+      {product.id === selectedId ? <span className="catalog-check">✓</span> : null}
+    </button>)}
+  </div>;
+}
+
 function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const queryClient = useQueryClient();
   const { language } = useLanguage();
@@ -1753,7 +1763,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
                             const selectedProduct = products.find((product) => product.id === line.productId);
                             const quantity = Number(line.quantity) || 0;
                             return <div className="line-input create-item-row" key={line.key}>
-                              <label className="item-description"><span>Description</span><select aria-label={`Product for line ${index + 1}`} value={line.productId ?? ""} onChange={(event) => setLines((current) => current.map((item) => item.key === line.key ? { ...item, productId: event.target.value ? Number(event.target.value) : null } : item))}><option value="">Choose product</option>{products.map((product) => <option key={product.id} value={product.id} disabled={product.stock_quantity <= 0}>{product.name} — {product.stock_quantity} in stock</option>)}</select></label>
+                              <div className="item-description"><span>{ui(language, "Description")}</span><ProductCatalogPicker products={products} currency={settings.currency} selectedId={line.productId} language={language} onSelect={(id) => setLines((current) => current.map((item) => item.key === line.key ? { ...item, productId: id } : item))} /></div>
                               <label className="qty"><span>Qty</span><input aria-label={`Quantity for line ${index + 1}`} type="number" inputMode="numeric" min="1" step="1" placeholder="1" value={line.quantity} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setLines((current) => current.map((item) => item.key === line.key ? { ...item, quantity: event.target.value } : item))} /></label>
                               <div className="line-price"><span>Price</span><strong>{selectedProduct ? money(selectedProduct.unit_price, settings.currency) : "—"}</strong></div>
                               <div className="line-total"><span>Total</span><strong>{selectedProduct && quantity > 0 ? money(selectedProduct.unit_price * quantity, settings.currency) : "—"}</strong></div>
