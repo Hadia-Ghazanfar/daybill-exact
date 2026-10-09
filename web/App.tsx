@@ -25,6 +25,8 @@ import avatar10 from "./assets/avatars/avatar-10.png";
 import avatar11 from "./assets/avatars/avatar-11.png";
 import avatar12 from "./assets/avatars/avatar-12.png";
 import mascotAvatar from "./assets/mascot.png";
+import { sendPhoneOtp, verifyPhoneOtp, toE164, isFirebaseConfigured } from "./firebase-otp";
+import type { ConfirmationResult } from "firebase/auth";
 import { answerQuestion, QUICK_CHIPS } from "./chatbot";
 import type { ChatContext } from "./chatbot";
 
@@ -1966,7 +1968,7 @@ function NotFoundPage({ loggedIn, onHome }: { loggedIn: boolean; onHome: () => v
 
 function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthenticated: (session: AccountSession) => void; initialMode?: "user-login" | "create" }) {
   const { language, setLanguage } = useLanguage();
-  const [mode, setMode] = useState<"user-login" | "create" | "admin">(initialMode);
+  const [mode, setMode] = useState<"user-login" | "create" | "admin" | "forgot-pin">(initialMode);
   const [remember, setRemember] = useState(true);
   const [name, setName] = useState("");
   const [shopName, setShopName] = useState("");
@@ -1978,6 +1980,20 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   const [adminEmail, setAdminEmail] = useState("hadiaghazanfar354@gmail.com");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminConfirmation, setAdminConfirmation] = useState("");
+  // Phone OTP verification state
+  const [otpStep, setOtpStep] = useState<"form" | "verify">("form");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [firebaseIdToken, setFirebaseIdToken] = useState<string | null>(null);
+  // Forgot PIN state
+  const [resetPhone, setResetPhone] = useState("");
+  const [resetPin, setResetPin] = useState("");
+  const [resetConfirm, setResetConfirm] = useState("");
+  const [resetDone, setResetDone] = useState(false);
 
   const login = useMutation({
     mutationFn: () => api.login({ phone, pin }),
@@ -1988,13 +2004,65 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
     },
   });
   const create = useMutation({
-    mutationFn: () => api.createAccount({ shopkeeper_name: name, shop_name: shopName, shop_address: shopAddress, phone, pin }),
+    mutationFn: () => {
+      if (!firebaseIdToken) throw new Error("Please verify your phone number first");
+      return api.createAccount({ shopkeeper_name: name, shop_name: shopName, shop_address: shopAddress, phone, pin, firebase_id_token: firebaseIdToken });
+    },
     onSuccess: (result) => {
       const session: AccountSession = { account_id: result.account_id, session_token: result.session_token, session_kind: result.session_kind, shopkeeper_name: result.shopkeeper_name, phone: result.phone };
       saveAccountSession(session, remember);
       onAuthenticated(session);
     },
   });
+  const doResetPin = useMutation({
+    mutationFn: () => {
+      if (!firebaseIdToken) throw new Error("Please verify your phone number first");
+      return api.resetPin({ phone: resetPhone, new_pin: resetPin, firebase_id_token: firebaseIdToken });
+    },
+    onSuccess: () => { setResetDone(true); },
+  });
+
+  // OTP handlers with 60s resend cooldown
+  const startCooldown = () => {
+    setOtpCooldown(60);
+    const t = setInterval(() => setOtpCooldown((c) => { if (c <= 1) { clearInterval(t); return 0; } return c - 1; }), 1000);
+  };
+  const handleSendOtp = async (phoneNumber: string) => {
+    setOtpError(null);
+    if (!isFirebaseConfigured()) { setOtpError("Phone verification is not set up yet. Please contact support."); return; }
+    if (otpCooldown > 0 || otpSending) return;
+    setOtpSending(true);
+    try {
+      const confirmation = await sendPhoneOtp(toE164(phoneNumber));
+      setConfirmationResult(confirmation);
+      setOtpStep("verify");
+      startCooldown();
+    } catch (err) {
+      setOtpError(err instanceof Error ? err.message : "Could not send the code. Try again.");
+    } finally {
+      setOtpSending(false);
+    }
+  };
+  const handleVerifyOtp = async () => {
+    setOtpError(null);
+    if (!confirmationResult || otpCode.length !== 6) return;
+    setOtpVerifying(true);
+    try {
+      const { idToken } = await verifyPhoneOtp(confirmationResult, otpCode);
+      setFirebaseIdToken(idToken);
+      setOtpStep("form");
+      setOtpCode("");
+    } catch {
+      setOtpError("Wrong code. Please try again.");
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+  const resetOtpState = () => {
+    setOtpStep("form"); setOtpCode(""); setConfirmationResult(null);
+    setFirebaseIdToken(null); setOtpError(null); setOtpCooldown(0);
+  };
+
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail.trim());
   const adminStatus = useQuery({
     queryKey: ["admin-login-status", adminEmail.trim().toLowerCase()],
@@ -2017,15 +2085,18 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   });
 
   const normalizePhone = (value: string) => formatLocalPhoneInput(value);
-  const changeMode = (next: "user-login" | "create" | "admin") => {
+  const changeMode = (next: "user-login" | "create" | "admin" | "forgot-pin") => {
     setMode(next);
     setPin("");
     setConfirmation("");
     setAdminPassword("");
     setAdminConfirmation("");
+    setResetPhone(""); setResetPin(""); setResetConfirm(""); setResetDone(false);
+    resetOtpState();
     login.reset();
     create.reset();
     adminLogin.reset();
+    doResetPin.reset();
   };
   const phoneValid = /^03\d{2}-\d{7}$/.test(phone);
   const pinValid = /^\d{4}$/.test(pin);
@@ -2056,7 +2127,30 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             <button type="button" role="tab" aria-selected={mode === "admin"} className={mode === "admin" ? "active" : ""} onClick={() => changeMode("admin")}><Icon name="lock" />Admin</button>
           </div>
 
-          {mode === "admin" ? <form className="login-form admin-form" onSubmit={(event) => { event.preventDefault(); if (adminFormValid) adminLogin.mutate(); }}>
+          <div id="otp-recaptcha"></div>
+          {mode === "forgot-pin" ? <form className="login-form" onSubmit={(event) => { event.preventDefault(); if (firebaseIdToken && resetPin.length === 4 && resetPin === resetConfirm) doResetPin.mutate(); }}>
+            <h2 style={{ margin: "0 0 4px" }}>Reset your PIN</h2>
+            <p className="auth-intro">We'll send a verification code to your number.</p>
+            {resetDone ? <><p className="otp-verified" role="status">✓ PIN reset successfully. Please log in with your new PIN.</p><button className="primary wide" type="button" onClick={() => changeMode("user-login")}>Back to login</button></> : <>
+              <label><span>Phone number</span><input autoFocus aria-label="Phone number" inputMode="numeric" maxLength={12} value={resetPhone} onChange={(event) => { setResetPhone(formatLocalPhoneInput(event.target.value)); resetOtpState(); }} placeholder="0300-0000000" /></label>
+              {!firebaseIdToken ? <div className="otp-section">
+                {otpStep === "form" ? <button type="button" className="secondary wide" onClick={() => handleSendOtp(resetPhone)} disabled={!/^03\d{2}-\d{7}$/.test(resetPhone) || otpSending || otpCooldown > 0}>{otpSending ? "Sending code…" : otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Send verification code"}</button> : <>
+                  <label><span>Enter the 6-digit code</span><input aria-label="Verification code" inputMode="numeric" maxLength={6} value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="••••••" /></label>
+                  <div className="otp-actions"><button type="button" className="secondary" onClick={() => handleSendOtp(resetPhone)} disabled={otpSending || otpCooldown > 0}>{otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Resend code"}</button><button type="button" className="primary" onClick={handleVerifyOtp} disabled={otpCode.length !== 6 || otpVerifying}>{otpVerifying ? "Verifying…" : "Verify code"}</button></div>
+                </>}
+                {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
+              </div> : <>
+                <p className="otp-verified" role="status">✓ Phone number verified</p>
+                <label><span>New 4-digit PIN</span><input aria-label="New PIN" type="password" inputMode="numeric" maxLength={4} value={resetPin} onChange={(e) => setResetPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
+                <label><span>Confirm new PIN</span><input aria-label="Confirm new PIN" type="password" inputMode="numeric" maxLength={4} value={resetConfirm} onChange={(e) => setResetConfirm(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
+                {resetConfirm.length === 4 && resetPin !== resetConfirm ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
+                {doResetPin.error ? <p className="auth-error" role="alert">{doResetPin.error instanceof Error ? doResetPin.error.message : "Could not reset PIN."}</p> : null}
+                <button className="primary wide login-submit" type="submit" disabled={resetPin.length !== 4 || resetPin !== resetConfirm || doResetPin.isPending}>{doResetPin.isPending ? "Please wait…" : "Set new PIN"}</button>
+              </>}
+              <button className="auth-switch" type="button" onClick={() => changeMode("user-login")}>Back to login</button>
+            </>}
+          </form>
+          : mode === "admin" ? <form className="login-form admin-form" onSubmit={(event) => { event.preventDefault(); if (adminFormValid) adminLogin.mutate(); }}>
             <label><span>Admin email</span><input autoFocus aria-label="Admin email" type="email" autoComplete="username" value={adminEmail} onChange={(event) => { setAdminEmail(event.target.value); setAdminPassword(""); setAdminConfirmation(""); adminLogin.reset(); }} /></label>
             {adminStatus.isLoading ? <p className="auth-field-help" role="status">Checking administrator account…</p> : null}
             <label><span>{adminSetupRequired ? "Set password" : "Password"}</span><span className="password-field"><input aria-label={adminSetupRequired ? "Set admin password" : "Admin password"} type={showPassword ? "text" : "password"} autoComplete={adminSetupRequired ? "new-password" : "current-password"} minLength={10} maxLength={128} placeholder="••••••••••" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? "🙈" : "👁️"}</button></span></label>
@@ -2089,7 +2183,19 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             {isCreating && confirmation.length === 4 && pin !== confirmation ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
             {error ? <p className="auth-error" role="alert">{error instanceof Error ? error.message : "Could not continue. Try again."}</p> : null}
             <label className="remember-row"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} /><span>Remember me</span></label>
-            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
+            {isCreating && !firebaseIdToken ? <div className="otp-section">
+              <p className="auth-field-help" style={{ marginTop: 0 }}>Verify your phone number to create the account.</p>
+              {otpStep === "form" ? <>
+                <button type="button" className="secondary wide" onClick={() => handleSendOtp(phone)} disabled={!phoneValid || otpSending || otpCooldown > 0}>{otpSending ? "Sending code…" : otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Send verification code"}</button>
+              </> : <>
+                <label><span>Enter the 6-digit code sent to {phone}</span><input aria-label="Verification code" inputMode="numeric" maxLength={6} value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="••••••" /></label>
+                <div className="otp-actions"><button type="button" className="secondary" onClick={() => handleSendOtp(phone)} disabled={otpSending || otpCooldown > 0}>{otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Resend code"}</button><button type="button" className="primary" onClick={handleVerifyOtp} disabled={otpCode.length !== 6 || otpVerifying}>{otpVerifying ? "Verifying…" : "Verify code"}</button></div>
+              </>}
+              {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
+            </div> : null}
+            {isCreating && firebaseIdToken ? <p className="otp-verified" role="status">✓ Phone number verified</p> : null}
+            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation || !firebaseIdToken)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
+            {!isCreating ? <button className="auth-switch" type="button" onClick={() => changeMode("forgot-pin")}>Forgot PIN?</button> : null}
             <button className="auth-switch" type="button" onClick={() => changeMode(isCreating ? "user-login" : "create")}>{isCreating ? "Already have a user account? Log in" : "New here? Create user account"}</button>
           </form>}
         </div>
