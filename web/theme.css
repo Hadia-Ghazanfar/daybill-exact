@@ -510,6 +510,8 @@ html[data-theme="dark"] .invoice-paper { color-scheme: light; }
 .payment-qr { display: grid; grid-template-columns: repeat(11, 1fr); width: 72px; height: 72px; margin: 0 auto 6px; padding: 5px; border: 1px solid #d7d4cb; background: #fff; }
 .payment-qr i { background: transparent; }
 .payment-qr i.filled { background: #17202a; }
+.payment-qr.real { overflow: hidden; }
+.payment-qr.real svg { width: 100% !important; height: 100% !important; display: block; }
 .payment-qr-wrap span, .payment-qr-wrap small { display: block; }
 .payment-qr-wrap span { font-size: 7px; font-weight: 800; letter-spacing: .08em; }
 .payment-qr-wrap small { margin-top: 2px; color: #7a838c; font-size: 7px; }
@@ -3154,8 +3156,13 @@ button:active { transform: scale(.96); }
     border: 0 !important; border-radius: 0 !important;
     background: #0a403d !important;
     box-shadow: none !important; transform: none !important;
-    overflow-y: auto !important; overflow-x: hidden !important;
+    overflow: hidden !important;
   }
+  html:not(.phone-layout) .bottom-nav:not(.admin-nav) .nav-entry { margin-bottom: 2px !important; }
+  html:not(.phone-layout) .bottom-nav:not(.admin-nav) button { min-height: 44px !important; margin-bottom: 2px !important; }
+  html:not(.phone-layout) .bottom-nav:not(.admin-nav) .nav-group-label { margin: 10px 12px 4px !important; }
+  html:not(.phone-layout) .sidebar-profile { padding: 4px 6px 10px !important; margin-bottom: 6px !important; }
+  html:not(.phone-layout) .sidebar-bottom { padding-top: 10px !important; margin-top: auto !important; }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav)::after { content: "BUSINESS WORKSPACE"; display: block; margin: 14px 12px 6px; color: #70a29c; font-size: 8px; font-weight: 850; letter-spacing: .17em; }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav) .nav-entry { display: block !important; min-width: 0 !important; }
   html:not(.phone-layout) .bottom-nav:not(.admin-nav) .nav-group-label { display: block !important; margin: 14px 12px 6px !important; color: #70a29c !important; font-size: 8px !important; font-weight: 850 !important; letter-spacing: .17em !important; }
@@ -3185,9 +3192,9 @@ button:active { transform: scale(.96); }
   html:not(.phone-layout) .sidebar-help-btn,
   html:not(.phone-layout) .sidebar-logout-btn { display: flex !important; align-items: center; gap: 12px; width: 100%; min-height: 50px; margin: 0 0 4px; padding: 0 16px; border: 0; border-radius: 12px; background: transparent; color: #b8d7d2; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
   html:not(.phone-layout) .sidebar-help-btn:hover, html:not(.phone-layout) .sidebar-logout-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
-  html:not(.phone-layout) .sidebar-topbar { display: flex !important; justify-content: flex-end !important; padding: 0 4px 8px !important; }
-  html:not(.phone-layout) .sidebar-topbar .theme-fab { position: static !important; width: 34px !important; height: 34px !important; border-radius: 10px !important; background: rgba(255,255,255,.08) !important; border: 1px solid rgba(255,255,255,.15) !important; color: #d9eeea !important; display: grid !important; place-items: center !important; cursor: pointer !important; box-shadow: none !important; }
-  html:not(.phone-layout) .sidebar-topbar .theme-fab svg { width: 17px !important; height: 17px !important; }
+  .theme-toggle-header { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: grid; place-items: center; cursor: pointer; }
+  .theme-toggle-header:hover { transform: scale(1.08); }
+  .theme-toggle-header svg { width: 20px; height: 20px; }
   html:not(.phone-layout) .sidebar-bottom { display: flex !important; flex-direction: column !important; gap: 4px !important; margin-top: auto !important; padding-top: 14px !important; border-top: 1px solid rgba(255,255,255,.12) !important; }
   html:not(.phone-layout) .sidebar-help, html:not(.phone-layout) .sidebar-logout { display: flex !important; align-items: center !important; gap: 12px !important; width: 100% !important; min-height: 48px !important; padding: 0 16px !important; border: 0 !important; border-radius: 12px !important; background: transparent !important; color: #b8d7d2 !important; font-size: 13px !important; font-weight: 600 !important; cursor: pointer !important; text-align: left !important; }
   html:not(.phone-layout) .sidebar-help:hover { background: rgba(255,255,255,.08) !important; color: #fff !important; }
@@ -3236,3 +3243,14 @@ button:active { transform: scale(.96); }
 @media (max-width: 720px) {
   .category-chips { margin-left: -2px; margin-right: -2px; padding-left: 2px; padding-right: 2px; }
 }
+
+/* === Phone OTP verification === */
+#otp-recaptcha { position: absolute; visibility: hidden; pointer-events: none; }
+.otp-section { margin: 14px 0; padding: 14px; border: 1px dashed var(--border); border-radius: 12px; background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
+.otp-section label { margin-bottom: 10px; }
+.otp-actions { display: flex; gap: 10px; margin-top: 4px; }
+.otp-actions .secondary, .otp-actions .primary { flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+.otp-actions .secondary { border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.otp-actions .primary { border: 0; background: var(--accent); color: #fff; }
+.otp-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.otp-verified { color: #149a5b; font-weight: 700; font-size: 14px; margin: 10px 0; }

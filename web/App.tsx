@@ -24,6 +24,8 @@ import avatar9 from "./assets/avatars/avatar-9.png";
 import avatar10 from "./assets/avatars/avatar-10.png";
 import avatar11 from "./assets/avatars/avatar-11.png";
 import avatar12 from "./assets/avatars/avatar-12.png";
+import { sendPhoneOtp, verifyPhoneOtp, toE164, isFirebaseConfigured } from "./firebase-otp";
+import type { ConfirmationResult } from "firebase/auth";
 
 type Workspace = ApiResponse<typeof api, "getWorkspace">;
 type Product = Workspace["products"][number];
@@ -1812,7 +1814,6 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         : <ProfileView settings={settings} account={workspace.data.account} onEdit={() => setShowSettings(true)} onLogout={onLogout} />}
       </main>
       <nav className="bottom-nav" aria-label="Primary navigation">
-        <div className="sidebar-topbar"><button className="theme-fab" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")} title={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button></div>
         <div className="sidebar-profile">{settings.logo_url ? <img src={settings.logo_url} alt="" /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="" /> : <span className="sidebar-avatar-fallback"><Icon name="profile" /></span>}<div><strong>{workspace.data.account.shopkeeper_name || settings.business_name || "Shop owner"}</strong><small>{workspace.data.account.phone ? formatPhoneDisplay(workspace.data.account.phone) : ""}</small></div></div>
         {nav.map((item, index) => <div className="nav-entry" key={item.id}>{index === 0 || nav[index - 1]?.group !== item.group ? <span className="nav-group-label">{item.group}</span> : null}<button title={sidebarCollapsed ? item.label : undefined} aria-label={item.label} className={tab === item.id ? "active" : ""} onClick={() => { sessionStorage.removeItem(MOBILE_BILLS_RETURN_KEY); mobileDetailHistoryPushed.current = false; setSelectedContactId(null); setTab(item.id); setMessage(""); }}><Icon name={item.icon} /><span>{item.label}</span></button></div>)}
         <div className="sidebar-bottom"><button className="sidebar-help" onClick={() => setShowHelpFeedback(true)}><Icon name="help" /><span>{ui(language, "Help")}</span></button><button className="sidebar-logout" onClick={onLogout}><Icon name="logout" /><span>{ui(language, "Logout")}</span></button></div>
@@ -1901,7 +1902,7 @@ function NotFoundPage({ loggedIn, onHome }: { loggedIn: boolean; onHome: () => v
 
 function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthenticated: (session: AccountSession) => void; initialMode?: "user-login" | "create" }) {
   const { language, setLanguage } = useLanguage();
-  const [mode, setMode] = useState<"user-login" | "create" | "admin">(initialMode);
+  const [mode, setMode] = useState<"user-login" | "create" | "admin" | "forgot-pin">(initialMode as "user-login" | "create" | "admin" | "forgot-pin");
   const [remember, setRemember] = useState(true);
   const [name, setName] = useState("");
   const [shopName, setShopName] = useState("");
@@ -1913,6 +1914,18 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   const [adminEmail, setAdminEmail] = useState("hadiaghazanfar354@gmail.com");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminConfirmation, setAdminConfirmation] = useState("");
+  // OTP verification state
+  const [otpStep, setOtpStep] = useState<"form" | "verify">("form");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [firebaseIdToken, setFirebaseIdToken] = useState<string | null>(null);
+  const [resetPhone, setResetPhone] = useState("");
+  const [resetPin, setResetPin] = useState("");
+  const [resetConfirm, setResetConfirm] = useState("");
+  const [resetDone, setResetDone] = useState(false);
 
   const login = useMutation({
     mutationFn: () => api.login({ phone, pin }),
@@ -1952,7 +1965,48 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   });
 
   const normalizePhone = (value: string) => formatLocalPhoneInput(value);
-  const changeMode = (next: "user-login" | "create" | "admin") => {
+  const doResetPin = useMutation({
+    mutationFn: () => {
+      if (!firebaseIdToken) throw new Error("Please verify your phone number first");
+      return api.resetPin({ phone: resetPhone, new_pin: resetPin, firebase_id_token: firebaseIdToken });
+    },
+    onSuccess: () => setResetDone(true),
+  });
+  // OTP handlers
+  const handleSendOtp = async (phoneNumber: string) => {
+    setOtpError(null);
+    if (!isFirebaseConfigured()) { setOtpError("Phone verification is not set up yet. Please contact support."); return; }
+    setOtpSending(true);
+    try {
+      const confirmation = await sendPhoneOtp(toE164(phoneNumber));
+      setConfirmationResult(confirmation);
+      setOtpStep("verify");
+    } catch (err) {
+      setOtpError(err instanceof Error ? err.message : "Could not send the code. Try again.");
+    } finally {
+      setOtpSending(false);
+    }
+  };
+  const handleVerifyOtp = async () => {
+    setOtpError(null);
+    if (!confirmationResult || otpCode.length !== 6) return;
+    setOtpVerifying(true);
+    try {
+      const { idToken } = await verifyPhoneOtp(confirmationResult, otpCode);
+      setFirebaseIdToken(idToken);
+      setOtpStep("form");
+      setOtpCode("");
+    } catch (err) {
+      setOtpError(err instanceof Error ? "Wrong code. Please try again." : "Verification failed.");
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+  const resetOtpState = () => {
+    setOtpStep("form"); setOtpCode(""); setConfirmationResult(null);
+    setFirebaseIdToken(null); setOtpError(null);
+  };
+  const changeMode = (next: "user-login" | "create" | "admin" | "forgot-pin") => {
     setMode(next);
     setPin("");
     setConfirmation("");
@@ -1961,6 +2015,9 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
     login.reset();
     create.reset();
     adminLogin.reset();
+    doResetPin.reset();
+    resetOtpState();
+    setResetDone(false);
   };
   const phoneValid = /^03\d{2}-\d{7}$/.test(phone);
   const pinValid = /^\d{4}$/.test(pin);
@@ -1983,7 +2040,8 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
         <div className="login-mobile-brand"><BrandIdentity compact /></div>
         <div className="login-card">
           <p className="auth-kicker">WELCOME BACK</p>
-          <h1>{isCreating ? ui(language, "Create new account") : ui(language, "Welcome back")}</h1>
+          <div id="otp-recaptcha"></div>
+          <h1>{mode === "forgot-pin" ? ui(language, "Reset your PIN") : isCreating ? ui(language, "Create new account") : ui(language, "Welcome back")}</h1>
           <p className="auth-intro">{isCreating ? ui(language, "Each account keeps its products, contacts, invoices, purchases and shop settings separate.") : ui(language, "Sign in to continue to your business.")}</p>
 
           <div className="login-role-tabs" role="tablist" aria-label="Choose how to sign in">
@@ -1991,7 +2049,27 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             <button type="button" role="tab" aria-selected={mode === "admin"} className={mode === "admin" ? "active" : ""} onClick={() => changeMode("admin")}><Icon name="lock" />Admin</button>
           </div>
 
-          {mode === "admin" ? <form className="login-form admin-form" onSubmit={(event) => { event.preventDefault(); if (adminFormValid) adminLogin.mutate(); }}>
+          {mode === "forgot-pin" ? <form className="login-form" onSubmit={(event) => { event.preventDefault(); if (firebaseIdToken && resetPin.length === 4 && resetPin === resetConfirm) doResetPin.mutate(); }}>
+            {resetDone ? <><p className="otp-verified" role="status">✓ PIN reset successfully. Please log in with your new PIN.</p><button className="primary wide" type="button" onClick={() => changeMode("user-login")}>Back to login</button></> : <>
+            <p className="auth-intro">Enter your phone number to receive a verification code, then set a new PIN.</p>
+            <label><span>Phone number</span><input autoFocus aria-label="Phone number" inputMode="numeric" autoComplete="tel" maxLength={12} value={resetPhone} onChange={(event) => setResetPhone(normalizePhone(event.target.value))} placeholder="0300-0000000" /></label>
+            {!firebaseIdToken ? <div className="otp-section">
+              {otpStep === "form" ? <button type="button" className="secondary wide" onClick={() => handleSendOtp(resetPhone)} disabled={!/^03\d{2}-\d{7}$/.test(resetPhone) || otpSending}>{otpSending ? "Sending code…" : "Send verification code"}</button> : <>
+                <label><span>Enter the 6-digit code</span><input aria-label="Verification code" inputMode="numeric" maxLength={6} value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="••••••" /></label>
+                <div className="otp-actions"><button type="button" className="secondary" onClick={() => handleSendOtp(resetPhone)} disabled={otpSending}>{otpSending ? "Resending…" : "Resend code"}</button><button type="button" className="primary" onClick={handleVerifyOtp} disabled={otpCode.length !== 6 || otpVerifying}>{otpVerifying ? "Verifying…" : "Verify code"}</button></div>
+              </>}
+              {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
+            </div> : <>
+              <p className="otp-verified" role="status">✓ Phone number verified</p>
+              <label><span>New 4-digit PIN</span><input aria-label="New PIN" type={showPassword ? "text" : "password"} inputMode="numeric" maxLength={4} value={resetPin} onChange={(e) => setResetPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
+              <label><span>Confirm new PIN</span><input aria-label="Confirm new PIN" type={showPassword ? "text" : "password"} inputMode="numeric" maxLength={4} value={resetConfirm} onChange={(e) => setResetConfirm(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
+              {resetConfirm.length === 4 && resetPin !== resetConfirm ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
+              {doResetPin.error ? <p className="auth-error" role="alert">{doResetPin.error instanceof Error ? doResetPin.error.message : "Could not reset PIN."}</p> : null}
+              <button className="primary wide login-submit" type="submit" disabled={resetPin.length !== 4 || resetPin !== resetConfirm || doResetPin.isPending}>{doResetPin.isPending ? "Resetting…" : "Set new PIN"}</button>
+            </>}
+            </>}
+            <button className="auth-switch" type="button" onClick={() => changeMode("user-login")}>Back to login</button>
+          </form> : mode === "admin" ? <form className="login-form admin-form" onSubmit={(event) => { event.preventDefault(); if (adminFormValid) adminLogin.mutate(); }}>
             <label><span>Admin email</span><input autoFocus aria-label="Admin email" type="email" autoComplete="username" value={adminEmail} onChange={(event) => { setAdminEmail(event.target.value); setAdminPassword(""); setAdminConfirmation(""); adminLogin.reset(); }} /></label>
             {adminStatus.isLoading ? <p className="auth-field-help" role="status">Checking administrator account…</p> : null}
             <label><span>{adminSetupRequired ? "Set password" : "Password"}</span><span className="password-field"><input aria-label={adminSetupRequired ? "Set admin password" : "Admin password"} type={showPassword ? "text" : "password"} autoComplete={adminSetupRequired ? "new-password" : "current-password"} minLength={10} maxLength={128} placeholder="••••••••••" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? "🙈" : "👁️"}</button></span></label>
@@ -2024,7 +2102,19 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             {isCreating && confirmation.length === 4 && pin !== confirmation ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
             {error ? <p className="auth-error" role="alert">{error instanceof Error ? error.message : "Could not continue. Try again."}</p> : null}
             <label className="remember-row"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} /><span>Remember me</span></label>
-            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
+            {isCreating && !firebaseIdToken ? <div className="otp-section">
+              {otpStep === "form" ? <>
+                <p className="auth-field-help">We&apos;ll send a verification code to your phone number.</p>
+                <button type="button" className="secondary wide" onClick={() => handleSendOtp(phone)} disabled={!phoneValid || otpSending}>{otpSending ? "Sending code…" : "Send verification code"}</button>
+              </> : <>
+                <label><span>Enter the 6-digit code</span><input aria-label="Verification code" inputMode="numeric" maxLength={6} value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="••••••" /></label>
+                <div className="otp-actions"><button type="button" className="secondary" onClick={() => handleSendOtp(phone)} disabled={otpSending}>{otpSending ? "Resending…" : "Resend code"}</button><button type="button" className="primary" onClick={handleVerifyOtp} disabled={otpCode.length !== 6 || otpVerifying}>{otpVerifying ? "Verifying…" : "Verify code"}</button></div>
+              </>}
+              {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
+            </div> : null}
+            {isCreating && firebaseIdToken ? <p className="otp-verified" role="status">✓ Phone number verified</p> : null}
+            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation || !firebaseIdToken)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
+            {!isCreating ? <button className="auth-switch" type="button" onClick={() => changeMode("forgot-pin")}>Forgot PIN?</button> : null}
             <button className="auth-switch" type="button" onClick={() => changeMode(isCreating ? "user-login" : "create")}>{isCreating ? "Already have a user account? Log in" : "New here? Create user account"}</button>
           </form>}
         </div>
@@ -2419,6 +2509,7 @@ const CHART_RANGES: Array<{ id: ChartRange; label: string; days: number | null; 
 ];
 
 function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, onOpenPurchase, onOpenContact, onInventory }: { workspace: Workspace; onCreate: () => void; onCreatePurchase: () => void; onOpenInvoice: (id: number) => void; onOpenPurchase: (id: number) => void; onOpenContact: (id: number) => void; onInventory: () => void }) {
+  const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
   const [chartRange, setChartRange] = useState<ChartRange>("1m");
   const today = localDate();
@@ -2479,7 +2570,7 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const attentionCount = overdue.length + overduePurchases.length;
 
   return <section className="dashboard-view overview-view">
-    <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="notification-button" aria-label={`${attentionCount} payment alerts`} onClick={() => document.getElementById(attentionCount ? "attention-section" : "recent-activity")?.scrollIntoView({ behavior: "smooth", block: "start" })}><Icon name="bell" />{attentionCount ? <span>{attentionCount}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
+    <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="theme-toggle-header" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="notification-button" aria-label={`${attentionCount} payment alerts`} onClick={() => document.getElementById(attentionCount ? "attention-section" : "recent-activity")?.scrollIntoView({ behavior: "smooth", block: "start" })}><Icon name="bell" />{attentionCount ? <span>{attentionCount}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
     <section className="received-card" aria-label="Received total">
       <div className="received-copy"><span>Received <i className={`trend-badge ${trendPercent < 0 ? "down" : ""}`}>{trendPercent >= 0 ? "+" : ""}{trendPercent}%</i></span><strong>{money(paidRevenue, workspace.settings.currency)}</strong><small>{ui(language, "Payments collected from paid invoices")}</small></div>
       <div className="received-chart" role="img" aria-label="Daily invoice sales for the last seven days"><ResponsiveContainer width="100%" height="100%"><AreaChart data={salesSeries} margin={{ top: 10, right: 4, left: 4, bottom: 0 }}><defs><linearGradient id="overviewFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#34d995" stopOpacity={0.45} /><stop offset="100%" stopColor="#34d995" stopOpacity={0.02} /></linearGradient></defs><Area type="monotone" dataKey="sales" stroke="#54e6aa" strokeWidth={2.5} fill="url(#overviewFill)" dot={false} /></AreaChart></ResponsiveContainer></div>
