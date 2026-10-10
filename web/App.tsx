@@ -39,6 +39,42 @@ type AdminDashboard = ApiResponse<typeof api, "getAdminDashboard">;
 type RegisteredAccount = AdminDashboard["accounts"][number];
 type UserFeedback = AdminDashboard["feedback"][number];
 type Tab = "dashboard" | "create" | "products" | "contacts" | "history" | "profile";
+
+const TAB_TO_PATH: Record<Tab, string> = {
+  dashboard: "/home",
+  create: "/create",
+  products: "/stock",
+  contacts: "/contacts",
+  history: "/bills",
+  profile: "/profile",
+};
+
+const PATH_TO_TAB: Record<string, Tab> = {
+  "/home": "dashboard",
+  "/": "dashboard",
+  "/create": "create",
+  "/stock": "products",
+  "/products": "products",
+  "/contacts": "contacts",
+  "/bills": "history",
+  "/history": "history",
+  "/profile": "profile",
+};
+
+function getTabFromPath(): Tab | null {
+  if (typeof window === "undefined") return null;
+  const path = window.location.pathname.toLowerCase().replace(/\/$/, "") || "/";
+  return PATH_TO_TAB[path] ?? null;
+}
+
+function pushTabPath(tab: Tab) {
+  if (typeof window === "undefined") return;
+  const path = TAB_TO_PATH[tab];
+  const current = window.location.pathname.toLowerCase().replace(/\/$/, "") || "/";
+  if (current !== path) {
+    window.history.pushState({ tab }, "", path);
+  }
+}
 type Line = { key: number; productId: number | null; quantity: string };
 type PurchaseLine = { key: number; productId: number | null; quantity: string; unitCost: string };
 type PurchaseDocumentType = "purchase_order" | "delivered_purchase";
@@ -1467,7 +1503,12 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const { theme, setTheme } = useTheme();
   const workspace = useQuery({ queryKey: ["workspace"], queryFn: () => api.getWorkspace({}) });
   const restoreBillsOnMount = useRef(isMobileAppLayout() && sessionStorage.getItem(MOBILE_BILLS_RETURN_KEY) === "1");
-  const [tab, setTab] = useState<Tab>(restoreBillsOnMount.current ? "history" : "dashboard");
+  const [tab, setTabState] = useState<Tab>(() => getTabFromPath() ?? (restoreBillsOnMount.current ? "history" : "dashboard"));
+  // Wrapper that syncs tab changes to the URL
+  const setTab = (next: Tab) => {
+    setTabState(next);
+    pushTabPath(next);
+  };
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [createKind, setCreateKind] = useState<"sale" | "purchase">("sale");
   const [savedPurchaseId, setSavedPurchaseId] = useState<number | null>(null);
@@ -1530,6 +1571,18 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  // Sync tab with browser back/forward via URL
+  useEffect(() => {
+    const onUrlPopState = (e: PopStateEvent) => {
+      const stateTab = (e.state as { tab?: Tab } | null)?.tab;
+      const tabFromUrl = getTabFromPath();
+      const next = stateTab ?? tabFromUrl;
+      if (next) setTabState(next);
+    };
+    window.addEventListener("popstate", onUrlPopState);
+    return () => window.removeEventListener("popstate", onUrlPopState);
   }, []);
 
   useEffect(() => {
