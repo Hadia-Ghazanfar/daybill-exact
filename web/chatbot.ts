@@ -347,6 +347,20 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
       : `Revenue collected this month: ${money(sum, ctx.currency)} (${m.length} paid invoices).\nAll-time revenue: ${money(ctx.dashboard.revenue, ctx.currency)}.`;
   }
 
+  // loss — "are we in loss?" / "how much loss?"
+  if (q.includes("loss") || q.includes("nuqsan") || q.includes("nuksan") || q.includes("nuqshan")) {
+    const profit = ctx.dashboard.profit;
+    if (profit < 0) {
+      const lossAmt = money(-profit, ctx.currency);
+      return lang === "ur"
+        ? `جی ہاں، آپ نقصان میں ہیں — ${lossAmt} کا نقصان۔`
+        : `Yes, you are in loss — ${lossAmt}.`;
+    }
+    return lang === "ur"
+      ? `نہیں، آپ نقصان میں نہیں ہیں — ${money(profit, ctx.currency)} کا منافع ہے۔`
+      : `No, you are not in loss — you have a profit of ${money(profit, ctx.currency)}.`;
+  }
+
   // profit — use dashboard values so it matches the Overview screen
   if (q.includes("profit") || q.includes("munafa") || q.includes("faida") || q.includes("nafa")) {
     const rev = ctx.dashboard.revenue;
