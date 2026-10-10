@@ -12,6 +12,7 @@ import welcomeSlideSharing from "./assets/approved/welcome-slide-sharing.png";
 import desktopShopkeeper from "./assets/approved/desktop-shopkeeper-3d.png";
 import lostMonster from "./assets/approved/404-monster.png";
 import QRCode from "qrcode";
+import { jsPDF } from "jspdf";
 import avatar1 from "./assets/avatars/avatar-1.png";
 import avatar2 from "./assets/avatars/avatar-2.png";
 import avatar3 from "./assets/avatars/avatar-3.png";
@@ -2807,12 +2808,241 @@ function ContactHistoryView({ contact, invoices, purchases, currency, onBack, on
   </section>;
 }
 
+type PdfPageSize = "a4" | "a5" | "a6";
+
+const PDF_SIZES: Record<PdfPageSize, { w: number; h: number; label: string }> = {
+  a4: { w: 210, h: 297, label: "A4" },
+  a5: { w: 148, h: 210, label: "A5" },
+  a6: { w: 105, h: 148, label: "A6" },
+};
+
+function BulkDownloadModal({ invoices, settings, onClose }: {
+  invoices: Workspace["invoices"];
+  settings: Workspace["settings"];
+  onClose: () => void;
+}) {
+  const { language } = useLanguage();
+  const [groupBy, setGroupBy] = useState<"day" | "month">("day");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [pdfSize, setPdfSize] = useState<PdfPageSize>("a4");
+  const [working, setWorking] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Group invoices by day (YYYY-MM-DD) or month (YYYY-MM)
+  const groups = useMemo(() => {
+    const map = new Map<string, Workspace["invoices"]>();
+    const sorted = [...invoices].sort((a, b) => b.issue_date.localeCompare(a.issue_date));
+    for (const inv of sorted) {
+      const key = groupBy === "day" ? inv.issue_date : inv.issue_date.slice(0, 7);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(inv);
+    }
+    return [...map.entries()];
+  }, [invoices, groupBy]);
+
+  const toggleOne = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleGroup = (ids: number[]) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const allSelected = ids.every((id) => next.has(id));
+      if (allSelected) ids.forEach((id) => next.delete(id));
+      else ids.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  const formatGroupLabel = (key: string) => {
+    if (groupBy === "day") return key;
+    const [y, m] = key.split("-");
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[Number(m) - 1]} ${y}`;
+  };
+
+  // Fetch full invoice details + render to PNG blob for each selected invoice
+  const renderSelected = async (): Promise<{ invoice: Invoice; blob: Blob }[]> => {
+    const ids = [...selected];
+    const results: { invoice: Invoice; blob: Blob }[] = [];
+    for (let i = 0; i < ids.length; i++) {
+      setWorking(`Preparing ${i + 1} of ${ids.length}…`);
+      const detail = await api.getInvoice({ id: ids[i] });
+      const blob = await renderInvoicePng(detail.invoice, settings, language);
+      results.push({ invoice: detail.invoice, blob });
+    }
+    return results;
+  };
+
+  const blobToDataUrl = (blob: Blob): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  };
+
+  const handleDownloadImages = async () => {
+    if (!selected.size || working) return;
+    setError(null);
+    try {
+      const rendered = await renderSelected();
+      for (let i = 0; i < rendered.length; i++) {
+        const { invoice, blob } = rendered[i];
+        downloadBlob(blob, `invoice-${invoice.invoice_number}.png`);
+        if (i < rendered.length - 1) await new Promise((r) => setTimeout(r, 400));
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not prepare the images.");
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!selected.size || working) return;
+    setError(null);
+    try {
+      const rendered = await renderSelected();
+      const { w, h } = PDF_SIZES[pdfSize];
+      const pdf = new jsPDF({ unit: "mm", format: [w, h], orientation: h >= w ? "portrait" : "landscape" });
+      const margin = 8;
+      for (let i = 0; i < rendered.length; i++) {
+        if (i > 0) pdf.addPage([w, h], h >= w ? "portrait" : "landscape");
+        const dataUrl = await blobToDataUrl(rendered[i].blob);
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const el = new Image();
+          el.onload = () => resolve(el);
+          el.onerror = reject;
+          el.src = dataUrl;
+        });
+        const pageW = w - margin * 2;
+        const pageH = h - margin * 2;
+        const ratio = Math.min(pageW / img.width, pageH / img.height);
+        const dw = img.width * ratio;
+        const dh = img.height * ratio;
+        const dx = (w - dw) / 2;
+        const dy = (h - dh) / 2;
+        pdf.addImage(dataUrl, "PNG", dx, dy, dw, dh);
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      pdf.save(`invoices-${today}.pdf`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not create the PDF.");
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  return (
+    <div className="bulk-modal-backdrop" onClick={onClose}>
+      <div className="bulk-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Download invoices">
+        <header className="bulk-modal-head">
+          <div>
+            <p className="eyebrow">BULK DOWNLOAD</p>
+            <h2>Download invoices</h2>
+          </div>
+          <button type="button" className="bulk-modal-close" onClick={onClose} aria-label="Close">✕</button>
+        </header>
+
+        <div className="bulk-group-toggle" role="tablist" aria-label="Group invoices by">
+          <button type="button" role="tab" aria-selected={groupBy === "day"} className={groupBy === "day" ? "active" : ""} onClick={() => setGroupBy("day")}>By day</button>
+          <button type="button" role="tab" aria-selected={groupBy === "month"} className={groupBy === "month" ? "active" : ""} onClick={() => setGroupBy("month")}>By month</button>
+        </div>
+
+        <div className="bulk-list">
+          {groups.length === 0 ? (
+            <p className="bulk-empty">No invoices to download.</p>
+          ) : groups.map(([key, list]) => {
+            const ids = list.map((i) => i.id);
+            const allChecked = ids.every((id) => selected.has(id));
+            const someChecked = ids.some((id) => selected.has(id));
+            return (
+              <section key={key} className="bulk-group">
+                <label className="bulk-group-head">
+                  <input
+                    type="checkbox"
+                    checked={allChecked}
+                    ref={(el) => { if (el) el.indeterminate = !allChecked && someChecked; }}
+                    onChange={() => toggleGroup(ids)}
+                  />
+                  <strong>{formatGroupLabel(key)}</strong>
+                  <span className="bulk-count">{list.length} invoice{list.length === 1 ? "" : "s"}</span>
+                </label>
+                <div className="bulk-items">
+                  {list.map((inv) => (
+                    <label key={inv.id} className="bulk-item">
+                      <input type="checkbox" checked={selected.has(inv.id)} onChange={() => toggleOne(inv.id)} />
+                      <span className="bulk-item-main">
+                        <strong>{inv.invoice_number}</strong>
+                        <small>{inv.customer_name} · {inv.issue_date}</small>
+                      </span>
+                      <span className="bulk-item-amount">{money(inv.total, inv.currency)}</span>
+                    </label>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+
+        {error ? <p className="bulk-error" role="alert">{error}</p> : null}
+        {working ? <p className="bulk-working" role="status">{working}</p> : null}
+
+        <footer className="bulk-foot">
+          <div className="bulk-size-row">
+            <span>PDF size:</span>
+            <div className="bulk-size-pills" role="radiogroup" aria-label="PDF page size">
+              {(Object.keys(PDF_SIZES) as PdfPageSize[]).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  role="radio"
+                  aria-checked={pdfSize === s}
+                  className={pdfSize === s ? "active" : ""}
+                  onClick={() => setPdfSize(s)}
+                >{PDF_SIZES[s].label}</button>
+              ))}
+            </div>
+          </div>
+          <div className="bulk-actions">
+            <button type="button" className="secondary" disabled={!selected.size || !!working} onClick={() => void handleDownloadImages()}>
+              {working ? "Working…" : `Images (${selected.size})`}
+            </button>
+            <button type="button" className="primary" disabled={!selected.size || !!working} onClick={() => void handleDownloadPdf()}>
+              {working ? "Working…" : `PDF (${selected.size})`}
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+
 function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, onOpenContact }: { invoices: Workspace["invoices"]; purchases: Workspace["purchases"]; settings: Workspace["settings"]; onOpen: (id: number) => void; onOpenPurchase: (id: number) => void; onOpenContact: (id: number) => void }) {
   const { language } = useLanguage();
   const [kind, setKind] = useState<"sales" | "purchases">("sales");
   const [salesFilter, setSalesFilter] = useState<"all" | "paid" | "unpaid" | "overdue">("all");
   const [purchaseFilter, setPurchaseFilter] = useState<"all" | "orders" | "delivered">("all");
   const [search, setSearch] = useState("");
+  const [showBulkDownload, setShowBulkDownload] = useState(false);
   const today = localDate();
   const isOverdue = (invoice: Workspace["invoices"][number]) => invoice.payment_status === "pending" && Boolean(invoice.due_date && invoice.due_date < today);
   const salesCounts = { paid: invoices.filter((invoice) => invoice.payment_status === "paid").length, unpaid: invoices.filter((invoice) => invoice.payment_status === "pending" && !isOverdue(invoice)).length, overdue: invoices.filter(isOverdue).length, draft: 0 };
@@ -2826,7 +3056,8 @@ function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, on
     return typeMatches && (!normalizedSearch || purchase.supplier_name.toLowerCase().includes(normalizedSearch) || purchase.purchase_number.toLowerCase().includes(normalizedSearch));
   });
   return <section className="manage-view bills-view">
-    <div className="manage-head"><div><p className="eyebrow">BILLING RECORDS</p><h1>{ui(language, "Bills")}</h1><p>Find, review and follow up on every invoice.</p></div></div>
+    <div className="manage-head"><div><p className="eyebrow">BILLING RECORDS</p><h1>{ui(language, "Bills")}</h1><p>Find, review and follow up on every invoice.</p></div>{kind === "sales" && invoices.length > 0 ? <button type="button" className="bills-download-btn" onClick={() => setShowBulkDownload(true)} aria-label="Download invoices"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="12" x2="15" y2="15" /></svg></button> : null}</div>
+    {showBulkDownload ? <BulkDownloadModal invoices={invoices} settings={settings} onClose={() => setShowBulkDownload(false)} /> : null}
     <section className="bill-summary"><div><span>Paid</span><strong>{salesCounts.paid}</strong></div><div><span>Unpaid</span><strong>{salesCounts.unpaid}</strong></div><div><span>Overdue</span><strong>{salesCounts.overdue}</strong></div><div><span>Draft</span><strong>{salesCounts.draft}</strong></div></section>
     <div className="filter-tabs bill-kind-tabs"><button className={kind === "sales" ? "active" : ""} onClick={() => setKind("sales")}>Sales invoices</button><button className={kind === "purchases" ? "active" : ""} onClick={() => setKind("purchases")}>Supplier invoices</button></div>
     <label className="bill-search"><span className="sr-only">Search bills</span><Icon name="history" /><input aria-label="Search bills" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or invoice number" /></label>
