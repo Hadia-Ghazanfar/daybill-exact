@@ -376,8 +376,8 @@ export const Actions = {
         db.select().from(schema.businessSettings).where(eq(schema.businessSettings.accountId, account.id)).limit(1),
         db.select().from(schema.contacts).where(and(eq(schema.contacts.accountId, account.id), eq(schema.contacts.active, true))).orderBy(asc(schema.contacts.name)),
         db.select().from(schema.products).where(and(eq(schema.products.accountId, account.id), eq(schema.products.active, true))).orderBy(asc(schema.products.name)),
-        db.select().from(schema.invoices).where(and(eq(schema.invoices.accountId, account.id), isNull(schema.invoices.deletedAt))).orderBy(desc(schema.invoices.id)).limit(200),
-        db.select().from(schema.purchaseInvoices).where(and(eq(schema.purchaseInvoices.accountId, account.id), isNull(schema.purchaseInvoices.deletedAt))).orderBy(desc(schema.purchaseInvoices.id)).limit(200),
+        db.select().from(schema.invoices).where(and(eq(schema.invoices.accountId, account.id), isNull(schema.invoices.deletedAt))).orderBy(desc(schema.invoices.id)),
+        db.select().from(schema.purchaseInvoices).where(and(eq(schema.purchaseInvoices.accountId, account.id), isNull(schema.purchaseInvoices.deletedAt))).orderBy(desc(schema.purchaseInvoices.id)),
         db.select().from(schema.productCategories).where(eq(schema.productCategories.accountId, account.id)).orderBy(asc(schema.productCategories.name)),
       ]);
       const invoiceIds = invoiceRows.map((row) => row.id);
