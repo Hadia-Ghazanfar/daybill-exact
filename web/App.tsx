@@ -1437,6 +1437,8 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const [lines, setLines] = useState<Line[]>([{ key: 1, productId: null, quantity: "" }]);
   const [lineKey, setLineKey] = useState(2);
   const [savedInvoiceId, setSavedInvoiceId] = useState<number | null>(null);
+  const [showInvoiceDelete, setShowInvoiceDelete] = useState(false);
+  const [showPurchaseDelete, setShowPurchaseDelete] = useState(false);
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [isPreparingImage, setIsPreparingImage] = useState(false);
@@ -1731,7 +1733,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
               <div className="create-head-actions"><div className="draft-number"><span>Invoice number</span><strong>{createKind === "sale" ? (savedInvoiceId ? displayInvoice.invoice_number : "DRAFT") : (savedPurchaseId ? "SAVED" : "DRAFT")}</strong></div><button className="icon-button" aria-label="Edit shop details" onClick={() => setShowSettings(true)}><Icon name="settings" /></button></div>
             </div>
             <div className="transaction-switch" role="group" aria-label="Invoice type"><button className={createKind === "sale" ? "active" : ""} onClick={() => setCreateKind("sale")}><Icon name="invoice" />Sales invoice</button><button className={createKind === "purchase" ? "active" : ""} onClick={() => setCreateKind("purchase")}><Icon name="truck" />Supplier invoice</button></div>
-            {createKind === "purchase" ? <PurchaseFlow workspace={workspace.data} savedPurchaseId={savedPurchaseId} onSaved={(id) => { setSavedPurchaseId(id); if (id !== null) armMobileBillsReturn(); }} onAddSupplier={() => setTab("contacts")} onAddProduct={() => setTab("products")} onEditSettings={() => setShowSettings(true)} onOpenContact={setSelectedContactId} onBackToBills={backToBills} onPrepareShare={armMobileBillsReturn} /> : !settings.business_name ? (
+            {createKind === "purchase" ? <PurchaseFlow workspace={workspace.data} savedPurchaseId={savedPurchaseId} onSaved={(id) => { setSavedPurchaseId(id); if (id !== null) armMobileBillsReturn(); }} onAddSupplier={() => setTab("contacts")} onAddProduct={() => setTab("products")} onEditSettings={() => setShowSettings(true)} onOpenContact={setSelectedContactId} onBackToBills={backToBills} onPrepareShare={armMobileBillsReturn} onDeletePurchase={() => setShowPurchaseDelete(true)} /> : !settings.business_name ? (
               <SetupPrompt onOpen={() => setShowSettings(true)} />
             ) : (
               <>
@@ -1762,6 +1764,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
                         </div>
                         {message ? <p className="toast" role="status">{message}</p> : null}
                         <button className="text-button" onClick={resetDraft}>Create another invoice</button>
+                        <button className="text-button danger-text" onClick={() => setShowInvoiceDelete(true)}><Icon name="trash" /> Move to trash</button>
                       </div>
                     ) : step === 1 ? (
                       <div className="form-block">
@@ -1826,6 +1829,8 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
       </nav>
 
       <ChatBot workspace={workspace} />
+      {showInvoiceDelete && savedInvoiceId ? <TrashDeleteDialog kind="sales" id={savedInvoiceId} label={displayInvoice?.invoice_number ?? "Invoice"} onClose={() => setShowInvoiceDelete(false)} onDeleted={() => { setShowInvoiceDelete(false); resetDraft(); }} /> : null}
+      {showPurchaseDelete && savedPurchaseId ? <TrashDeleteDialog kind="purchases" id={savedPurchaseId} label="Purchase" onClose={() => setShowPurchaseDelete(false)} onDeleted={() => { setShowPurchaseDelete(false); setSavedPurchaseId(null); setStep(1); }} /> : null}
       {showHelpFeedback ? <FeedbackSheet onClose={() => setShowHelpFeedback(false)} /> : null}
       {showSettings ? <SettingsSheet settings={settings} onClose={() => setShowSettings(false)} /> : null}
       {transferSheet ? <TransferStatusSheet state={transferSheet} language={language} onDismiss={() => setTransferSheet(null)} onManualSave={() => { if (preparedInvoiceFile) openFileForManualSave(preparedInvoiceFile); }} onOpenWhatsApp={() => { openSavedInvoiceChat(); setTransferSheet(null); }} /> : null}
@@ -2430,7 +2435,7 @@ function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAd
   };
 
   if (!workspace.settings.business_name) return <SetupPrompt onOpen={onEditSettings} />;
-  return <div className="purchase-flow">{!savedPurchaseId ? <div className="stepper" aria-label="Purchase invoice creation steps">{["Supplier", "Stock", "Review"].map((label, index) => { const targetStep = index + 1; const locked = (targetStep === 2 && !supplierId) || (targetStep === 3 && !canReviewPurchase); return <button key={label} type="button" disabled={locked} aria-label={`${targetStep}. ${label}${locked ? " (locked)" : ""}`} className={step === targetStep ? "active" : step > targetStep ? "done" : ""} onClick={() => setStep(targetStep)}><span>{step > targetStep ? "✓" : targetStep}</span>{label}</button>; })}</div> : null}<div className="workbench"><div className="editor-panel">{savedPurchaseId ? <div className="success-panel"><button type="button" className="mobile-back-to-bills" onClick={onBackToBills}>← Back to Bills</button><span className={`success-stamp ${display.delivery_status}`}>{display.document_type === "purchase_order" ? "PURCHASE ORDER" : "STOCKED"}</span><h2>{display.purchase_number}</h2><button type="button" className="detail-recipient contact-link supplier-detail-link" onClick={() => display.supplier_id && onOpenContact(display.supplier_id)} aria-label={`View ${display.supplier_name} history`}><ContactAvatar name={display.supplier_name} kind="supplier" contactKey={display.supplier_id ? String(display.supplier_id) : display.supplier_name} /><div><small>SUPPLIER</small><strong>{display.supplier_name}</strong><p>{display.supplier_phone ? formatPhoneDisplay(display.supplier_phone) : "No phone saved"}{display.supplier_address ? ` · ${display.supplier_address}` : ""}</p></div><span className="chevron">›</span></button><p>{display.delivery_status === "pending" ? "Purchase order saved. Inventory has not changed yet." : display.payment_status === "pending" ? "Inventory increased and the supplier balance is now in payables." : "Inventory increased and this supplier invoice is marked paid."}</p>{display.document_type === "purchase_order" && display.delivery_status === "pending" ? <><button className="primary wide" disabled={deliver.isPending} onClick={() => deliver.mutate()}><Icon name="truck" />{deliver.isPending ? "Recording…" : "Mark delivered & add to stock"}</button><p className="form-hint">Marking delivered adds every item to inventory once and moves the amount into supplier payables.</p></> : <button className={`status-toggle ${display.payment_status}`} disabled={payment.isPending} onClick={() => payment.mutate(display.payment_status === "paid" ? "pending" : "paid")}>{display.payment_status === "paid" ? "✓ Paid · mark pending" : "Mark supplier paid"}</button>}<button className="secondary wide" disabled={isSharing || !saved.data?.purchase} onClick={() => void sharePurchaseImage()}><Icon name="whatsapp" />{isSharing ? "Preparing image…" : "Share supplier document image"}</button>{shareMessage ? <p className="toast" role="status">{shareMessage}</p> : null}{(saved.error || deliver.error) ? <p className="error">{String(saved.error ?? deliver.error)}</p> : null}<button className="text-button" onClick={reset}>Record another purchase</button></div> : step === 1 ? <div className="form-block"><fieldset className="purchase-type-picker"><legend>Choose supplier invoice type</legend><div className="purchase-type-grid"><button type="button" className={documentType === "purchase_order" ? "active" : ""} onClick={() => { setDocumentType("purchase_order"); setPurchasePaymentStatus("pending"); }}><Icon name="invoice" /><span><strong>Purchase Order</strong><small>Order stock from a supplier without adding it to inventory yet.</small></span></button><button type="button" className={documentType === "delivered_purchase" ? "active" : ""} onClick={() => setDocumentType("delivered_purchase")}><Icon name="truck" /><span><strong>Delivered Purchase</strong><small>Record stock that has already arrived and add it to inventory now.</small></span></button></div></fieldset><div className="section-heading"><div><span>1 / 3</span><h2>{documentType === "purchase_order" ? "Who should deliver the stock?" : "Who supplied the stock?"}</h2></div><button className="text-button" onClick={onAddSupplier}>Add supplier</button></div>{suppliers.length ? <div className="contact-picker"><ContactAvatarSelect label="Supplier" ariaLabel="Select supplier" placeholder="Choose a supplier" contacts={suppliers} selectedId={supplierId} onChange={setSupplierId} />{supplier ? <div className="selected-contact recipient-reference-card" aria-live="polite"><ContactAvatar name={supplier.name} kind="supplier" contactKey={String(supplier.id)} /><button type="button" className="recipient-contact-link" onClick={() => onOpenContact(supplier.id)} aria-label={`View ${supplier.name} history`}><strong>{supplier.name}</strong><small>{supplier.phone ? formatPhoneDisplay(supplier.phone) : "No phone saved"}{supplier.address ? ` · ${supplier.address}` : ""}</small></button><button type="button" className="recipient-remove" aria-label={`Remove ${supplier.name} from purchase`} onClick={() => setSupplierId(null)}>×</button></div> : <p className="form-hint">Select a supplier to unlock Step 2.</p>}</div> : <Empty title="No suppliers yet" body="Add a supplier first, then record stock bought from them." action={<button className="primary" onClick={onAddSupplier}><Icon name="plus" />Add supplier</button>} />}<div className="field-row"><label className="field"><span>Purchase date</span><input type="date" value={issueDate} onChange={(event) => setIssueDate(event.target.value)} /></label><label className="field"><span>Payment due</span><input type="date" min={issueDate} value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label></div><label className="field"><span>Supplier bill / reference <em>optional</em></span><input value={supplierReference} onChange={(event) => setSupplierReference(event.target.value)} placeholder="e.g. Bill 4821" /></label><button className="primary wide" disabled={!supplierId} onClick={() => setStep(2)}>Continue to stock</button></div> : step === 2 ? <div className="form-block"><div className="section-heading"><div><span>2 / 3</span><h2>{documentType === "purchase_order" ? "What stock do you need?" : "What stock arrived?"}</h2></div><button className="text-button" onClick={onAddProduct}>Add product</button></div>{workspace.products.length ? <div className="line-editor">{lines.map((line, index) => <div className="purchase-line-input" key={line.key}><label><span>Product {index + 1}</span><select aria-label={`Purchase product for line ${index + 1}`} value={line.productId ?? ""} onChange={(event) => { const productId = event.target.value ? Number(event.target.value) : null; const product = workspace.products.find((item) => item.id === productId); setLines((current) => current.map((item) => item.key === line.key ? { ...item, productId, unitCost: product ? String(product.unit_cost / 100) : "" } : item)); }}><option value="">Choose product</option>{workspace.products.map((product) => <option key={product.id} value={product.id}>{product.name} · current stock {product.stock_quantity}</option>)}</select></label><label><span>{documentType === "purchase_order" ? "Qty ordered" : "Qty received"}</span><input aria-label={`Purchase quantity for line ${index + 1}`} type="number" min="1" step="1" value={line.quantity} onChange={(event) => setLines((current) => current.map((item) => item.key === line.key ? { ...item, quantity: event.target.value } : item))} /></label><label><span>Unit cost</span><input aria-label={`Purchase unit cost for line ${index + 1}`} type="number" min="0" step="0.01" value={line.unitCost} onChange={(event) => setLines((current) => current.map((item) => item.key === line.key ? { ...item, unitCost: event.target.value } : item))} /></label><button className="remove-line" aria-label={`Remove purchase line ${index + 1}`} disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((item) => item.key !== line.key))}><Icon name="trash" /></button></div>)}<button className="add-line" onClick={() => { setLines((current) => [...current, { key: lineKey, productId: null, quantity: "", unitCost: "" }]); setLineKey((value) => value + 1); }}><Icon name="plus" />Add another stock item</button><fieldset className="purchase-payment"><legend>Payment method</legend><div className="option-grid">{(["card", "cash", "transfer", "credit"] as const).map((method) => <button type="button" key={method} className={paymentMethod === method ? "active" : ""} onClick={() => setPaymentMethod(method)}>{method[0]?.toUpperCase()}{method.slice(1)}</button>)}</div></fieldset>{documentType === "delivered_purchase" ? <fieldset className="purchase-payment"><legend>Payment status</legend><div className="option-grid purchase-status-options"><button type="button" className={purchasePaymentStatus === "pending" ? "active" : ""} onClick={() => setPurchasePaymentStatus("pending")}>Pay later</button><button type="button" className={purchasePaymentStatus === "paid" ? "active" : ""} onClick={() => setPurchasePaymentStatus("paid")}>Already paid</button></div></fieldset> : <div className="delivery-note"><strong>Pending delivery</strong><span>Inventory and supplier payables will not change until this order is marked delivered.</span></div>}<label className="field"><span>Note <em>optional</em></span><textarea rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} /></label><button className="primary wide" disabled={!canReviewPurchase} onClick={() => setStep(3)}>Review purchase · {money(total, workspace.settings.currency)}</button></div> : <Empty title="No products yet" body="Add the product first, then record the quantity and actual supplier cost." action={<button className="primary" onClick={onAddProduct}><Icon name="plus" />Add product</button>} />}</div> : <div className="form-block review-block"><div className="section-heading"><div><span>3 / 3</span><h2>{documentType === "purchase_order" ? "Check and send order" : "Check and record"}</h2></div><button className="text-button" onClick={() => setStep(2)}>Edit stock</button></div><div className="mobile-preview"><PurchasePaper purchase={draft} settings={workspace.settings} /></div>{create.error ? <p className="error">{create.error instanceof Error ? create.error.message : "Could not record this purchase"}</p> : null}<button className="primary wide" disabled={!supplierId || invalid || create.isPending} onClick={() => create.mutate()}>{create.isPending ? "Recording…" : `${documentType === "purchase_order" ? "Save purchase order" : "Record delivered purchase"} · ${money(total, workspace.settings.currency)}`}</button></div>}</div><aside className="desktop-preview"><div className="preview-label"><span>{documentType === "purchase_order" ? "PURCHASE ORDER PREVIEW" : "PURCHASE PREVIEW"}</span><span>{documentType === "purchase_order" ? "Stock changes only when marked delivered" : "Stock increases when saved"}</span></div><PurchasePaper purchase={display} settings={workspace.settings} /></aside></div></div>;
+  return <div className="purchase-flow">{!savedPurchaseId ? <div className="stepper" aria-label="Purchase invoice creation steps">{["Supplier", "Stock", "Review"].map((label, index) => { const targetStep = index + 1; const locked = (targetStep === 2 && !supplierId) || (targetStep === 3 && !canReviewPurchase); return <button key={label} type="button" disabled={locked} aria-label={`${targetStep}. ${label}${locked ? " (locked)" : ""}`} className={step === targetStep ? "active" : step > targetStep ? "done" : ""} onClick={() => setStep(targetStep)}><span>{step > targetStep ? "✓" : targetStep}</span>{label}</button>; })}</div> : null}<div className="workbench"><div className="editor-panel">{savedPurchaseId ? <div className="success-panel"><button type="button" className="mobile-back-to-bills" onClick={onBackToBills}>← Back to Bills</button><span className={`success-stamp ${display.delivery_status}`}>{display.document_type === "purchase_order" ? "PURCHASE ORDER" : "STOCKED"}</span><h2>{display.purchase_number}</h2><button type="button" className="detail-recipient contact-link supplier-detail-link" onClick={() => display.supplier_id && onOpenContact(display.supplier_id)} aria-label={`View ${display.supplier_name} history`}><ContactAvatar name={display.supplier_name} kind="supplier" contactKey={display.supplier_id ? String(display.supplier_id) : display.supplier_name} /><div><small>SUPPLIER</small><strong>{display.supplier_name}</strong><p>{display.supplier_phone ? formatPhoneDisplay(display.supplier_phone) : "No phone saved"}{display.supplier_address ? ` · ${display.supplier_address}` : ""}</p></div><span className="chevron">›</span></button><p>{display.delivery_status === "pending" ? "Purchase order saved. Inventory has not changed yet." : display.payment_status === "pending" ? "Inventory increased and the supplier balance is now in payables." : "Inventory increased and this supplier invoice is marked paid."}</p>{display.document_type === "purchase_order" && display.delivery_status === "pending" ? <><button className="primary wide" disabled={deliver.isPending} onClick={() => deliver.mutate()}><Icon name="truck" />{deliver.isPending ? "Recording…" : "Mark delivered & add to stock"}</button><p className="form-hint">Marking delivered adds every item to inventory once and moves the amount into supplier payables.</p></> : <button className={`status-toggle ${display.payment_status}`} disabled={payment.isPending} onClick={() => payment.mutate(display.payment_status === "paid" ? "pending" : "paid")}>{display.payment_status === "paid" ? "✓ Paid · mark pending" : "Mark supplier paid"}</button>}<button className="secondary wide" disabled={isSharing || !saved.data?.purchase} onClick={() => void sharePurchaseImage()}><Icon name="whatsapp" />{isSharing ? "Preparing image…" : "Share supplier document image"}</button>{shareMessage ? <p className="toast" role="status">{shareMessage}</p> : null}{(saved.error || deliver.error) ? <p className="error">{String(saved.error ?? deliver.error)}</p> : null}<button className="text-button" onClick={reset}>Record another purchase</button><button className="text-button danger-text" onClick={onDeletePurchase}><Icon name="trash" /> Move to trash</button></div> : step === 1 ? <div className="form-block"><fieldset className="purchase-type-picker"><legend>Choose supplier invoice type</legend><div className="purchase-type-grid"><button type="button" className={documentType === "purchase_order" ? "active" : ""} onClick={() => { setDocumentType("purchase_order"); setPurchasePaymentStatus("pending"); }}><Icon name="invoice" /><span><strong>Purchase Order</strong><small>Order stock from a supplier without adding it to inventory yet.</small></span></button><button type="button" className={documentType === "delivered_purchase" ? "active" : ""} onClick={() => setDocumentType("delivered_purchase")}><Icon name="truck" /><span><strong>Delivered Purchase</strong><small>Record stock that has already arrived and add it to inventory now.</small></span></button></div></fieldset><div className="section-heading"><div><span>1 / 3</span><h2>{documentType === "purchase_order" ? "Who should deliver the stock?" : "Who supplied the stock?"}</h2></div><button className="text-button" onClick={onAddSupplier}>Add supplier</button></div>{suppliers.length ? <div className="contact-picker"><ContactAvatarSelect label="Supplier" ariaLabel="Select supplier" placeholder="Choose a supplier" contacts={suppliers} selectedId={supplierId} onChange={setSupplierId} />{supplier ? <div className="selected-contact recipient-reference-card" aria-live="polite"><ContactAvatar name={supplier.name} kind="supplier" contactKey={String(supplier.id)} /><button type="button" className="recipient-contact-link" onClick={() => onOpenContact(supplier.id)} aria-label={`View ${supplier.name} history`}><strong>{supplier.name}</strong><small>{supplier.phone ? formatPhoneDisplay(supplier.phone) : "No phone saved"}{supplier.address ? ` · ${supplier.address}` : ""}</small></button><button type="button" className="recipient-remove" aria-label={`Remove ${supplier.name} from purchase`} onClick={() => setSupplierId(null)}>×</button></div> : <p className="form-hint">Select a supplier to unlock Step 2.</p>}</div> : <Empty title="No suppliers yet" body="Add a supplier first, then record stock bought from them." action={<button className="primary" onClick={onAddSupplier}><Icon name="plus" />Add supplier</button>} />}<div className="field-row"><label className="field"><span>Purchase date</span><input type="date" value={issueDate} onChange={(event) => setIssueDate(event.target.value)} /></label><label className="field"><span>Payment due</span><input type="date" min={issueDate} value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label></div><label className="field"><span>Supplier bill / reference <em>optional</em></span><input value={supplierReference} onChange={(event) => setSupplierReference(event.target.value)} placeholder="e.g. Bill 4821" /></label><button className="primary wide" disabled={!supplierId} onClick={() => setStep(2)}>Continue to stock</button></div> : step === 2 ? <div className="form-block"><div className="section-heading"><div><span>2 / 3</span><h2>{documentType === "purchase_order" ? "What stock do you need?" : "What stock arrived?"}</h2></div><button className="text-button" onClick={onAddProduct}>Add product</button></div>{workspace.products.length ? <div className="line-editor">{lines.map((line, index) => <div className="purchase-line-input" key={line.key}><label><span>Product {index + 1}</span><select aria-label={`Purchase product for line ${index + 1}`} value={line.productId ?? ""} onChange={(event) => { const productId = event.target.value ? Number(event.target.value) : null; const product = workspace.products.find((item) => item.id === productId); setLines((current) => current.map((item) => item.key === line.key ? { ...item, productId, unitCost: product ? String(product.unit_cost / 100) : "" } : item)); }}><option value="">Choose product</option>{workspace.products.map((product) => <option key={product.id} value={product.id}>{product.name} · current stock {product.stock_quantity}</option>)}</select></label><label><span>{documentType === "purchase_order" ? "Qty ordered" : "Qty received"}</span><input aria-label={`Purchase quantity for line ${index + 1}`} type="number" min="1" step="1" value={line.quantity} onChange={(event) => setLines((current) => current.map((item) => item.key === line.key ? { ...item, quantity: event.target.value } : item))} /></label><label><span>Unit cost</span><input aria-label={`Purchase unit cost for line ${index + 1}`} type="number" min="0" step="0.01" value={line.unitCost} onChange={(event) => setLines((current) => current.map((item) => item.key === line.key ? { ...item, unitCost: event.target.value } : item))} /></label><button className="remove-line" aria-label={`Remove purchase line ${index + 1}`} disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((item) => item.key !== line.key))}><Icon name="trash" /></button></div>)}<button className="add-line" onClick={() => { setLines((current) => [...current, { key: lineKey, productId: null, quantity: "", unitCost: "" }]); setLineKey((value) => value + 1); }}><Icon name="plus" />Add another stock item</button><fieldset className="purchase-payment"><legend>Payment method</legend><div className="option-grid">{(["card", "cash", "transfer", "credit"] as const).map((method) => <button type="button" key={method} className={paymentMethod === method ? "active" : ""} onClick={() => setPaymentMethod(method)}>{method[0]?.toUpperCase()}{method.slice(1)}</button>)}</div></fieldset>{documentType === "delivered_purchase" ? <fieldset className="purchase-payment"><legend>Payment status</legend><div className="option-grid purchase-status-options"><button type="button" className={purchasePaymentStatus === "pending" ? "active" : ""} onClick={() => setPurchasePaymentStatus("pending")}>Pay later</button><button type="button" className={purchasePaymentStatus === "paid" ? "active" : ""} onClick={() => setPurchasePaymentStatus("paid")}>Already paid</button></div></fieldset> : <div className="delivery-note"><strong>Pending delivery</strong><span>Inventory and supplier payables will not change until this order is marked delivered.</span></div>}<label className="field"><span>Note <em>optional</em></span><textarea rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} /></label><button className="primary wide" disabled={!canReviewPurchase} onClick={() => setStep(3)}>Review purchase · {money(total, workspace.settings.currency)}</button></div> : <Empty title="No products yet" body="Add the product first, then record the quantity and actual supplier cost." action={<button className="primary" onClick={onAddProduct}><Icon name="plus" />Add product</button>} />}</div> : <div className="form-block review-block"><div className="section-heading"><div><span>3 / 3</span><h2>{documentType === "purchase_order" ? "Check and send order" : "Check and record"}</h2></div><button className="text-button" onClick={() => setStep(2)}>Edit stock</button></div><div className="mobile-preview"><PurchasePaper purchase={draft} settings={workspace.settings} /></div>{create.error ? <p className="error">{create.error instanceof Error ? create.error.message : "Could not record this purchase"}</p> : null}<button className="primary wide" disabled={!supplierId || invalid || create.isPending} onClick={() => create.mutate()}>{create.isPending ? "Recording…" : `${documentType === "purchase_order" ? "Save purchase order" : "Record delivered purchase"} · ${money(total, workspace.settings.currency)}`}</button></div>}</div><aside className="desktop-preview"><div className="preview-label"><span>{documentType === "purchase_order" ? "PURCHASE ORDER PREVIEW" : "PURCHASE PREVIEW"}</span><span>{documentType === "purchase_order" ? "Stock changes only when marked delivered" : "Stock increases when saved"}</span></div><PurchasePaper purchase={display} settings={workspace.settings} /></aside></div></div>;
 }
 
 function RegisteredAccountsPanel({ accounts }: { accounts: RegisteredAccount[] }) {
@@ -2816,8 +2821,10 @@ const PDF_SIZES: Record<PdfPageSize, { w: number; h: number; label: string }> = 
   a6: { w: 105, h: 148, label: "A6" },
 };
 
-function BulkDownloadModal({ invoices, settings, onClose }: {
+function BulkDownloadModal({ invoices, purchases, kind, settings, onClose }: {
   invoices: Workspace["invoices"];
+  purchases: Workspace["purchases"];
+  kind: "sales" | "purchases";
   settings: Workspace["settings"];
   onClose: () => void;
 }) {
@@ -2828,18 +2835,26 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
   const [working, setWorking] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const isSales = kind === "sales";
 
-  // Group invoices by day (YYYY-MM-DD) or month (YYYY-MM)
+  // Normalize to a common shape for grouping/display
+  type NormItem = { id: number; number: string; name: string; issue_date: string; total: number; currency: string };
+  const normItems: NormItem[] = useMemo(() => {
+    if (isSales) return invoices.map((i) => ({ id: i.id, number: i.invoice_number, name: i.customer_name, issue_date: i.issue_date, total: i.total, currency: i.currency }));
+    return purchases.map((p) => ({ id: p.id, number: p.purchase_number, name: p.supplier_name, issue_date: p.issue_date, total: p.total, currency: p.currency }));
+  }, [invoices, purchases, isSales]);
+
+  // Group by day (YYYY-MM-DD) or month (YYYY-MM)
   const groups = useMemo(() => {
-    const map = new Map<string, Workspace["invoices"]>();
-    const sorted = [...invoices].sort((a, b) => b.issue_date.localeCompare(a.issue_date));
+    const map = new Map<string, NormItem[]>();
+    const sorted = [...normItems].sort((a, b) => b.issue_date.localeCompare(a.issue_date));
     for (const inv of sorted) {
       const key = groupBy === "day" ? inv.issue_date : inv.issue_date.slice(0, 7);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(inv);
     }
     return [...map.entries()];
-  }, [invoices, groupBy]);
+  }, [normItems, groupBy]);
 
   const toggleOne = (id: number) => {
     setSelected((prev) => {
@@ -2868,14 +2883,20 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
   };
 
   // Fetch full invoice details + render to PNG blob for each selected invoice
-  const renderSelected = async (): Promise<{ invoice: Invoice; blob: Blob }[]> => {
+  const renderSelected = async (): Promise<{ label: string; blob: Blob }[]> => {
     const ids = [...selected];
-    const results: { invoice: Invoice; blob: Blob }[] = [];
+    const results: { label: string; blob: Blob }[] = [];
     for (let i = 0; i < ids.length; i++) {
       setWorking(`Preparing ${i + 1} of ${ids.length}…`);
-      const detail = await api.getInvoice({ id: ids[i] });
-      const blob = await renderInvoicePng(detail.invoice, settings, language);
-      results.push({ invoice: detail.invoice, blob });
+      if (isSales) {
+        const detail = await api.getInvoice({ id: ids[i] });
+        const blob = await renderInvoicePng(detail.invoice, settings, language);
+        results.push({ label: detail.invoice.invoice_number, blob });
+      } else {
+        const detail = await api.getPurchaseInvoice({ id: ids[i] });
+        const blob = await renderPurchasePng(detail.purchase, settings, language);
+        results.push({ label: detail.purchase.purchase_number, blob });
+      }
     }
     return results;
   };
@@ -2905,8 +2926,8 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
     try {
       const rendered = await renderSelected();
       for (let i = 0; i < rendered.length; i++) {
-        const { invoice, blob } = rendered[i];
-        downloadBlob(blob, `invoice-${invoice.invoice_number}.png`);
+        const { label, blob } = rendered[i];
+        downloadBlob(blob, `${isSales ? "invoice" : "purchase"}-${label}.png`);
         if (i < rendered.length - 1) await new Promise((r) => setTimeout(r, 400));
       }
       setSuccess(`${rendered.length} invoice${rendered.length === 1 ? "" : "s"} downloaded as images ✓`);
@@ -2923,11 +2944,12 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
     setError(null);
     try {
       const rendered = await renderSelected();
-      const { w, h } = PDF_SIZES[pdfSize];
-      const pdf = new jsPDF({ unit: "mm", format: [w, h], orientation: h >= w ? "portrait" : "landscape" });
+      const pdf = new jsPDF({ unit: "mm", format: pdfSize, orientation: "portrait" });
+      const w = pdf.internal.pageSize.getWidth();
+      const h = pdf.internal.pageSize.getHeight();
       const margin = 4;
       for (let i = 0; i < rendered.length; i++) {
-        if (i > 0) pdf.addPage([w, h], h >= w ? "portrait" : "landscape");
+        if (i > 0) pdf.addPage(pdfSize, "portrait");
         const dataUrl = await blobToDataUrl(rendered[i].blob);
         const img = await new Promise<HTMLImageElement>((resolve, reject) => {
           const el = new Image();
@@ -2961,7 +2983,7 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
         <header className="bulk-modal-head">
           <div>
             <p className="eyebrow">BULK DOWNLOAD</p>
-            <h2>Download invoices</h2>
+            <h2>Download {isSales ? "invoices" : "supplier invoices"}</h2>
           </div>
           <button type="button" className="bulk-modal-close" onClick={onClose} aria-label="Close">✕</button>
         </header>
@@ -2995,8 +3017,8 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
                     <label key={inv.id} className="bulk-item">
                       <input type="checkbox" checked={selected.has(inv.id)} onChange={() => toggleOne(inv.id)} />
                       <span className="bulk-item-main">
-                        <strong>{inv.invoice_number}</strong>
-                        <small>{inv.customer_name} · {inv.issue_date}</small>
+                        <strong>{inv.number}</strong>
+                        <small>{inv.name} · {inv.issue_date}</small>
                       </span>
                       <span className="bulk-item-amount">{money(inv.total, inv.currency)}</span>
                     </label>
@@ -3042,6 +3064,229 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
 }
 
 
+function TrashDeleteDialog({ kind, id, label, onClose, onDeleted }: {
+  kind: "sales" | "purchases";
+  id: number;
+  label: string;
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const [pin, setPin] = useState("");
+  const [reason, setReason] = useState("");
+  const [showPin, setShowPin] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [working, setWorking] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleTrash = async () => {
+    if (pin.length !== 4 || reason.trim().length < 3 || working) return;
+    setWorking(true);
+    setError(null);
+    try {
+      if (kind === "sales") await api.trashInvoice({ invoice_id: id, pin, reason: reason.trim() });
+      else await api.trashPurchase({ purchase_id: id, pin, reason: reason.trim() });
+      await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+      onDeleted();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not move to trash");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  return (
+    <div className="bulk-modal-backdrop" onClick={onClose}>
+      <div className="bulk-modal trash-delete-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Move to trash">
+        <header className="bulk-modal-head">
+          <div>
+            <p className="eyebrow">MOVE TO TRASH</p>
+            <h2>{label}</h2>
+          </div>
+          <button type="button" className="bulk-modal-close" onClick={onClose} aria-label="Close">✕</button>
+        </header>
+        <div className="trash-delete-body">
+          <p>This invoice will be moved to the trash. You can restore it later.</p>
+          <label><span>Account PIN</span>
+            <span className="password-field">
+              <input aria-label="Account PIN" type={showPin ? "text" : "password"} inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" />
+              <button type="button" className="password-toggle" aria-label={showPin ? "Hide PIN" : "Show PIN"} onClick={() => setShowPin(!showPin)}>{showPin ? <Icon name="eye-off" /> : <Icon name="eye" />}</button>
+            </span>
+          </label>
+          <label><span>Reason for deletion</span>
+            <input aria-label="Reason" type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Duplicate entry, wrong customer…" maxLength={300} />
+          </label>
+          {reason.trim().length > 0 && reason.trim().length < 3 ? <p className="bulk-error" role="alert">Please give a reason (at least 3 characters).</p> : null}
+          {error ? <p className="bulk-error" role="alert">{error}</p> : null}
+          <div className="trash-delete-actions">
+            <button type="button" className="secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="danger" disabled={pin.length !== 4 || reason.trim().length < 3 || working} onClick={handleTrash}>{working ? "Moving…" : "Move to trash"}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type TrashedInvoice = {
+  id: number; invoice_number: string; customer_name: string;
+  issue_date: string; total: number; currency: string;
+  delete_reason: string; deleted_at: string | null;
+};
+type TrashedPurchase = {
+  id: number; purchase_number: string; supplier_name: string;
+  issue_date: string; total: number; currency: string;
+  delete_reason: string; deleted_at: string | null;
+};
+
+function TrashModal({ onClose }: { onClose: () => void }) {
+  const { language } = useLanguage();
+  const [pin, setPin] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [tab, setTab] = useState<"sales" | "purchases">("sales");
+  const [invoices, setInvoices] = useState<TrashedInvoice[]>([]);
+  const [purchases, setPurchases] = useState<TrashedPurchase[]>([]);
+  const [working, setWorking] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ kind: "sales" | "purchases"; id: number; label: string } | null>(null);
+  const [showPin, setShowPin] = useState(false);
+  const queryClient = useQueryClient();
+
+  const loadTrash = async (pinCode: string) => {
+    setVerifying(true);
+    setPinError(null);
+    try {
+      const result = await api.listTrashed({ pin: pinCode });
+      setInvoices(result.invoices as TrashedInvoice[]);
+      setPurchases(result.purchases as TrashedPurchase[]);
+      setUnlocked(true);
+    } catch (e) {
+      setPinError(e instanceof Error ? e.message : "Incorrect PIN");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const refresh = async () => {
+    try {
+      const result = await api.listTrashed({ pin });
+      setInvoices(result.invoices as TrashedInvoice[]);
+      setPurchases(result.purchases as TrashedPurchase[]);
+      queryClient.invalidateQueries({ queryKey: ["workspace"] });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not refresh trash");
+    }
+  };
+
+  const handleRestore = async (kind: "sales" | "purchases", id: number) => {
+    setWorking("Restoring…");
+    setError(null);
+    try {
+      if (kind === "sales") await api.restoreInvoice({ invoice_id: id, pin });
+      else await api.restorePurchase({ purchase_id: id, pin });
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not restore");
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  const handleDeleteForever = async () => {
+    if (!confirmDelete) return;
+    setWorking("Deleting…");
+    setError(null);
+    try {
+      if (confirmDelete.kind === "sales") await api.deleteInvoiceForever({ invoice_id: confirmDelete.id, pin });
+      else await api.deletePurchaseForever({ purchase_id: confirmDelete.id, pin });
+      setConfirmDelete(null);
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not delete");
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  const fmtDate = (iso: string | null) => {
+    if (!iso) return "—";
+    try { return new Date(iso).toLocaleDateString(); } catch { return iso; }
+  };
+
+  return (
+    <div className="bulk-modal-backdrop" onClick={onClose}>
+      <div className="bulk-modal trash-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Trash">
+        <header className="bulk-modal-head">
+          <div>
+            <p className="eyebrow">TRASH</p>
+            <h2>Deleted invoices</h2>
+          </div>
+          <button type="button" className="bulk-modal-close" onClick={onClose} aria-label="Close">✕</button>
+        </header>
+
+        {!unlocked ? (
+          <div className="trash-gate">
+            <p>Enter your 4-digit PIN to open the trash.</p>
+            <label><span>PIN</span>
+              <span className="password-field">
+                <input aria-label="Account PIN" type={showPin ? "text" : "password"} inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" />
+                <button type="button" className="password-toggle" aria-label={showPin ? "Hide PIN" : "Show PIN"} onClick={() => setShowPin(!showPin)}>{showPin ? <Icon name="eye-off" /> : <Icon name="eye" />}</button>
+              </span>
+            </label>
+            {pinError ? <p className="bulk-error" role="alert">{pinError}</p> : null}
+            <button type="button" className="primary wide" disabled={pin.length !== 4 || verifying} onClick={() => loadTrash(pin)}>{verifying ? "Checking…" : "Open trash"}</button>
+          </div>
+        ) : (
+          <>
+            <div className="bulk-group-toggle" role="tablist" aria-label="Trash contents">
+              <button type="button" role="tab" aria-selected={tab === "sales"} className={tab === "sales" ? "active" : ""} onClick={() => setTab("sales")}>Sales ({invoices.length})</button>
+              <button type="button" role="tab" aria-selected={tab === "purchases"} className={tab === "purchases" ? "active" : ""} onClick={() => setTab("purchases")}>Supplier ({purchases.length})</button>
+            </div>
+            <div className="bulk-list trash-list">
+              {(tab === "sales" ? invoices.length === 0 : purchases.length === 0) ? (
+                <p className="bulk-empty">Trash is empty.</p>
+              ) : (tab === "sales" ? invoices : purchases).map((item) => {
+                const isInv = tab === "sales";
+                const num = isInv ? (item as TrashedInvoice).invoice_number : (item as TrashedPurchase).purchase_number;
+                const name = isInv ? (item as TrashedInvoice).customer_name : (item as TrashedPurchase).supplier_name;
+                return (
+                  <article key={item.id} className="trash-row">
+                    <div className="trash-row-main">
+                      <strong>{num}</strong>
+                      <small>{name} · {item.issue_date} · {money(item.total, item.currency)}</small>
+                      <small className="trash-reason">Reason: {item.delete_reason || "—"}</small>
+                      <small className="trash-date">Deleted {fmtDate(item.deleted_at)}</small>
+                    </div>
+                    <div className="trash-row-actions">
+                      <button type="button" className="secondary small" disabled={!!working} onClick={() => handleRestore(tab, item.id)}>Restore</button>
+                      <button type="button" className="danger small" disabled={!!working} onClick={() => setConfirmDelete({ kind: tab, id: item.id, label: num })}>Delete forever</button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            {error ? <p className="bulk-error" role="alert">{error}</p> : null}
+            {working ? <p className="bulk-working" role="status">{working}</p> : null}
+            {confirmDelete ? (
+              <div className="trash-confirm-backdrop" onClick={() => setConfirmDelete(null)}>
+                <div className="trash-confirm" onClick={(e) => e.stopPropagation()} role="alertdialog" aria-label="Confirm permanent deletion">
+                  <h3>Delete forever?</h3>
+                  <p>{confirmDelete.label} will be permanently deleted. This cannot be undone.</p>
+                  <div className="trash-confirm-actions">
+                    <button type="button" className="secondary" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                    <button type="button" className="danger" disabled={!!working} onClick={handleDeleteForever}>{working ? "Deleting…" : "Delete forever"}</button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, onOpenContact }: { invoices: Workspace["invoices"]; purchases: Workspace["purchases"]; settings: Workspace["settings"]; onOpen: (id: number) => void; onOpenPurchase: (id: number) => void; onOpenContact: (id: number) => void }) {
   const { language } = useLanguage();
   const [kind, setKind] = useState<"sales" | "purchases">("sales");
@@ -3062,8 +3307,9 @@ function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, on
     return typeMatches && (!normalizedSearch || purchase.supplier_name.toLowerCase().includes(normalizedSearch) || purchase.purchase_number.toLowerCase().includes(normalizedSearch));
   });
   return <section className="manage-view bills-view">
-    <div className="manage-head"><div><p className="eyebrow">BILLING RECORDS</p><h1>{ui(language, "Bills")}</h1><p>Find, review and follow up on every invoice.</p></div>{kind === "sales" && invoices.length > 0 ? <button type="button" className="bills-download-btn" onClick={() => setShowBulkDownload(true)} aria-label="Download invoices"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="12" x2="15" y2="15" /></svg></button> : null}</div>
-    {showBulkDownload ? <BulkDownloadModal invoices={invoices} settings={settings} onClose={() => setShowBulkDownload(false)} /> : null}
+    <div className="manage-head"><div><p className="eyebrow">BILLING RECORDS</p><h1>{ui(language, "Bills")}</h1><p>Find, review and follow up on every invoice.</p></div><div className="bills-head-actions">{(kind === "sales" ? invoices.length > 0 : purchases.length > 0) ? <button type="button" className="bills-download-btn" onClick={() => setShowBulkDownload(true)} aria-label="Download invoices"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="12" x2="15" y2="15" /></svg></button> : null}<button type="button" className="bills-trash-btn" onClick={() => setShowTrash(true)} aria-label="Open trash"><Icon name="trash" /></button></div></div>
+    {showBulkDownload ? <BulkDownloadModal invoices={kind === "sales" ? invoices : []} purchases={kind === "purchases" ? purchases : []} kind={kind} settings={settings} onClose={() => setShowBulkDownload(false)} /> : null}
+    {showTrash ? <TrashModal onClose={() => setShowTrash(false)} /> : null}
     <section className="bill-summary"><div><span>Paid</span><strong>{salesCounts.paid}</strong></div><div><span>Unpaid</span><strong>{salesCounts.unpaid}</strong></div><div><span>Overdue</span><strong>{salesCounts.overdue}</strong></div><div><span>Draft</span><strong>{salesCounts.draft}</strong></div></section>
     <div className="filter-tabs bill-kind-tabs"><button className={kind === "sales" ? "active" : ""} onClick={() => setKind("sales")}>Sales invoices</button><button className={kind === "purchases" ? "active" : ""} onClick={() => setKind("purchases")}>Supplier invoices</button></div>
     <label className="bill-search"><span className="sr-only">Search bills</span><Icon name="history" /><input aria-label="Search bills" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or invoice number" /></label>

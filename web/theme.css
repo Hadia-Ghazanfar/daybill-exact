@@ -3307,10 +3307,42 @@ html.phone-layout .chatbot-panel { right: 8px; left: 8px; bottom: 88px; width: a
 .bulk-success-popup button { background: none; border: none; color: rgba(255,255,255,.7); font-size: 16px; cursor: pointer; padding: 4px; }
 .bulk-success-popup button:hover { color: #fff; }
 @keyframes bulk-pop-in { from { opacity: 0; transform: translateX(-50%) translateY(16px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-.bills-download-btn { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: none; background: #149a5b; color: #fff; cursor: pointer; display: grid; place-items: center; margin-top: 4px; box-shadow: 0 2px 8px rgba(20,154,91,.3); }
-.bills-download-btn:hover { background: #0d7a46; transform: scale(1.05); }
-.bills-download-btn:active { transform: scale(0.95); }
-.manage-head .bills-download-btn { align-self: flex-start; }
+.bills-download-btn, .bills-trash-btn { flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; border: none; background: #0d4a3a; color: #fff; cursor: pointer; display: grid; place-items: center; margin-top: 4px; box-shadow: 0 3px 10px rgba(13,74,58,.35); transition: transform .15s ease, background .15s ease; }
+.bills-download-btn:hover, .bills-trash-btn:hover { background: #0a3a2e; transform: scale(1.05); }
+.bills-download-btn:active, .bills-trash-btn:active { transform: scale(0.95); }
+.manage-head .bills-download-btn, .manage-head .bills-trash-btn { align-self: flex-start; }
+.bills-head-actions { display: flex; gap: 10px; align-items: flex-start; }
+/* Trash feature styles */
+.text-button.danger-text { color: #dc2626; display: inline-flex; align-items: center; gap: 6px; }
+.text-button.danger-text:hover { color: #b91c1c; }
+.trash-modal { max-width: 560px; }
+.trash-gate { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+.trash-gate p { margin: 0; color: var(--text-muted, #64748b); }
+.trash-gate label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 500; }
+.trash-gate label input { padding: 12px 14px; border: 1px solid var(--border, #e2e8f0); border-radius: 10px; font-size: 16px; }
+.trash-list { display: flex; flex-direction: column; gap: 10px; }
+.trash-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid var(--border, #e2e8f0); border-radius: 12px; background: var(--card, #fff); }
+.trash-row-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.trash-row-main strong { font-size: 15px; }
+.trash-row-main small { color: var(--text-muted, #64748b); font-size: 13px; }
+.trash-row-main .trash-reason { color: var(--text, #1e293b); font-style: italic; }
+.trash-row-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.trash-delete-dialog { max-width: 440px; }
+.trash-delete-body { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+.trash-delete-body p { margin: 0; color: var(--text-muted, #64748b); }
+.trash-delete-body label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 500; }
+.trash-delete-body label input { padding: 12px 14px; border: 1px solid var(--border, #e2e8f0); border-radius: 10px; font-size: 16px; }
+.trash-delete-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+.trash-confirm-backdrop { position: fixed; inset: 0; z-index: 300; background: rgba(5, 30, 28, 0.6); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.trash-confirm { background: var(--card, #fff); border-radius: 16px; padding: 24px; max-width: 380px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.trash-confirm h3 { margin: 0 0 10px; font-size: 18px; }
+.trash-confirm p { margin: 0 0 20px; color: var(--text-muted, #64748b); font-size: 14px; }
+.trash-confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+button.danger { background: #dc2626; color: #fff; border: none; border-radius: 10px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; }
+button.danger:hover:not(:disabled) { background: #b91c1c; }
+button.danger:disabled { opacity: 0.6; cursor: not-allowed; }
+button.danger.small, button.secondary.small { padding: 8px 12px; font-size: 13px; border-radius: 8px; }
+
 .bulk-modal-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(5, 30, 28, 0.55); display: flex; align-items: flex-end; justify-content: center; padding: 0; }
 .bulk-modal { width: 100%; max-width: 560px; max-height: 92dvh; display: flex; flex-direction: column; background: var(--surface); border-radius: 24px 24px 0 0; overflow: hidden; animation: bulk-slide-up 0.25s ease-out; }
 @keyframes bulk-slide-up { from { transform: translateY(40px); opacity: 0.6; } to { transform: translateY(0); opacity: 1; } }
