@@ -63,6 +63,7 @@ const productShape = z.object({
   is_featured: z.boolean().optional(),
   sizes: z.string().optional(),
   image_url: z.string().nullable().optional(),
+  updated_at: z.string().nullable().optional(),
 });
 
 const invoiceSummaryShape = z.object({
@@ -126,6 +127,14 @@ const purchaseSummaryShape = z.object({
   supplier_reference: z.string(),
   total: z.number(),
   currency: z.string(),
+  items: z.array(z.object({
+    id: z.number(),
+    description: z.string(),
+    quantity: z.number(),
+    unit_cost: z.number(),
+    line_total: z.number(),
+    unit: z.string(),
+  })).optional(),
 });
 
 const trashedInvoiceShape = invoiceSummaryShape.extend({
@@ -271,6 +280,7 @@ export const actionDefs = {
       products: z.array(productShape),
       invoices: z.array(invoiceSummaryShape),
       purchases: z.array(purchaseSummaryShape),
+      categories: z.array(z.object({ id: z.number(), name: z.string() })),
       dashboard: z.object({
         revenue: z.number(),
         cost: z.number(),
