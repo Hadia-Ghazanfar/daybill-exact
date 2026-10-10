@@ -2084,7 +2084,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   const [pin, setPin] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [confirmation, setConfirmation] = useState("");
-  const [adminEmail, setAdminEmail] = useState("hadiaghazanfar354@gmail.com");
+  const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminConfirmation, setAdminConfirmation] = useState("");
   // Phone OTP verification state
