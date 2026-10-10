@@ -3294,6 +3294,7 @@ function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, on
   const [purchaseFilter, setPurchaseFilter] = useState<"all" | "orders" | "delivered">("all");
   const [search, setSearch] = useState("");
   const [showBulkDownload, setShowBulkDownload] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
   const today = localDate();
   const isOverdue = (invoice: Workspace["invoices"][number]) => invoice.payment_status === "pending" && Boolean(invoice.due_date && invoice.due_date < today);
   const salesCounts = { paid: invoices.filter((invoice) => invoice.payment_status === "paid").length, unpaid: invoices.filter((invoice) => invoice.payment_status === "pending" && !isOverdue(invoice)).length, overdue: invoices.filter(isOverdue).length, draft: 0 };
