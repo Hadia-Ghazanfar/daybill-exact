@@ -2171,7 +2171,8 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             {isCreating && confirmation.length === 4 && pin !== confirmation ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
             {error ? <p className="auth-error" role="alert">{error instanceof Error ? error.message : "Could not continue. Try again."}</p> : null}
             <label className="remember-row"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} /><span>Remember me</span></label>
-            {isCreating ? <div className="otp-section">
+            {/* OTP verification hidden for now - will be re-enabled later */}
+            {false && isCreating ? <div className="otp-section">
               <p className="auth-field-help" style={{ marginTop: 0 }}>Verify your phone number to create the account.</p>
               {otpStep === "form" ? <>
                 <button type="button" className="secondary wide" onClick={() => handleSendOtp(phone)} disabled={!phoneValid || otpSending || otpCooldown > 0}>{otpSending ? "Sending code…" : otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Send verification code"}</button>
@@ -2181,7 +2182,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
               </>}
               {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
             </div> : null}
-            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation || otpStep !== "verify" || otpCode.length < 3)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
+            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
             {!isCreating ? <button className="auth-switch" type="button" onClick={() => changeMode("forgot-pin")}>Forgot PIN?</button> : null}
             <button className="auth-switch" type="button" onClick={() => changeMode(isCreating ? "user-login" : "create")}>{isCreating ? "Already have a user account? Log in" : "New here? Create user account"}</button>
           </form>}
