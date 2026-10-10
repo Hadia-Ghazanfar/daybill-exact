@@ -3446,15 +3446,16 @@ function PurchaseDetailModal({ purchase, settings, onClose, onAction }: {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-sheet purchase-detail-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-head">
+    <div className="bulk-modal-backdrop" onClick={onClose}>
+      <div className="bulk-modal purchase-detail-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="bulk-modal-head">
           <div>
             <p className="eyebrow">{purchase.document_type === "purchase_order" ? "PURCHASE ORDER" : "SUPPLIER INVOICE"}</p>
             <h2>{purchase.purchase_number}</h2>
           </div>
-          <button type="button" className="icon-button" onClick={onClose} aria-label="Close">✕</button>
+          <button type="button" className="bulk-modal-close" onClick={onClose} aria-label="Close">✕</button>
         </div>
+        <div className="bulk-modal-body">
         <div className="purchase-detail-body">
           <div className="detail-row"><span>Supplier</span><strong>{purchase.supplier_name}</strong></div>
           {purchase.supplier_phone ? <div className="detail-row"><span>Phone</span><strong>{purchase.supplier_phone}</strong></div> : null}
@@ -3464,7 +3465,8 @@ function PurchaseDetailModal({ purchase, settings, onClose, onAction }: {
           <div className="detail-row total"><span>Total</span><strong>{money(purchase.total, purchase.currency)}</strong></div>
           {purchase.supplier_reference ? <div className="detail-row"><span>Reference</span><strong>{purchase.supplier_reference}</strong></div> : null}
         </div>
-        <div className="modal-actions">
+        </div>
+        <div className="bulk-modal-foot">
           {purchase.document_type === "purchase_order" && purchase.delivery_status === "pending" ?
             <button className="primary wide" disabled={working} onClick={markDelivered}>{working ? "Working…" : "Mark delivered & add to stock"}</button> :
             <button className={`status-toggle ${purchase.payment_status} wide`} disabled={working} onClick={togglePaid}>{purchase.payment_status === "paid" ? "✓ Paid · mark pending" : "Mark as paid"}</button>}
