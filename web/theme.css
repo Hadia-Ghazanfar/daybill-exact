@@ -2517,6 +2517,7 @@ html[data-theme="dark"] .login-role-tabs { background: #143735; }
   .sidebar-collapsed .bottom-nav:not(.admin-nav) .nav-group-label,
   .sidebar-collapsed .bottom-nav:not(.admin-nav) button span { display: none; }
   .sidebar-collapsed .bottom-nav:not(.admin-nav) button { justify-content: center; min-height: 50px; padding: 0; border-radius: 13px; }
+  html:not(.phone-layout) .sidebar-collapsed .bottom-nav:not(.admin-nav) button.active { border-radius: 999px 0 0 999px !important; background: var(--bg) !important; }
   .sidebar-collapsed .bottom-nav:not(.admin-nav) button.active::before { left: -9px; }
   .stat-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
   .stat-tile { padding: 18px; }
