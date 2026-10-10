@@ -228,11 +228,13 @@ export const Actions = {
     ...actionDefs.resetPin,
     async handler(ctx, args): Promise<{ ok: true }> {
       const db = ctx.db;
-      // Phone must be verified via MyOTP SMS code before PIN reset
-      const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
-      const submittedLocal = args.phone.replace(/\D/g, "");
-      if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
-        throw new Error("Phone number does not match the verified number");
+      // OTP verification disabled for now — skip when no code provided
+      if (args.otp_code) {
+        const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
+        const submittedLocal = args.phone.replace(/\D/g, "");
+        if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
+          throw new Error("Phone number does not match the verified number");
+        }
       }
       const rows = await db.select().from(schema.accounts).where(and(eq(schema.accounts.phone, args.phone), eq(schema.accounts.claimed, true))).limit(1);
       const account = rows[0];

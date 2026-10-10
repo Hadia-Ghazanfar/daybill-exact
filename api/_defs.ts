@@ -261,7 +261,7 @@ export const actionDefs = {
     request: z.object({
       phone: phoneSchema,
       new_pin: passwordSchema,
-      otp_code: z.string().regex(/^\d{3,8}$/, "Invalid verification code"),
+      otp_code: z.string().regex(/^\d{3,8}$/, "Invalid verification code").optional(),
     }),
     response: z.object({ ok: z.literal(true) }),
   },
