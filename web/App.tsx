@@ -2528,9 +2528,7 @@ function SupplierDetailView({ purchase, settings, onBackToBills, onOpenContact, 
 function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAddProduct, onEditSettings, onOpenContact, onBackToBills, onPrepareShare, onDeletePurchase }: { workspace: Workspace; savedPurchaseId: number | null; onSaved: (id: number | null) => void; onAddSupplier: () => void; onAddProduct: () => void; onEditSettings: () => void; onOpenContact: (id: number) => void; onBackToBills: () => void; onPrepareShare: () => void; onDeletePurchase: () => void }) {
   const queryClient = useQueryClient();
   const { language } = useLanguage();
-  // Defensive: if workspace data isn't ready, show loading instead of crashing
-  if (!workspace || !workspace.contacts) return <div className="purchase-flow"><div className="loading-panel"><p>Loading…</p></div></div>;
-  const suppliers = workspace.contacts.filter((contact) => contact.kind === "supplier");
+  // All hooks must run before any early return (React rules)
   const [step, setStep] = useState(1);
   const [documentType, setDocumentType] = useState<PurchaseDocumentType>("delivered_purchase");
   const [supplierId, setSupplierId] = useState<number | null>(null);
@@ -2544,6 +2542,10 @@ function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAd
   const [lineKey, setLineKey] = useState(2);
   const [shareMessage, setShareMessage] = useState("");
   const [isSharing, setIsSharing] = useState(false);
+  // Defensive: if workspace data isn't ready, show loading instead of crashing
+  // (placed AFTER all hooks to comply with React rules)
+  if (!workspace || !workspace.contacts || !workspace.products || !workspace.settings) return <div className="purchase-flow"><div className="loading-panel"><p>Loading…</p></div></div>;
+  const suppliers = (workspace.contacts ?? []).filter((contact) => contact.kind === "supplier");
   const supplier = suppliers.find((item) => item.id === supplierId);
   const draftItems = lines.flatMap((line, index) => {
     const product = workspace.products.find((item) => item.id === line.productId);
