@@ -3402,6 +3402,80 @@ function TrashModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+
+function PurchaseDetailModal({ purchase, settings, onClose, onAction }: {
+  purchase: Workspace["purchases"][number];
+  settings: Workspace["settings"];
+  onClose: () => void;
+  onAction: () => void;
+}) {
+  const { language } = useLanguage();
+  const queryClient = useQueryClient();
+  const [working, setWorking] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+
+  const refresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+    onAction();
+  };
+
+  const togglePaid = async () => {
+    setWorking(true);
+    try {
+      await api.setPurchasePaymentStatus({ id: purchase.id, status: purchase.payment_status === "paid" ? "pending" : "paid" });
+      await refresh();
+      onClose();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not update payment status");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const markDelivered = async () => {
+    setWorking(true);
+    try {
+      await api.markPurchaseDelivered({ id: purchase.id });
+      await refresh();
+      onClose();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not mark as delivered");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-sheet purchase-detail-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <div>
+            <p className="eyebrow">{purchase.document_type === "purchase_order" ? "PURCHASE ORDER" : "SUPPLIER INVOICE"}</p>
+            <h2>{purchase.purchase_number}</h2>
+          </div>
+          <button type="button" className="icon-button" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+        <div className="purchase-detail-body">
+          <div className="detail-row"><span>Supplier</span><strong>{purchase.supplier_name}</strong></div>
+          {purchase.supplier_phone ? <div className="detail-row"><span>Phone</span><strong>{purchase.supplier_phone}</strong></div> : null}
+          <div className="detail-row"><span>Date</span><strong>{purchase.issue_date}</strong></div>
+          {purchase.due_date ? <div className="detail-row"><span>Due</span><strong>{purchase.due_date}</strong></div> : null}
+          <div className="detail-row"><span>Status</span><strong className={`mini-status ${purchase.delivery_status === "pending" ? "pending-delivery" : purchase.payment_status}`}>{purchase.delivery_status === "pending" ? "Pending delivery" : purchase.payment_status}</strong></div>
+          <div className="detail-row total"><span>Total</span><strong>{money(purchase.total, purchase.currency)}</strong></div>
+          {purchase.supplier_reference ? <div className="detail-row"><span>Reference</span><strong>{purchase.supplier_reference}</strong></div> : null}
+        </div>
+        <div className="modal-actions">
+          {purchase.document_type === "purchase_order" && purchase.delivery_status === "pending" ?
+            <button className="primary wide" disabled={working} onClick={markDelivered}>{working ? "Working…" : "Mark delivered & add to stock"}</button> :
+            <button className={`status-toggle ${purchase.payment_status} wide`} disabled={working} onClick={togglePaid}>{purchase.payment_status === "paid" ? "✓ Paid · mark pending" : "Mark as paid"}</button>}
+          <button className="text-button danger-text" onClick={() => setShowDelete(true)}><Icon name="trash" /> Move to trash</button>
+        </div>
+        {showDelete ? <TrashDeleteDialog kind="purchases" id={purchase.id} label={purchase.purchase_number} onClose={() => setShowDelete(false)} onDeleted={() => { setShowDelete(false); refresh(); onClose(); }} /> : null}
+      </div>
+    </div>
+  );
+}
+
 function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, onOpenContact }: { invoices: Workspace["invoices"]; purchases: Workspace["purchases"]; settings: Workspace["settings"]; onOpen: (id: number) => void; onOpenPurchase: (id: number) => void; onOpenContact: (id: number) => void }) {
   const { language } = useLanguage();
   const [kind, setKind] = useState<"sales" | "purchases">("sales");
@@ -3410,6 +3484,7 @@ function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, on
   const [search, setSearch] = useState("");
   const [showBulkDownload, setShowBulkDownload] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
+  const [selectedPurchase, setSelectedPurchase] = useState<Workspace["purchases"][number] | null>(null);
   const today = localDate();
   const isOverdue = (invoice: Workspace["invoices"][number]) => invoice.payment_status === "pending" && Boolean(invoice.due_date && invoice.due_date < today);
   const salesCounts = { paid: invoices.filter((invoice) => invoice.payment_status === "paid").length, unpaid: invoices.filter((invoice) => invoice.payment_status === "pending" && !isOverdue(invoice)).length, overdue: invoices.filter(isOverdue).length, draft: 0 };
@@ -3426,6 +3501,7 @@ function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, on
     <div className="manage-head"><div><p className="eyebrow">BILLING RECORDS</p><h1>{ui(language, "Bills")}</h1><p>Find, review and follow up on every invoice.</p></div><div className="bills-head-actions">{(kind === "sales" ? invoices.length > 0 : purchases.length > 0) ? <button type="button" className="bills-download-btn" onClick={() => setShowBulkDownload(true)} aria-label="Download invoices"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg></button> : null}<button type="button" className="bills-trash-btn" onClick={() => setShowTrash(true)} aria-label="Open trash"><Icon name="trash" /></button></div></div>
     {showBulkDownload ? <BulkDownloadModal invoices={kind === "sales" ? invoices : []} purchases={kind === "purchases" ? purchases : []} kind={kind} settings={settings} onClose={() => setShowBulkDownload(false)} /> : null}
     {showTrash ? <TrashModal onClose={() => setShowTrash(false)} /> : null}
+    {selectedPurchase ? <PurchaseDetailModal purchase={selectedPurchase} settings={settings} onClose={() => setSelectedPurchase(null)} onAction={() => { /* workspace refreshes via query invalidation */ }} /> : null}
     <section className="bill-summary"><div><span>Paid</span><strong>{salesCounts.paid}</strong></div><div><span>Unpaid</span><strong>{salesCounts.unpaid}</strong></div><div><span>Overdue</span><strong>{salesCounts.overdue}</strong></div><div><span>Draft</span><strong>{salesCounts.draft}</strong></div></section>
     <div className="filter-tabs bill-kind-tabs"><button className={kind === "sales" ? "active" : ""} onClick={() => setKind("sales")}>Sales invoices</button><button className={kind === "purchases" ? "active" : ""} onClick={() => setKind("purchases")}>Supplier invoices</button></div>
     <label className="bill-search"><span className="sr-only">Search bills</span><Icon name="history" /><input aria-label="Search bills" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or invoice number" /></label>
@@ -3433,7 +3509,7 @@ function HistoryView({ invoices, purchases, settings, onOpen, onOpenPurchase, on
     {kind === "sales" ? (visibleInvoices.length ? <div className="invoice-list structured-invoice-list">{visibleInvoices.map((invoice) => {
       const overdue = isOverdue(invoice); const status = overdue ? "overdue" : invoice.payment_status;
       return <article className={`history-invoice-row ${status}`} key={invoice.id}><button type="button" className="history-contact-avatar" onClick={() => onOpenContact(invoice.customer_id)} aria-label={`View ${invoice.customer_name} history`}><ContactAvatar name={invoice.customer_name} kind="customer" contactKey={String(invoice.customer_id)} /></button><button className="invoice-main" onClick={() => onOpen(invoice.id)}><span className="invoice-customer"><strong>{invoice.customer_name}</strong><small>{invoice.invoice_number} · {invoice.issue_date}{invoice.due_date ? ` · due ${invoice.due_date}` : ""}</small></span><span className="invoice-amount"><strong>{money(invoice.total, invoice.currency)}</strong><small className={`mini-status ${status}`}>{status}</small></span><span className="chevron">›</span></button>{overdue ? <button className="reminder-button" disabled={!whatsappDigits(invoice.customer_phone)} onClick={() => openWhatsAppReminder(invoice, settings.business_name, language)}><Icon name="whatsapp" />{whatsappDigits(invoice.customer_phone) ? "Send Reminder on WhatsApp" : "WhatsApp number missing"}</button> : null}</article>;
-    })}</div> : <Empty title="No matching invoices" body="Try a different search or status filter." />) : (visiblePurchases.length ? <div className="invoice-list structured-invoice-list">{visiblePurchases.map((purchase) => <article className="history-invoice-row" key={purchase.id}><button type="button" className="history-contact-avatar" onClick={() => onOpenContact(purchase.supplier_id)} aria-label={`View ${purchase.supplier_name} history`}><ContactAvatar name={purchase.supplier_name} kind="supplier" contactKey={String(purchase.supplier_id)} /></button><button className="invoice-main" onClick={() => onOpenPurchase(purchase.id)}><span className="invoice-customer"><strong>{purchase.supplier_name}</strong><small>{purchase.document_type === "purchase_order" ? "Purchase Order" : "Delivered Purchase"} · {purchase.purchase_number} · {purchase.issue_date}{purchase.due_date ? ` · due ${purchase.due_date}` : ""}</small></span><span className="invoice-amount"><strong>{money(purchase.total, purchase.currency)}</strong><small className={`mini-status ${purchase.delivery_status === "pending" ? "pending-delivery" : purchase.payment_status}`}>{purchase.delivery_status === "pending" ? "Pending delivery" : purchase.payment_status}</small></span><span className="chevron">›</span></button></article>)}</div> : <Empty title="No matching supplier invoices" body="Try a different search." />)}
+    })}</div> : <Empty title="No matching invoices" body="Try a different search or status filter." />) : (visiblePurchases.length ? <div className="invoice-list structured-invoice-list">{visiblePurchases.map((purchase) => <article className="history-invoice-row" key={purchase.id}><button type="button" className="history-contact-avatar" onClick={() => onOpenContact(purchase.supplier_id)} aria-label={`View ${purchase.supplier_name} history`}><ContactAvatar name={purchase.supplier_name} kind="supplier" contactKey={String(purchase.supplier_id)} /></button><button className="invoice-main" onClick={() => setSelectedPurchase(purchase)}><span className="invoice-customer"><strong>{purchase.supplier_name}</strong><small>{purchase.document_type === "purchase_order" ? "Purchase Order" : "Delivered Purchase"} · {purchase.purchase_number} · {purchase.issue_date}{purchase.due_date ? ` · due ${purchase.due_date}` : ""}</small></span><span className="invoice-amount"><strong>{money(purchase.total, purchase.currency)}</strong><small className={`mini-status ${purchase.delivery_status === "pending" ? "pending-delivery" : purchase.payment_status}`}>{purchase.delivery_status === "pending" ? "Pending delivery" : purchase.payment_status}</small></span><span className="chevron">›</span></button></article>)}</div> : <Empty title="No matching supplier invoices" body="Try a different search." />)}
   </section>;
 }
 
