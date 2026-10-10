@@ -390,7 +390,7 @@ export const Actions = {
           brand: row.brand ?? "", product_type: row.productType ?? "", shelf_code: row.shelfCode ?? "",
           category: row.category ?? "", is_featured: row.isFeatured ?? false, sizes: row.sizes ?? "",
           image_url: row.imageBlobKey && row.imageBlobKey.startsWith("data:") ? row.imageBlobKey : null,
-          updated_at: row.updatedAt ? new Date(row.updatedAt).toISOString() : null,
+          updated_at: row.updatedAt ? new Date(row.updatedAt).toISOString() : (row.createdAt ? new Date(row.createdAt).toISOString() : null),
         })),
         invoices: invoiceRows.map((row) => {
           const contact = contactsById.get(row.customerId);
