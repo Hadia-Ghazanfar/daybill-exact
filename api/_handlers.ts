@@ -137,11 +137,13 @@ export const Actions = {
     ...actionDefs.createAccount,
     async handler(ctx, args) {
       const db = ctx.db;
-      // Phone must be verified via MyOTP SMS code before account creation
-      const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
-      const submittedLocal = args.phone.replace(/\D/g, "");
-      if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
-        throw new Error("Phone number does not match the verified number");
+      // OTP verification disabled for now — skip when no code provided
+      if (args.otp_code) {
+        const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
+        const submittedLocal = args.phone.replace(/\D/g, "");
+        if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
+          throw new Error("Phone number does not match the verified number");
+        }
       }
       const existingPhone = await db.select({ id: schema.accounts.id }).from(schema.accounts).where(eq(schema.accounts.phone, args.phone)).limit(1);
       if (existingPhone[0]) throw new Error("An account already exists with this phone number. Please log in.");
