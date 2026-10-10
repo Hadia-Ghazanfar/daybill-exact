@@ -3461,3 +3461,9 @@ html[data-theme="dark"] .purchase-detail-modal .detail-row.total strong { color:
 .purchase-items-row .item-desc { font-weight: 600; }
 .purchase-items-row span:nth-child(2), .purchase-items-row span:nth-child(3), .purchase-items-row span:nth-child(4),
 .purchase-items-head span:nth-child(2), .purchase-items-head span:nth-child(3), .purchase-items-head span:nth-child(4) { text-align: right; }
+
+/* Category filter chips */
+.category-filter-chips .chip { padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.category-filter-chips .chip:hover { border-color: var(--accent); }
+.category-filter-chips .chip.active { background: #0a403d; color: #fff; border-color: #0a403d; }
+html[data-theme="dark"] .category-filter-chips .chip.active { background: #7fd1b9; color: #062a20; border-color: #7fd1b9; }

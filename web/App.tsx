@@ -263,6 +263,11 @@ const urduUi: Record<string, string> = {
   "Customer": "گاہک",
   "Supplier": "سپلائر",
   "Last updated": "آخری اپڈیٹ",
+  "Categories": "کیٹیگریز",
+  "Select category…": "کیٹیگری منتخب کریں…",
+  "No categories yet. Add your first one above.": "ابھی کوئی کیٹیگری نہیں۔ اوپر پہلی شامل کریں۔",
+  "Add": "شامل کریں",
+  "Featured": "نمایاں",
   "Back to contacts": "رابطوں پر واپس",
   "Contact not found": "رابطہ نہیں ملا",
   "This contact is no longer available.": "یہ رابطہ اب دستیاب نہیں ہے۔",
@@ -326,6 +331,11 @@ const urduUi: Record<string, string> = {
   "Stock count": "اسٹاک تعداد",
   "Supplier": "سپلائر",
   "Last updated": "آخری اپڈیٹ",
+  "Categories": "کیٹیگریز",
+  "Select category…": "کیٹیگری منتخب کریں…",
+  "No categories yet. Add your first one above.": "ابھی کوئی کیٹیگری نہیں۔ اوپر پہلی شامل کریں۔",
+  "Add": "شامل کریں",
+  "Featured": "نمایاں",
   "No supplier": "کوئی سپلائر نہیں",
   "Save product": "پروڈکٹ محفوظ کریں",
   "Image": "تصویر",
@@ -499,6 +509,7 @@ const urduUi: Record<string, string> = {
   "Products": "پروڈکٹس",
   "Prices added here fill invoices automatically.": "یہاں شامل قیمتیں رسید میں خود بخود آ جاتی ہیں۔",
   "Add": "شامل کریں",
+  "Featured": "نمایاں",
   "Edit product": "پروڈکٹ میں ترمیم",
   "New product": "نئی پروڈکٹ",
   "Product name": "پروڈکٹ کا نام",
@@ -1818,7 +1829,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
               </>
             )}
           </section>
-        ) : tab === "products" ? <ProductsView products={products} contacts={contacts} currency={settings.currency} onDone={() => setTab("create")} />
+        ) : tab === "products" ? <ProductsView products={products} contacts={contacts} currency={settings.currency} categories={workspace.data.categories ?? []} onDone={() => setTab("create")} />
         : tab === "contacts" ? <ContactsView contacts={contacts} onDone={() => setTab("create")} onOpenContact={setSelectedContactId} />
         : tab === "history" ? <HistoryView invoices={workspace.data.invoices} purchases={workspace.data.purchases} settings={settings} onOpen={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} />
         : <ProfileView settings={settings} account={workspace.data.account} onEdit={() => setShowSettings(true)} onLogout={onLogout} />}
@@ -2807,7 +2818,83 @@ function SettingsSheet({ settings, onClose }: { settings: Workspace["settings"];
   </form></section></div>;
 }
 
-function ProductsView({ products, contacts, currency, onDone }: { products: Product[]; contacts: Contact[]; currency: string; onDone: () => void }) {
+
+function CategoriesModal({ categories, onClose }: { categories: { id: number; name: string }[]; onClose: () => void }) {
+  const { language } = useLanguage();
+  const queryClient = useQueryClient();
+  const [newName, setNewName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const refresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+  };
+
+  const addCategory = async () => {
+    const name = newName.trim();
+    if (!name) return;
+    setSaving(true);
+    setError("");
+    try {
+      await api.saveCategory({ name });
+      setNewName("");
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not add category");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeCategory = async (id: number, name: string) => {
+    if (!confirm(`Delete category "${name}"? Products using it will keep the name.`)) return;
+    try {
+      await api.deleteCategory({ id });
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not delete category");
+    }
+  };
+
+  return (
+    <div className="bulk-modal-backdrop" onClick={onClose}>
+      <div className="bulk-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+        <div className="bulk-modal-head">
+          <div>
+            <p className="eyebrow">ORGANIZE</p>
+            <h2>{ui(language, "Categories")}</h2>
+          </div>
+          <button type="button" className="bulk-modal-close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+        <div className="bulk-modal-body" style={{ display: "flex", flexDirection: "column", gap: 12, padding: "16px 20px" }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder={ui(language, "New category name…")}
+              maxLength={60}
+              style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "1px solid var(--border)", fontSize: 15 }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCategory(); } }}
+            />
+            <button type="button" className="primary compact" disabled={!newName.trim() || saving} onClick={addCategory}>{saving ? "…" : ui(language, "Add")}</button>
+          </div>
+          {error ? <p className="auth-error" role="alert">{error}</p> : null}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 300, overflowY: "auto" }}>
+            {categories.length === 0 ? <p style={{ color: "var(--dim)", textAlign: "center", padding: 20 }}>{ui(language, "No categories yet. Add your first one above.")}</p> :
+              categories.map((cat) => (
+                <div key={cat.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: 12, background: "var(--bg)", border: "1px solid var(--border)" }}>
+                  <strong>{cat.name}</strong>
+                  <button type="button" className="btn-delete" aria-label={`Delete ${cat.name}`} onClick={() => removeCategory(cat.id, cat.name)}><Icon name="trash" /></button>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductsView({ products, contacts, currency, categories, onDone }: { products: Product[]; contacts: Contact[]; currency: string; categories: { id: number; name: string }[]; onDone: () => void }) {
   const { language } = useLanguage();
   const queryClient = useQueryClient();
   const suppliers = contacts.filter((contact) => contact.kind === "supplier");
@@ -2815,7 +2902,8 @@ function ProductsView({ products, contacts, currency, onDone }: { products: Prod
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("__all");
-  const categories = useMemo(() => {
+  const [showCategories, setShowCategories] = useState(false);
+  const productCategoryNames = useMemo(() => {
     const set = new Set<string>();
     products.forEach((pr) => { const c = (pr.category ?? "").trim(); if (c) set.add(c); });
     return Array.from(set).sort();
@@ -2843,14 +2931,20 @@ function ProductsView({ products, contacts, currency, onDone }: { products: Prod
     return matchQ;
   });
   const supplierName = (id: number | null) => id ? suppliers.find((s) => s.id === id)?.name ?? "—" : "—";
-  return <section className="manage-view products-view"><div className="manage-head"><div><p className="eyebrow">{ui(language, "SAVED CATALOG")}</p><h1>{ui(language, "Products")}</h1><p>{ui(language, "Prices added here fill invoices automatically.")}</p></div><button className="primary compact" onClick={newProduct}><Icon name="plus" />{ui(language, "New")}</button></div>
+  return <section className="manage-view products-view"><div className="manage-head"><div><p className="eyebrow">{ui(language, "SAVED CATALOG")}</p><h1>{ui(language, "Products")}</h1><p>{ui(language, "Prices added here fill invoices automatically.")}</p></div><div style={{ display: "flex", gap: 8 }}><button className="secondary compact" onClick={() => setShowCategories(true)}><Icon name="box" />{ui(language, "Categories")}</button><button className="primary compact" onClick={newProduct}><Icon name="plus" />{ui(language, "New")}</button></div></div>
+    {showCategories ? <CategoriesModal categories={categories} onClose={() => setShowCategories(false)} /> : null}
     <div className="product-toolbar"><div className="product-search"><Icon name="search" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={ui(language, "Search products…")} /></div></div>
+    {categories.length > 0 ? <div className="category-filter-chips" style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "12px 0" }}>
+      <button type="button" className={activeCategory === "__all" ? "chip active" : "chip"} onClick={() => setActiveCategory("__all")}>{ui(language, "All")}</button>
+      <button type="button" className={activeCategory === "__featured" ? "chip active" : "chip"} onClick={() => setActiveCategory("__featured")}>★ {ui(language, "Featured")}</button>
+      {categories.map((c) => <button key={c.id} type="button" className={activeCategory === c.name ? "chip active" : "chip"} onClick={() => setActiveCategory(c.name)}>{c.name}</button>)}
+    </div> : null}
     {showForm ? <form className="inline-form" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}><div className="section-heading"><h2>{editing ? ui(language, "Edit product") : ui(language, "New product")}</h2><button type="button" className="close-button" aria-label={ui(language, "Close")} onClick={() => setShowForm(false)}>×</button></div>
       <div className="product-image-picker">{formImage ? <img src={`data:${formImageMime};base64,${formImage}`} alt="" /> : editing?.image_url ? <img src={editing.image_url} alt="" /> : <div className="product-image-placeholder"><Icon name="box" /></div>}<button type="button" className="secondary compact" onClick={() => imgRef.current?.click()}>{ui(language, "Product image")}</button><input ref={imgRef} hidden type="file" accept="image/png,image/jpeg" onChange={(e) => { const f = e.target.files?.[0]; if (f) onImagePick(f); }} /></div>
       <label className="field"><span>{ui(language, "Name")}</span><input autoFocus required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
       <div className="form-row-2"><label className="field"><span>{ui(language, "Brand")}</span><input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="No brand" /></label><label className="field"><span>{ui(language, "Type")}</span><input value={form.product_type} onChange={(e) => setForm({ ...form, product_type: e.target.value })} placeholder="Simple" /></label></div>
       <div className="form-row-2"><label className="field"><span>{ui(language, "Shelf code")}</span><input value={form.shelf_code} onChange={(e) => setForm({ ...form, shelf_code: e.target.value })} placeholder="A-01" /></label><label className="field"><span>{ui(language, "Unit")}</span><input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></label></div>
-      <div className="form-row-2"><label className="field"><span>{ui(language, "Category")}</span><input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder={ui(language, "e.g. Cables, Chargers")} list="product-categories" /></label><label className="field"><span>{ui(language, "Sizes")}</span><input value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} placeholder={ui(language, "e.g. S, M, L or 250g, 500g")} /></label></div>
+      <div className="form-row-2"><label className="field"><span>{ui(language, "Category")}</span><select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}><option value="">{ui(language, "Select category…")}</option>{categories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}</select></label><label className="field"><span>{ui(language, "Sizes")}</span><input value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} placeholder={ui(language, "e.g. S, M, L or 250g, 500g")} /></label></div>
       <label className="featured-toggle"><input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} /><span className="featured-star">★</span><span>{ui(language, "Featured product")}</span><small>{ui(language, "Show in special section")}</small></label>
       <div className="form-row-2"><label className="field"><span>{ui(language, "Selling price")}</span><input required inputMode="decimal" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></label><label className="field"><span>{ui(language, "Cost price")}</span><input inputMode="decimal" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} /></label></div>
       <div className="form-row-2"><label className="field"><span>{ui(language, "Stock count")}</span><input inputMode="numeric" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} /></label><label className="field"><span>{ui(language, "Supplier")}</span><select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })}><option value="">{ui(language, "No supplier")}</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label></div>
