@@ -2726,7 +2726,15 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
     <SafeAreaTopScrim backgroundColor="var(--bg)" />
     <header className="app-brand-bar admin-brand-bar" aria-label="Daybill administrator header"><img className="sidebar-brand-logo" src={daybillLogoWhite} alt="Daybill" /><div className="app-brand-copy"><span>Administrator</span><small>Oversight panel</small></div></header>
     <main>{view === "dashboard" ? <section className="admin-dashboard">
-      <header className="admin-dashboard-heading"><div><p className="eyebrow">PLATFORM OVERVIEW</p><h1>Admin Dashboard</h1><p>Across all user accounts</p></div><span className="admin-status"><Icon name="lock" />ADMIN</span></header>
+      <header className="admin-dashboard-heading"><div><p className="eyebrow">PLATFORM OVERVIEW</p><h1>Admin Dashboard</h1><p>Across all user accounts</p></div><div className="admin-head-actions"><button className="icon-button admin-notif-bell-mobile" onClick={() => setShowNotifications((s) => !s)} aria-label="New account notifications"><Icon name="bell" />{newAccounts.length > 0 ? <span className="notif-badge">{newAccounts.length}</span> : null}</button><span className="admin-status"><Icon name="lock" />ADMIN</span></div></header>
+      {showNotifications ? <div className="admin-notif-dropdown admin-notif-mobile" role="dialog" aria-label="New account notifications">
+        <div className="admin-notif-head"><strong>New accounts</strong><button className="text-button" onClick={markNotificationsSeen}>Mark seen</button></div>
+        {newAccounts.length ? newAccounts.slice(0, 10).map((a: any) => <div key={a.id} className="admin-notif-item">
+          <strong>{a.account_holder_name || "New account"}</strong>
+          <small>{a.phone || ""}{a.shop_name ? ` · ${a.shop_name}` : ""}</small>
+          <small>{a.created_at ? new Date(a.created_at).toLocaleString() : ""}</small>
+        </div>) : <p className="admin-notif-empty">No new accounts since you last checked.</p>}
+      </div> : null}
       <section className="admin-stats" aria-label="Platform totals">
         <article><span>Total Registered Accounts</span><strong>{totals.registered_accounts}</strong><small>Active shop accounts</small></article>
         <article><span>Total Invoices Generated</span><strong>{totals.invoices}</strong><small>Sales invoices</small></article>
