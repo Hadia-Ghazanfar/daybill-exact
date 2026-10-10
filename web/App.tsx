@@ -268,6 +268,40 @@ const urduUi: Record<string, string> = {
   "No categories yet. Add your first one above.": "ابھی کوئی کیٹیگری نہیں۔ اوپر پہلی شامل کریں۔",
   "Add": "شامل کریں",
   "Featured": "نمایاں",
+  "Adjust Stock": "اسٹاک ایڈجسٹ کریں",
+  "Suppliers": "سپلائرز",
+  "Product Type": "پروڈکٹ کی قسم",
+  "Stock": "اسٹاک",
+  "Select here": "منتخب کریں",
+  "In stock": "اسٹاک میں",
+  "Low stock": "کم اسٹاک",
+  "Out of stock": "اسٹاک ختم",
+  "Select product…": "پروڈکٹ منتخب کریں…",
+  "Current stock": "موجودہ اسٹاک",
+  "Adjustment (use - to reduce)": "ایڈجسٹمنٹ (کم کرنے کے لیے - استعمال کریں)",
+  "Reason (optional)": "وجہ (اختیاری)",
+  "Enter PIN to confirm": "تصدیق کے لیے PIN درج کریں",
+  "Apply Adjustment": "ایڈجسٹمنٹ لاگو کریں",
+  "Enter your PIN to adjust stock.": "اسٹاک ایڈجسٹ کرنے کے لیے اپنا PIN درج کریں۔",
+  "Verify": "تصدیق کریں",
+  "PIN": "PIN",
+  "Adjust Stock": "اسٹاک ایڈجسٹ کریں",
+  "Suppliers": "سپلائرز",
+  "Product Type": "پروڈکٹ کی قسم",
+  "Stock": "اسٹاک",
+  "Select here": "منتخب کریں",
+  "In stock": "اسٹاک میں",
+  "Low stock": "کم اسٹاک",
+  "Out of stock": "اسٹاک ختم",
+  "Select product…": "پروڈکٹ منتخب کریں…",
+  "Current stock": "موجودہ اسٹاک",
+  "Adjustment (use - to reduce)": "ایڈجسٹمنٹ (کم کرنے کے لیے - استعمال کریں)",
+  "Reason (optional)": "وجہ (اختیاری)",
+  "Enter PIN to confirm": "تصدیق کے لیے PIN درج کریں",
+  "Apply Adjustment": "ایڈجسٹمنٹ لاگو کریں",
+  "Enter your PIN to adjust stock.": "اسٹاک ایڈجسٹ کرنے کے لیے اپنا PIN درج کریں۔",
+  "Verify": "تصدیق کریں",
+  "PIN": "PIN",
   "Back to contacts": "رابطوں پر واپس",
   "Contact not found": "رابطہ نہیں ملا",
   "This contact is no longer available.": "یہ رابطہ اب دستیاب نہیں ہے۔",
@@ -2834,6 +2868,71 @@ function SettingsSheet({ settings, onClose }: { settings: Workspace["settings"];
 }
 
 
+
+function AdjustStockModal({ products, onClose }: { products: Product[]; onClose: () => void }) {
+  const { language } = useLanguage();
+  const queryClient = useQueryClient();
+  const [pin, setPin] = useState("");
+  const [selectedId, setSelectedId] = useState("");
+  const [adjustment, setAdjustment] = useState("");
+  const [reason, setReason] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const selectedProduct = products.find((p) => String(p.id) === selectedId);
+
+  const applyAdjustment = async () => {
+    const adj = parseInt(adjustment, 10);
+    if (!selectedProduct || isNaN(adj)) {
+      setError("Select a product and enter a valid adjustment");
+      return;
+    }
+    if (pin.length !== 4) {
+      setError("Enter your 4-digit PIN");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await api.adjustStock({
+        product_id: selectedProduct.id,
+        adjustment: adj,
+        reason: reason.trim() || undefined,
+        pin,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not adjust stock");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bulk-modal-backdrop" onClick={onClose}>
+      <div className="bulk-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+        <div className="bulk-modal-head">
+          <div>
+            <p className="eyebrow">STOCK</p>
+            <h2>{ui(language, "Adjust Stock")}</h2>
+          </div>
+          <button type="button" className="bulk-modal-close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+        <div className="bulk-modal-body" style={{ display: "flex", flexDirection: "column", gap: 14, padding: "16px 20px" }}>
+          <label className="field"><span>{ui(language, "Product")}</span><select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}><option value="">{ui(language, "Select product…")}</option>{products.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.stock_quantity} in stock)</option>)}</select></label>
+          {selectedProduct ? <p style={{ fontSize: 14, color: "var(--dim)" }}>{ui(language, "Current stock")}: <strong style={{ color: "var(--text)", fontSize: 18 }}>{selectedProduct.stock_quantity}</strong></p> : null}
+          <label className="field"><span>{ui(language, "Adjustment (use - to reduce)")}</span><input inputMode="numeric" value={adjustment} onChange={(e) => setAdjustment(e.target.value.replace(/[^\d-]/g, ""))} placeholder="+10 or -5" /></label>
+          <label className="field"><span>{ui(language, "Reason (optional)")}</span><input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={ui(language, "e.g. Damaged, recount")} maxLength={120} /></label>
+          <label className="field"><span>{ui(language, "Enter PIN to confirm")}</span><input type="password" inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
+          {error ? <p className="auth-error" role="alert">{error}</p> : null}
+          <button type="button" className="primary wide" disabled={!selectedId || !adjustment || pin.length !== 4 || saving} onClick={applyAdjustment}>{saving ? "…" : ui(language, "Apply Adjustment")}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CategoriesModal({ categories, onClose }: { categories: { id: number; name: string }[]; onClose: () => void }) {
   const { language } = useLanguage();
   const queryClient = useQueryClient();
@@ -2918,6 +3017,15 @@ function ProductsView({ products, contacts, currency, categories, onDone }: { pr
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("__all");
   const [showCategories, setShowCategories] = useState(false);
+  const [showAdjustStock, setShowAdjustStock] = useState(false);
+  const [filterSupplier, setFilterSupplier] = useState<string>("__all");
+  const [filterType, setFilterType] = useState<string>("__all");
+  const [filterStock, setFilterStock] = useState<string>("__all");
+  const productTypes = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((pr) => { const t = (pr.product_type ?? "").trim(); if (t) set.add(t); });
+    return Array.from(set).sort();
+  }, [products]);
   const productCategoryNames = useMemo(() => {
     const set = new Set<string>();
     products.forEach((pr) => { const c = (pr.category ?? "").trim(); if (c) set.add(c); });
@@ -2941,19 +3049,27 @@ function ProductsView({ products, contacts, currency, categories, onDone }: { pr
   const q = search.trim().toLowerCase();
   const visible = products.filter((pr) => {
     const matchQ = !q || (pr.name + " " + (pr.brand ?? "") + " " + (pr.shelf_code ?? "") + " " + (pr.category ?? "") + " " + pr.id).toLowerCase().includes(q);
-    if (activeCategory === "__featured") return matchQ && pr.is_featured;
-    if (activeCategory !== "__all") return matchQ && (pr.category ?? "").trim() === activeCategory;
-    return matchQ;
+    if (!matchQ) return false;
+    if (activeCategory === "__featured" && !pr.is_featured) return false;
+    if (activeCategory !== "__all" && activeCategory !== "__featured" && (pr.category ?? "").trim() !== activeCategory) return false;
+    if (filterSupplier !== "__all" && String(pr.supplier_id ?? "") !== filterSupplier) return false;
+    if (filterType !== "__all" && (pr.product_type ?? "").trim() !== filterType) return false;
+    if (filterStock === "in" && pr.stock_quantity <= 0) return false;
+    if (filterStock === "low" && (pr.stock_quantity <= 0 || pr.stock_quantity > 5)) return false;
+    if (filterStock === "out" && pr.stock_quantity > 0) return false;
+    return true;
   });
   const supplierName = (id: number | null) => id ? suppliers.find((s) => s.id === id)?.name ?? "—" : "—";
-  return <section className="manage-view products-view"><div className="manage-head"><div><p className="eyebrow">{ui(language, "SAVED CATALOG")}</p><h1>{ui(language, "Products")}</h1><p>{ui(language, "Prices added here fill invoices automatically.")}</p></div><div style={{ display: "flex", gap: 8 }}><button className="secondary compact" onClick={() => setShowCategories(true)}><Icon name="box" />{ui(language, "Categories")}</button><button className="primary compact" onClick={newProduct}><Icon name="plus" />{ui(language, "New")}</button></div></div>
+  return <section className="manage-view products-view"><div className="manage-head"><div><p className="eyebrow">{ui(language, "SAVED CATALOG")}</p><h1>{ui(language, "Products")}</h1><p>{ui(language, "Prices added here fill invoices automatically.")}</p></div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button className="secondary compact" onClick={() => setShowAdjustStock(true)}><Icon name="box" />{ui(language, "Adjust Stock")}</button><button className="secondary compact" onClick={() => setShowCategories(true)}><Icon name="box" />{ui(language, "Categories")}</button><button className="primary compact" onClick={newProduct}><Icon name="plus" />{ui(language, "New")}</button></div></div>
     {showCategories ? <CategoriesModal categories={categories} onClose={() => setShowCategories(false)} /> : null}
+    {showAdjustStock ? <AdjustStockModal products={products} onClose={() => setShowAdjustStock(false)} /> : null}
     <div className="product-toolbar"><div className="product-search"><Icon name="search" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={ui(language, "Search products…")} /></div></div>
-    {categories.length > 0 ? <div className="category-filter-chips" style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "12px 0" }}>
-      <button type="button" className={activeCategory === "__all" ? "chip active" : "chip"} onClick={() => setActiveCategory("__all")}>{ui(language, "All")}</button>
-      <button type="button" className={activeCategory === "__featured" ? "chip active" : "chip"} onClick={() => setActiveCategory("__featured")}>★ {ui(language, "Featured")}</button>
-      {categories.map((c) => <button key={c.id} type="button" className={activeCategory === c.name ? "chip active" : "chip"} onClick={() => setActiveCategory(c.name)}>{c.name}</button>)}
-    </div> : null}
+    <div className="product-filter-bar">
+      <label className="filter-field"><span>{ui(language, "Category")}</span><select value={activeCategory} onChange={(e) => setActiveCategory(e.target.value)}><option value="__all">{ui(language, "All")}</option><option value="__featured">★ {ui(language, "Featured")}</option>{categories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}</select></label>
+      <label className="filter-field"><span>{ui(language, "Suppliers")}</span><select value={filterSupplier} onChange={(e) => setFilterSupplier(e.target.value)}><option value="__all">{ui(language, "Select here")}</option>{contacts.filter((c) => c.kind === "supplier").map((s) => <option key={s.id} value={String(s.id)}>{s.name}</option>)}</select></label>
+      <label className="filter-field"><span>{ui(language, "Product Type")}</span><select value={filterType} onChange={(e) => setFilterType(e.target.value)}><option value="__all">{ui(language, "Select here")}</option>{productTypes.map((t) => <option key={t} value={t}>{t}</option>)}</select></label>
+      <label className="filter-field"><span>{ui(language, "Stock")}</span><select value={filterStock} onChange={(e) => setFilterStock(e.target.value)}><option value="__all">{ui(language, "All")}</option><option value="in">{ui(language, "In stock")}</option><option value="low">{ui(language, "Low stock")}</option><option value="out">{ui(language, "Out of stock")}</option></select></label>
+    </div>
     {showForm ? <form className="inline-form" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}><div className="section-heading"><h2>{editing ? ui(language, "Edit product") : ui(language, "New product")}</h2><button type="button" className="close-button" aria-label={ui(language, "Close")} onClick={() => setShowForm(false)}>×</button></div>
       <div className="product-image-picker">{formImage ? <img src={`data:${formImageMime};base64,${formImage}`} alt="" /> : editing?.image_url ? <img src={editing.image_url} alt="" /> : <div className="product-image-placeholder"><Icon name="box" /></div>}<button type="button" className="secondary compact" onClick={() => imgRef.current?.click()}>{ui(language, "Product image")}</button><input ref={imgRef} hidden type="file" accept="image/png,image/jpeg" onChange={(e) => { const f = e.target.files?.[0]; if (f) onImagePick(f); }} /></div>
       <label className="field"><span>{ui(language, "Name")}</span><input autoFocus required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
@@ -2962,7 +3078,7 @@ function ProductsView({ products, contacts, currency, categories, onDone }: { pr
       <div className="form-row-2"><label className="field"><span>{ui(language, "Category")}</span><select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}><option value="">{ui(language, "Select category…")}</option>{categories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}</select></label><label className="field"><span>{ui(language, "Sizes")}</span><input value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} placeholder={ui(language, "e.g. S, M, L or 250g, 500g")} /></label></div>
       <label className="featured-toggle"><input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} /><span className="featured-star">★</span><span>{ui(language, "Featured product")}</span><small>{ui(language, "Show in special section")}</small></label>
       <div className="form-row-2"><label className="field"><span>{ui(language, "Selling price")}</span><input required inputMode="decimal" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></label><label className="field"><span>{ui(language, "Cost price")}</span><input inputMode="decimal" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} /></label></div>
-      <div className="form-row-2"><label className="field"><span>{ui(language, "Stock count")}</span><input inputMode="numeric" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} /></label><label className="field"><span>{ui(language, "Supplier")}</span><select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })}><option value="">{ui(language, "No supplier")}</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label></div>
+      <div className="form-row-2"><label className="field"><span>{ui(language, "Stock count")}</span><input inputMode="numeric" value={form.stock} disabled title={ui(language, "Use Adjust Stock to change stock")} style={{ background: "var(--bg)", cursor: "not-allowed" }} /></label><label className="field"><span>{ui(language, "Supplier")}</span><select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })}><option value="">{ui(language, "No supplier")}</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label></div>
       {save.error ? <p className="error">{String(save.error)}</p> : null}<button className="primary wide" disabled={save.isPending}>{save.isPending ? ui(language, "Saving…") : ui(language, "Save product")}</button></form> : null}
     {visible.length ? <div className="product-table-wrap"><table className="product-table"><thead><tr><th>{ui(language, "Image")}</th><th>ID</th><th>{ui(language, "Name")}</th><th>{ui(language, "Brand")}</th><th>{ui(language, "Count")}</th><th>{ui(language, "Type")}</th><th>{ui(language, "Shelf code")}</th><th>{ui(language, "Supplier")}</th><th>{ui(language, "Last updated")}</th><th></th></tr></thead><tbody>{visible.map((product) => <tr key={product.id} className="product-row"><td className="cell-edit-left"><button aria-label={ui(language, "Edit")} onClick={() => startEdit(product)}><Icon name="pencil" /></button></td><td className="cell-image">{product.image_url ? <img className="product-thumb" src={product.image_url} alt="" /> : <span className="product-thumb empty"><Icon name="box" /></span>}</td><td className="mono cell-id">#{product.id}</td><td className="cell-main"><div className="cell-top"><strong>{product.name}</strong>{product.is_featured ? <span className="featured-star" title={ui(language, "Featured product")}>★</span> : null}<span className="mobile-only-meta"><span className={"stock-badge" + (product.stock_quantity <= 5 ? " low" : "")}>{product.stock_quantity} {ui(language, "in stock")}</span></span></div><div className="cell-meta mobile-only-meta"><span className="price">{money(product.unit_price, currency)}</span>{product.category ? <span className="cell-category"> · {product.category}</span> : null}{product.sizes ? <span> · {product.sizes}</span> : null}</div></td><td className="cell-brand">{product.brand || <span className="dim">—</span>}</td><td className="cell-count"><span className={product.stock_quantity <= 5 ? "low-stock" : ""}>{product.stock_quantity}</span></td><td className="cell-type">{product.product_type || <span className="dim">—</span>}</td><td className="mono cell-shelf">{product.shelf_code || <span className="dim">—</span>}</td><td className="cell-supplier">{supplierName(product.supplier_id)}</td><td className="cell-updated">{product.updated_at ? new Date(product.updated_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : <span className="dim">—</span>}</td><td className="row-actions"><button className="btn-edit" aria-label={ui(language, "Edit")} onClick={() => startEdit(product)}><Icon name="pencil" /></button><button className="btn-delete" aria-label={ui(language, "Delete")} onClick={() => archive.mutate(product.id)}><Icon name="trash" /></button></td></tr>)}</tbody></table></div> : !showForm ? <Empty title={ui(language, "No products here")} body={ui(language, "Add products to fill invoices automatically.")} /> : null}
     <button className="return-link" onClick={onDone}>← {ui(language, "Back to invoice")}</button>
