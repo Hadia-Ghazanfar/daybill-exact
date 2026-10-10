@@ -705,6 +705,28 @@ export const Actions = {
       return { ok: true as const };
     },
   }),
+  adjustStock: defineAction({
+    ...actionDefs.adjustStock,
+    async handler(ctx, args) {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      // Verify PIN
+      await verifyAccountPin(account, args.pin);
+      // Get current stock
+      const rows = await db.select().from(schema.products).where(and(eq(schema.products.id, args.product_id), eq(schema.products.accountId, account.id))).limit(1);
+      const product = rows[0];
+      if (!product) throw new Error("Product not found");
+      const newStock = product.stockQuantity + args.adjustment;
+      if (newStock < 0) throw new Error("Stock cannot go below 0");
+      await db.update(schema.products).set({ stockQuantity: newStock, updatedAt: new Date() }).where(and(eq(schema.products.id, args.product_id), eq(schema.products.accountId, account.id)));
+      // Log the adjustment
+      await createNotification(db, account.id, "stock_updated", "Stock adjusted",
+        `${product.name} stock ${args.adjustment > 0 ? "+" : ""}${args.adjustment} (now ${newStock})${args.reason ? ` — ${args.reason}` : ""}.`);
+      await checkLowStock(db, account.id);
+      ctx.invalidateQueries();
+      return { ok: true as const, new_stock: newStock };
+    },
+  }),
   archiveProduct: defineAction({
     ...actionDefs.archiveProduct,
     async handler(ctx, args): Promise<{ ok: true }> {

@@ -365,6 +365,16 @@ export const actionDefs = {
     request: z.object({ ...authFields, id: z.number().int().positive() }),
     response: z.object({ ok: z.boolean() }),
   },
+  adjustStock: {
+    request: z.object({
+      ...authFields,
+      product_id: z.number().int().positive(),
+      adjustment: z.number().int(),
+      reason: z.string().trim().max(300).optional(),
+      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+    }),
+    response: z.object({ ok: z.literal(true), new_stock: z.number() }),
+  },
   archiveProduct: {
     request: z.object({
       ...authFields, id: z.number().int().positive() }),
