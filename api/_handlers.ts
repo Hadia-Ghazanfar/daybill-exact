@@ -911,9 +911,18 @@ export const Actions = {
         .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id), isNull(schema.invoices.deletedAt)))
         .limit(1);
       if (!rows[0]) throw new Error("Invoice not found");
+      // Reverse stock: add back the quantities that were subtracted at sale time
+      const items = await db.select().from(schema.invoiceItems).where(eq(schema.invoiceItems.invoiceId, args.invoice_id));
+      for (const item of items) {
+        if (!item.productId) continue;
+        const prodRows = await db.select().from(schema.products).where(and(eq(schema.products.id, item.productId), eq(schema.products.accountId, account.id))).limit(1);
+        const prod = prodRows[0];
+        if (prod) await db.update(schema.products).set({ stockQuantity: prod.stockQuantity + item.quantity, updatedAt: new Date() }).where(and(eq(schema.products.id, item.productId), eq(schema.products.accountId, account.id)));
+      }
       await db.update(schema.invoices)
         .set({ deletedAt: new Date(), deleteReason: args.reason })
         .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id)));
+      ctx.invalidateQueries();
       return { ok: true as const };
     },
   }),
@@ -927,9 +936,21 @@ export const Actions = {
         .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id), isNull(schema.purchaseInvoices.deletedAt)))
         .limit(1);
       if (!rows[0]) throw new Error("Purchase invoice not found");
+      const purchase = rows[0];
+      // Reverse stock only if it was a delivered purchase (purchase orders never touched stock)
+      if (purchase.deliveryStatus === "delivered") {
+        const items = await db.select().from(schema.purchaseInvoiceItems).where(eq(schema.purchaseInvoiceItems.purchaseInvoiceId, args.purchase_id));
+        for (const item of items) {
+          if (!item.productId) continue;
+          const prodRows = await db.select().from(schema.products).where(and(eq(schema.products.id, item.productId), eq(schema.products.accountId, account.id))).limit(1);
+          const prod = prodRows[0];
+          if (prod) await db.update(schema.products).set({ stockQuantity: Math.max(0, prod.stockQuantity - item.quantity), updatedAt: new Date() }).where(and(eq(schema.products.id, item.productId), eq(schema.products.accountId, account.id)));
+        }
+      }
       await db.update(schema.purchaseInvoices)
         .set({ deletedAt: new Date(), deleteReason: args.reason })
         .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id)));
+      ctx.invalidateQueries();
       return { ok: true as const };
     },
   }),
@@ -976,9 +997,18 @@ export const Actions = {
         .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id), isNotNull(schema.invoices.deletedAt)))
         .limit(1);
       if (!rows[0]) throw new Error("Invoice not found in trash");
+      // Re-apply stock: subtract the quantities again
+      const items = await db.select().from(schema.invoiceItems).where(eq(schema.invoiceItems.invoiceId, args.invoice_id));
+      for (const item of items) {
+        if (!item.productId) continue;
+        const prodRows = await db.select().from(schema.products).where(and(eq(schema.products.id, item.productId), eq(schema.products.accountId, account.id))).limit(1);
+        const prod = prodRows[0];
+        if (prod) await db.update(schema.products).set({ stockQuantity: Math.max(0, prod.stockQuantity - item.quantity), updatedAt: new Date() }).where(and(eq(schema.products.id, item.productId), eq(schema.products.accountId, account.id)));
+      }
       await db.update(schema.invoices)
         .set({ deletedAt: null, deleteReason: "" })
         .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id)));
+      ctx.invalidateQueries();
       return { ok: true as const };
     },
   }),
@@ -992,9 +1022,21 @@ export const Actions = {
         .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id), isNotNull(schema.purchaseInvoices.deletedAt)))
         .limit(1);
       if (!rows[0]) throw new Error("Purchase invoice not found in trash");
+      const purchase = rows[0];
+      // Re-apply stock only if it was a delivered purchase
+      if (purchase.deliveryStatus === "delivered") {
+        const items = await db.select().from(schema.purchaseInvoiceItems).where(eq(schema.purchaseInvoiceItems.purchaseInvoiceId, args.purchase_id));
+        for (const item of items) {
+          if (!item.productId) continue;
+          const prodRows = await db.select().from(schema.products).where(and(eq(schema.products.id, item.productId), eq(schema.products.accountId, account.id))).limit(1);
+          const prod = prodRows[0];
+          if (prod) await db.update(schema.products).set({ stockQuantity: prod.stockQuantity + item.quantity, updatedAt: new Date() }).where(and(eq(schema.products.id, item.productId), eq(schema.products.accountId, account.id)));
+        }
+      }
       await db.update(schema.purchaseInvoices)
         .set({ deletedAt: null, deleteReason: "" })
         .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id)));
+      ctx.invalidateQueries();
       return { ok: true as const };
     },
   }),
