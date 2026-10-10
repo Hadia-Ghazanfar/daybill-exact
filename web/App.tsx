@@ -2110,8 +2110,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   });
   const create = useMutation({
     mutationFn: () => {
-      if (otpCode.length < 3) throw new Error("Please enter the verification code sent to your phone");
-      return api.createAccount({ shopkeeper_name: name, shop_name: shopName, shop_address: shopAddress, phone, pin, otp_code: otpCode });
+      return api.createAccount({ shopkeeper_name: name, shop_name: shopName, shop_address: shopAddress, phone, pin });
     },
     onSuccess: (result) => {
       const session: AccountSession = { account_id: result.account_id, session_token: result.session_token, session_kind: result.session_kind, shopkeeper_name: result.shopkeeper_name, phone: result.phone };
