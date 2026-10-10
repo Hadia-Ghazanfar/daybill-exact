@@ -2756,10 +2756,23 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
       if (!bucket) continue;
       bucket.revenue += invoice.total / 100;
       bucket.cost += invoice.cost_total / 100;
+    }
+    // Add supplier purchases to cost (matches dashboard Cost = items sold + stock bought)
+    for (const purchase of workspace.purchases ?? []) {
+      if (purchase.document_type !== "delivered_purchase") continue;
+      const purchaseDate = new Date(`${purchase.issue_date}T12:00:00`);
+      const elapsed = Math.floor((purchaseDate.getTime() - start.getTime()) / 86_400_000);
+      if (elapsed < 0 || elapsed >= totalDays) continue;
+      const index = Math.min(bucketCount - 1, Math.floor(elapsed / span));
+      const bucket = buckets[index];
+      if (!bucket) continue;
+      bucket.cost += purchase.total / 100;
+    }
+    for (const bucket of buckets) {
       bucket.profit = bucket.revenue - bucket.cost;
     }
     return buckets;
-  }, [chartRange, today, workspace.invoices]);
+  }, [chartRange, today, workspace.invoices, workspace.purchases]);
   const latestCashFlow = cashFlowSeries[cashFlowSeries.length - 1];
   const recentThreeDaySales = salesSeries.slice(4).reduce((sum, day) => sum + day.sales, 0);
   const previousThreeDaySales = salesSeries.slice(1, 4).reduce((sum, day) => sum + day.sales, 0);
