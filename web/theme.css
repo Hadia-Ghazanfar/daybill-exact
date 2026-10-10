@@ -2512,11 +2512,11 @@ html[data-theme="dark"] .login-role-tabs { background: #143735; }
   .sidebar-collapsed .app-brand-bar > img { width: 40px; height: 40px; }
   .sidebar-collapsed .app-brand-copy { display: none; }
   .sidebar-collapsed .sidebar-toggle { position: absolute; top: 72px; width: 30px; height: 30px; border-radius: 9px; background: #0e514c; }
-  .sidebar-collapsed .bottom-nav:not(.admin-nav) { top: 112px; width: 82px; padding: 12px 9px 64px; }
+  .sidebar-collapsed .bottom-nav:not(.admin-nav) { top: 104px; width: 82px; padding: 8px 9px 16px; }
   .sidebar-collapsed .bottom-nav:not(.admin-nav)::after,
   .sidebar-collapsed .bottom-nav:not(.admin-nav) .nav-group-label,
   .sidebar-collapsed .bottom-nav:not(.admin-nav) button span { display: none; }
-  .sidebar-collapsed .bottom-nav:not(.admin-nav) button { justify-content: center; min-height: 50px; padding: 0; border-radius: 13px; }
+  .sidebar-collapsed .bottom-nav:not(.admin-nav) button { justify-content: center; min-height: 36px; padding: 0; border-radius: 10px; }
 
   .sidebar-collapsed .bottom-nav:not(.admin-nav) button.active::before { left: -9px; }
   .stat-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
@@ -3202,10 +3202,10 @@ button:active { transform: scale(.96); }
   html:not(.phone-layout) .sidebar-collapsed .bottom-nav:not(.admin-nav) button span { display: none !important; }
   html:not(.phone-layout) .sidebar-collapsed .bottom-nav:not(.admin-nav) button { justify-content: center !important; padding: 0 !important; }
   html:not(.phone-layout) .sidebar-collapsed .sidebar-bottom { padding: 16px 9px 12px !important; align-items: center !important; }
-  html:not(.phone-layout) .sidebar-collapsed .sidebar-bottom button { justify-content: center !important; padding: 0 !important; width: 48px !important; height: 48px !important; min-height: 48px !important; border-radius: 13px !important; }
+  html:not(.phone-layout) .sidebar-collapsed .sidebar-bottom button { justify-content: center !important; padding: 0 !important; width: 40px !important; height: 36px !important; min-height: 36px !important; border-radius: 10px !important; }
   html:not(.phone-layout) .sidebar-collapsed .sidebar-bottom button span { display: none !important; }
   html:not(.phone-layout) .sidebar-collapsed .bottom-nav:not(.admin-nav) { padding: 12px 0 70px !important; }
-  html:not(.phone-layout) .sidebar-collapsed .bottom-nav:not(.admin-nav) button { width: 100% !important; border-radius: 0 !important; min-height: 52px !important; }
+  html:not(.phone-layout) .sidebar-collapsed .bottom-nav:not(.admin-nav) button { width: 100% !important; border-radius: 0 !important; min-height: 36px !important; }
   html:not(.phone-layout) .sidebar-collapsed .bottom-nav:not(.admin-nav) button.active { background: var(--bg) !important; color: #0a403d !important; border-radius: 999px 0 0 999px !important; margin-left: 9px !important; width: calc(100% - 9px) !important; }
   html:not(.phone-layout) .sidebar-collapsed .bottom-nav:not(.admin-nav) button.active svg { color: #0a403d !important; }
   html[data-theme="dark"]:not(.phone-layout) .sidebar-collapsed .bottom-nav:not(.admin-nav) button.active { color: #ffffff !important; }
