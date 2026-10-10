@@ -2466,7 +2466,75 @@ async function renderPurchasePng(purchase: Purchase | PurchaseDraft, settings: W
   return canvasToPngBlob(canvas);
 }
 
-function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAddProduct, onEditSettings, onOpenContact, onBackToBills, onPrepareShare }: { workspace: Workspace; savedPurchaseId: number | null; onSaved: (id: number | null) => void; onAddSupplier: () => void; onAddProduct: () => void; onEditSettings: () => void; onOpenContact: (id: number) => void; onBackToBills: () => void; onPrepareShare: () => void }) {
+function SupplierDetailView({ purchase, settings, onBackToBills, onOpenContact, onDelete, onShare }: {
+  purchase: Workspace["purchases"][number];
+  settings: Workspace["settings"];
+  onBackToBills: () => void;
+  onOpenContact: (id: number) => void;
+  onDelete: () => void;
+  onShare: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const payment = useMutation({
+    mutationFn: (status: "pending" | "paid") => api.setPurchasePaymentStatus({ id: purchase.id, status }),
+    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); },
+  });
+  const deliver = useMutation({
+    mutationFn: () => api.markPurchaseDelivered({ id: purchase.id }),
+    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); },
+  });
+  return (
+    <div className="invoice-detail-panel">
+      <button type="button" className="mobile-back-to-bills" onClick={onBackToBills}>← Back to Bills</button>
+      <header className="invoice-detail-head">
+        <div>
+          <span>{purchase.document_type === "purchase_order" ? "PURCHASE ORDER" : "SUPPLIER INVOICE"}</span>
+          <h2>{purchase.purchase_number}</h2>
+          <p>From {purchase.supplier_name}</p>
+        </div>
+        {purchase.document_type === "purchase_order" && purchase.delivery_status === "pending" ? (
+          <button className="primary" disabled={deliver.isPending} onClick={() => deliver.mutate()}>
+            <Icon name="truck" />{deliver.isPending ? "Recording…" : "Mark delivered"}
+          </button>
+        ) : (
+          <button className={`status-toggle ${purchase.payment_status}`} disabled={payment.isPending} onClick={() => payment.mutate(purchase.payment_status === "paid" ? "pending" : "paid")}>
+            {purchase.payment_status === "paid" ? "✓ Paid · mark pending" : "Mark supplier paid"}
+          </button>
+        )}
+      </header>
+      <div className="invoice-date-grid">
+        <div><span>Issued date</span><strong>{purchase.issue_date}</strong></div>
+        <div><span>Due date</span><strong>{purchase.due_date || "No due date"}</strong></div>
+      </div>
+      <button type="button" className="detail-recipient contact-link" onClick={() => purchase.supplier_id && onOpenContact(purchase.supplier_id)} aria-label={`View ${purchase.supplier_name} history`}>
+        <ContactAvatar name={purchase.supplier_name} kind="supplier" contactKey={purchase.supplier_id ? String(purchase.supplier_id) : purchase.supplier_name} />
+        <div><small>SUPPLIER</small><strong>{purchase.supplier_name}</strong><p>{purchase.supplier_phone ? formatPhoneDisplay(purchase.supplier_phone) : "No phone saved"}{purchase.supplier_address ? ` · ${purchase.supplier_address}` : ""}</p></div>
+        <span className="chevron">›</span>
+      </button>
+      <div className="detail-items">
+        <div className="detail-item detail-item-head"><span>Description</span><span>Qty</span><span>Cost</span><span>Total</span></div>
+        {(purchase.items ?? []).map((item: any) => (
+          <div className="detail-item" key={item.id ?? item.product_id}>
+            <strong>{item.product_name ?? item.description ?? "Item"}</strong>
+            <span>{item.quantity}</span>
+            <span>{money(item.unit_cost ?? item.unit_price ?? 0, purchase.currency)}</span>
+            <b>{money((item.unit_cost ?? item.unit_price ?? 0) * (item.quantity ?? 0), purchase.currency)}</b>
+          </div>
+        ))}
+      </div>
+      <div className="detail-totals">
+        <div><span>Total amount</span><strong>{money(purchase.total, purchase.currency)}</strong></div>
+      </div>
+      <div className="share-actions">
+        <button className="whatsapp-share-button" onClick={onShare}><Icon name="whatsapp" /><span>Share on WhatsApp</span><Icon name="arrow" /></button>
+      </div>
+      <button className="text-button" onClick={onBackToBills}>Back to Bills</button>
+      <button className="text-button danger-text" onClick={onDelete}><Icon name="trash" /> Move to trash</button>
+    </div>
+  );
+}
+
+function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAddProduct, onEditSettings, onOpenContact, onBackToBills, onPrepareShare, onDeletePurchase }: { workspace: Workspace; savedPurchaseId: number | null; onSaved: (id: number | null) => void; onAddSupplier: () => void; onAddProduct: () => void; onEditSettings: () => void; onOpenContact: (id: number) => void; onBackToBills: () => void; onPrepareShare: () => void; onDeletePurchase: () => void }) {
   const queryClient = useQueryClient();
   const { language } = useLanguage();
   // Defensive: if workspace data isn't ready, show loading instead of crashing
@@ -2499,7 +2567,10 @@ function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAd
   const create = useMutation({ mutationFn: () => api.createPurchaseInvoice({ supplier_id: supplierId ?? 0, document_type: documentType, issue_date: issueDate, due_date: dueDate || null, payment_method: paymentMethod, payment_status: purchasePaymentStatus, supplier_reference: supplierReference, notes, items: draftItems.map((item) => ({ product_id: item.product_id, quantity: item.quantity, unit_cost: item.unit_cost })) }), onSuccess: async (result) => { onSaved(result.id); setStep(3); await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
   const payment = useMutation({ mutationFn: (status: "pending" | "paid") => api.setPurchasePaymentStatus({ id: savedPurchaseId ?? 0, status }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
   const deliver = useMutation({ mutationFn: () => api.markPurchaseDelivered({ id: savedPurchaseId ?? 0 }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
-  if (savedPurchaseId && !listPurchase) return <div className="purchase-flow"><div className="loading-panel"><p className="error">Could not find this purchase.</p><button className="secondary" onClick={onBackToBills}>← Back to Bills</button></div></div>;
+  if (savedPurchaseId) {
+    if (!listPurchase) return <div className="purchase-flow"><div className="loading-panel"><p className="error">Could not find this purchase.</p><button className="secondary" onClick={onBackToBills}>← Back to Bills</button></div></div>;
+    return <SupplierDetailView purchase={listPurchase} settings={workspace.settings} onBackToBills={onBackToBills} onOpenContact={onOpenContact} onDelete={onDeletePurchase} onShare={onPrepareShare} />;
+  }
   const invalid = lines.some((line) => line.productId === null || !Number.isInteger(Number(line.quantity)) || Number(line.quantity) < 1 || !Number.isFinite(Number(line.unitCost)) || Number(line.unitCost) < 0 || line.unitCost === "");
   const canReviewPurchase = Boolean(supplierId && !invalid && draftItems.length > 0);
   const reset = () => { onSaved(null); setStep(1); setDocumentType("delivered_purchase"); setSupplierId(null); setIssueDate(localDate()); setDueDate(""); setPaymentMethod("credit"); setPurchasePaymentStatus("pending"); setSupplierReference(""); setNotes(""); setLines([{ key: lineKey, productId: null, quantity: "", unitCost: "" }]); setLineKey((value) => value + 1); setShareMessage(""); };
