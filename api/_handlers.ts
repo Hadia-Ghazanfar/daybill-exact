@@ -342,6 +342,13 @@ export const Actions = {
       ]);
       const invoiceIds = invoiceRows.map((row) => row.id);
       const itemRows = invoiceIds.length ? await db.select().from(schema.invoiceItems).where(inArray(schema.invoiceItems.invoiceId, invoiceIds)) : [];
+      const purchaseIds = purchaseRows.map((row) => row.id);
+      const purchaseItemRows = purchaseIds.length ? await db.select().from(schema.purchaseInvoiceItems).where(inArray(schema.purchaseInvoiceItems.purchaseInvoiceId, purchaseIds)) : [];
+      const itemsByPurchase = new Map<number, typeof purchaseItemRows>();
+      for (const item of purchaseItemRows) {
+        if (!itemsByPurchase.has(item.purchaseInvoiceId)) itemsByPurchase.set(item.purchaseInvoiceId, []);
+        itemsByPurchase.get(item.purchaseInvoiceId)!.push(item);
+      }
       const saved = settingsRows[0];
       const logoUrl = saved?.logoBlobKey ? await ctx.blobs.getUrl(saved.logoBlobKey) : null;
       const revenue = invoiceRows.reduce((sum, row) => sum + row.total, 0);
@@ -401,6 +408,9 @@ export const Actions = {
             supplier_address: contact?.address ?? row.supplierAddress,
             issue_date: row.issueDate, due_date: row.dueDate, document_type: row.documentType, delivery_status: row.deliveryStatus,
             payment_status: row.paymentStatus, payment_method: row.paymentMethod, supplier_reference: row.supplierReference, total: row.total, currency: row.currency,
+            items: (itemsByPurchase.get(row.id) ?? []).map((it: typeof purchaseItemRows[number]) => ({
+              id: it.id, description: it.description, quantity: it.quantity, unit_cost: it.unitCost, line_total: it.lineTotal, unit: it.unit,
+            })),
           };
         }),
         dashboard: { revenue, cost: cost + purchaseTotal, profit: revenue - (cost + purchaseTotal), outstanding, payables, purchases: purchaseTotal, low_stock_count: productRows.filter((row) => row.stockQuantity <= 5).length },
@@ -819,6 +829,12 @@ export const Actions = {
       const db = ctx.db;
       const account = await requireUserAccount(ctx, args);
       const purchaseRows = await db.select().from(schema.purchaseInvoices).where(and(eq(schema.purchaseInvoices.id, args.id), eq(schema.purchaseInvoices.accountId, account.id))).limit(1);
+      const purchaseItemRows = await db.select().from(schema.purchaseInvoiceItems);
+      const itemsByPurchase = new Map<number, typeof purchaseItemRows>();
+      for (const item of purchaseItemRows) {
+        if (!itemsByPurchase.has(item.purchaseInvoiceId)) itemsByPurchase.set(item.purchaseInvoiceId, []);
+        itemsByPurchase.get(item.purchaseInvoiceId)!.push(item);
+      }
       const purchase = purchaseRows[0];
       if (!purchase) throw new Error("Purchase order not found");
       if (purchase.deliveryStatus === "delivered") return { ok: true, already_delivered: true };
