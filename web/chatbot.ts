@@ -46,6 +46,8 @@ export type ChatDashboard = {
   profit: number;
   outstanding: number;
   payables: number;
+  purchases?: number;
+  low_stock_count?: number;
 };
 
 export type ChatContext = {
@@ -347,6 +349,24 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
       : `Revenue collected this month: ${money(sum, ctx.currency)} (${m.length} paid invoices).\nAll-time revenue: ${money(ctx.dashboard.revenue, ctx.currency)}.`;
   }
 
+  // cost — "total cost?" / "cost kitni?"
+  if ((q.includes("cost") || q.includes("laagat")) && !q.includes("purchase")) {
+    const cost = ctx.dashboard.cost;
+    return lang === "ur"
+      ? `کل لاگت: ${money(cost, ctx.currency)} (بکی ہوئی اشیاء + خریدا گیا اسٹاک)۔`
+      : `Total cost: ${money(cost, ctx.currency)} (items sold + stock bought).`;
+  }
+
+  // stock purchases total — "stock purchased" / "stock purchases kitne?"
+  // Must come before HELP KB "purchase" key which gives how-to
+  if ((q.includes("stock") && (q.includes("purchas") || q.includes("bought") || q.includes("khareed"))) || q === "stock purchased") {
+    const sp = ctx.dashboard.purchases ?? ctx.purchases.filter((x) => x.document_type === "delivered_purchase").reduce((s, x) => s + x.total, 0);
+    const count = ctx.purchases.filter((x) => x.document_type === "delivered_purchase").length;
+    return lang === "ur"
+      ? `اسٹاک خریداری: ${money(sp, ctx.currency)} (${count} ڈیلیورڈ خریداری)۔`
+      : `Stock purchases: ${money(sp, ctx.currency)} across ${count} delivered purchase(s).`;
+  }
+
   // loss — "are we in loss?" / "how much loss?"
   if (q.includes("loss") || q.includes("nuqsan") || q.includes("nuksan") || q.includes("nuqshan")) {
     const profit = ctx.dashboard.profit;
@@ -371,8 +391,8 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
       : `Profit: ${money(profit, ctx.currency)} (revenue ${money(rev, ctx.currency)} − cost ${money(cost, ctx.currency)}).`;
   }
 
-  // pending dues / who owes
-  if ((q.includes("due") || q.includes("owe") || q.includes("owes") || q.includes("udhaar") || q.includes("udhar") || q.includes("baqaya") || q.includes("pese") || q.includes("paisa") || q.includes("deta hai") || q.includes("dena hai")) && !contact) {
+  // pending dues / who owes — "pending dues?" must return the amount, not fallback
+  if ((q.includes("due") || q.includes("dues") || q.includes("owe") || q.includes("owes") || q.includes("udhaar") || q.includes("udhar") || q.includes("baqaya") || q.includes("pese") || q.includes("paisa") || q.includes("deta hai") || q.includes("dena hai") || q.includes("receivable")) && !contact) {
     const unpaid = ctx.invoices.filter((i) => i.payment_status !== "paid");
     if (!unpaid.length) {
       return lang === "ur" ? "کوئی واجب الادا رقم نہیں — سب وصول ہو گیا ✓" : "No pending dues — everything is collected ✓";
@@ -453,6 +473,25 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
     return lang === "ur"
       ? `سب سے بڑا کسٹمر: ${top[0]} (${money(top[1], ctx.currency)} کی خریداری)۔`
       : `Top customer: ${top[0]} (${money(top[1], ctx.currency)} in purchases).`;
+  }
+
+  // last invoice — "last invoice?" / "latest bill?"
+  if ((q.includes("last") || q.includes("latest") || q.includes("recent") || q.includes("akhri")) && (q.includes("invoice") || q.includes("bill"))) {
+    const sorted = [...ctx.invoices].sort((a, b) => b.issue_date.localeCompare(a.issue_date) || b.id - a.id);
+    const last = sorted[0];
+    if (!last) return lang === "ur" ? "ابھی کوئی انوائس نہیں۔" : "No invoices yet.";
+    return lang === "ur"
+      ? `آخری انوائس: ${last.invoice_number} — ${last.customer_name} کو ${money(last.total, ctx.currency)} (${last.issue_date}) — ${last.payment_status === "paid" ? "ادا شدہ ✓" : "باقی ⏳"}۔`
+      : `Last invoice: ${last.invoice_number} — ${money(last.total, ctx.currency)} to ${last.customer_name} (${last.issue_date}) — ${last.payment_status === "paid" ? "PAID ✓" : "PENDING ⏳"}.`;
+  }
+
+  // how many invoices does a specific customer have?
+  if (contact && (q.includes("how many") || q.includes("kitny") || q.includes("kitne") || q.includes("کتنے")) && (q.includes("invoice") || q.includes("bill"))) {
+    const invs = ctx.invoices.filter((i) => i.customer_id === contact.id);
+    const total = invs.reduce((s, i) => s + i.total, 0);
+    return lang === "ur"
+      ? `${contact.name} کے ${invs.length} انوائس ہیں (کل ${money(total, ctx.currency)})۔`
+      : `${contact.name} has ${invs.length} invoice(s) totaling ${money(total, ctx.currency)}.`;
   }
 
   // ---- help knowledge base ----
