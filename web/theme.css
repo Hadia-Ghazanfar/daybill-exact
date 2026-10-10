@@ -3447,3 +3447,12 @@ html[data-theme="dark"] .notif-icon.notif-product_added, html[data-theme="dark"]
 .purchase-detail-modal .detail-row.total { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
 .purchase-detail-modal .detail-row.total strong { font-size: 20px; color: #0d3b42; }
 html[data-theme="dark"] .purchase-detail-modal .detail-row.total strong { color: #7fd1b9; }
+
+/* Purchase items table in detail modal */
+.purchase-items-table { margin: 8px 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.purchase-items-head, .purchase-items-row { display: grid; grid-template-columns: 1fr 48px 80px 90px; gap: 8px; padding: 10px 12px; align-items: center; }
+.purchase-items-head { background: var(--bg); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--dim); }
+.purchase-items-row { border-top: 1px solid var(--border); font-size: 14px; }
+.purchase-items-row .item-desc { font-weight: 600; }
+.purchase-items-row span:nth-child(2), .purchase-items-row span:nth-child(3), .purchase-items-row span:nth-child(4),
+.purchase-items-head span:nth-child(2), .purchase-items-head span:nth-child(3), .purchase-items-head span:nth-child(4) { text-align: right; }

@@ -3462,8 +3462,21 @@ function PurchaseDetailModal({ purchase, settings, onClose, onAction }: {
           <div className="detail-row"><span>Date</span><strong>{purchase.issue_date}</strong></div>
           {purchase.due_date ? <div className="detail-row"><span>Due</span><strong>{purchase.due_date}</strong></div> : null}
           <div className="detail-row"><span>Status</span><strong className={`mini-status ${purchase.delivery_status === "pending" ? "pending-delivery" : purchase.payment_status}`}>{purchase.delivery_status === "pending" ? "Pending delivery" : purchase.payment_status}</strong></div>
-          <div className="detail-row total"><span>Total</span><strong>{money(purchase.total, purchase.currency)}</strong></div>
           {purchase.supplier_reference ? <div className="detail-row"><span>Reference</span><strong>{purchase.supplier_reference}</strong></div> : null}
+          {purchase.items && purchase.items.length > 0 ? (
+            <div className="purchase-items-table">
+              <div className="purchase-items-head"><span>DESCRIPTION</span><span>QTY</span><span>COST</span><span>TOTAL</span></div>
+              {purchase.items.map((item: any) => (
+                <div className="purchase-items-row" key={item.id}>
+                  <span className="item-desc">{item.description}</span>
+                  <span>{item.quantity}</span>
+                  <span>{money(item.unit_cost, purchase.currency)}</span>
+                  <span><strong>{money(item.line_total, purchase.currency)}</strong></span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className="detail-row total"><span>Total amount</span><strong>{money(purchase.total, purchase.currency)}</strong></div>
         </div>
         </div>
         <div className="bulk-modal-foot">
