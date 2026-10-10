@@ -2214,27 +2214,19 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             <button type="button" role="tab" aria-selected={mode === "admin"} className={mode === "admin" ? "active" : ""} onClick={() => changeMode("admin")}><Icon name="lock" />Admin</button>
           </div>
 
-          {mode === "forgot-pin" ? <form className="login-form" onSubmit={(event) => { event.preventDefault(); if (otpStep === "verify" && otpCode.length >= 3 && resetPin.length === 4 && resetPin === resetConfirm) doResetPin.mutate(); }}>
-            <h2 style={{ margin: "0 0 4px" }}>Reset your PIN</h2>
-            <p className="auth-intro">We'll send a verification code to your number.</p>
-            {resetDone ? <><p className="otp-verified" role="status">✓ PIN reset successfully. Please log in with your new PIN.</p><button className="primary wide" type="button" onClick={() => changeMode("user-login")}>Back to login</button></> : <>
-              <label><span>Phone number</span><input autoFocus aria-label="Phone number" inputMode="numeric" maxLength={12} value={resetPhone} onChange={(event) => { setResetPhone(formatLocalPhoneInput(event.target.value)); resetOtpState(); }} placeholder="0300-0000000" /></label>
-              <div className="otp-section">
-                {otpStep === "form" ? <button type="button" className="secondary wide" onClick={() => handleSendOtp(resetPhone)} disabled={!/^03\d{2}-\d{7}$/.test(resetPhone) || otpSending || otpCooldown > 0}>{otpSending ? "Sending code…" : otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Send verification code"}</button> : <>
-                  <label><span>Enter the 6-digit code</span><input aria-label="Verification code" inputMode="numeric" maxLength={6} value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="••••••" /></label>
-                  <button type="button" className="secondary" onClick={() => handleSendOtp(resetPhone)} disabled={otpSending || otpCooldown > 0}>{otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Resend code"}</button>
-                </>}
-                {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
-              </div>
-              {otpStep === "verify" ? <>
-                <label><span>New password</span><input aria-label="New password" type="password" value={resetPin} onChange={(e) => setResetPin(e.target.value)} placeholder="••••••••" /></label>
-                <label><span>Confirm new PIN</span><input aria-label="Confirm new PIN" type="password" inputMode="numeric" maxLength={4} value={resetConfirm} onChange={(e) => setResetConfirm(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
-                {resetConfirm.length === 4 && resetPin !== resetConfirm ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
-                {doResetPin.error ? <p className="auth-error" role="alert">{doResetPin.error instanceof Error ? doResetPin.error.message : "Could not reset PIN."}</p> : null}
-                <button className="primary wide login-submit" type="submit" disabled={otpStep !== "verify" || otpCode.length < 3 || resetPin.length !== 4 || resetPin !== resetConfirm || doResetPin.isPending}>{doResetPin.isPending ? "Please wait…" : "Set new PIN"}</button>
-              </> : null}
-              <button className="auth-switch" type="button" onClick={() => changeMode("user-login")}>Back to login</button>
+          {mode === "forgot-pin" ? <form className="login-form" onSubmit={(event) => { event.preventDefault(); const rpValid = resetPin.length >= 8 && /\d/.test(resetPin) && /[^a-zA-Z0-9]/.test(resetPin); if (rpValid && resetPin === resetConfirm) doResetPin.mutate(); }}>
+            <h2 style={{ margin: "0 0 4px" }}>Reset your password</h2>
+            <p className="auth-intro">Enter your phone number and set a new password.</p>
+            {resetDone ? <><p className="otp-verified" role="status">✓ Password reset successfully. Please log in with your new password.</p><button className="primary wide" type="button" onClick={() => changeMode("user-login")}>Back to login</button></> : <>
+              <label><span>Phone number</span><input autoFocus aria-label="Phone number" inputMode="numeric" maxLength={12} value={resetPhone} onChange={(event) => { setResetPhone(formatLocalPhoneInput(event.target.value)); }} placeholder="0300-0000000" /></label>
+              <label><span>New password</span><input aria-label="New password" type="password" value={resetPin} onChange={(e) => setResetPin(e.target.value)} placeholder="••••••••" /></label>
+              <label><span>Confirm new password</span><input aria-label="Confirm new password" type="password" value={resetConfirm} onChange={(e) => setResetConfirm(e.target.value)} placeholder="••••••••" /></label>
+              {resetPin && !(resetPin.length >= 8 && /\d/.test(resetPin) && /[^a-zA-Z0-9]/.test(resetPin)) ? <p className="auth-error" role="alert">Password must be 8+ characters with a number and special character.</p> : null}
+              {resetConfirm && resetPin !== resetConfirm ? <p className="auth-error" role="alert">Passwords do not match.</p> : null}
+              {doResetPin.error ? <p className="auth-error" role="alert">{doResetPin.error instanceof Error ? doResetPin.error.message : "Could not reset password."}</p> : null}
+              <button className="primary wide login-submit" type="submit" disabled={!(resetPin.length >= 8 && /\d/.test(resetPin) && /[^a-zA-Z0-9]/.test(resetPin)) || resetPin !== resetConfirm || doResetPin.isPending}>{doResetPin.isPending ? "Please wait…" : "Set new password"}</button>
             </>}
+            <button className="auth-switch" type="button" onClick={() => changeMode("user-login")}>Back to login</button>
           </form>
           : mode === "admin" ? <form className="login-form admin-form" onSubmit={(event) => { event.preventDefault(); if (adminFormValid) adminLogin.mutate(); }}>
             <label><span>Admin email</span><input autoFocus aria-label="Admin email" type="email" autoComplete="username" value={adminEmail} onChange={(event) => { setAdminEmail(event.target.value); setAdminPassword(""); setAdminConfirmation(""); adminLogin.reset(); }} /></label>
