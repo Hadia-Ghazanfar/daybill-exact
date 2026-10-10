@@ -181,3 +181,12 @@ export const purchaseInvoiceItems = pgTable("purchase_invoice_items", {
   unitCost: integer("unit_cost").notNull(),
   lineTotal: integer("line_total").notNull(),
 });
+
+export const sessions = pgTable("sessions", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull(),
+  sessionToken: text("session_token").notNull().unique(),
+  sessionKind: text("session_kind").notNull().default("user"),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+  lastUsedAt: timestamp("last_used_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+});

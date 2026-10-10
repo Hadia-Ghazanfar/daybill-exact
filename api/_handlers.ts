@@ -249,13 +249,17 @@ export const Actions = {
         throw new Error("Phone number or password is incorrect");
       }
       const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-      const update: any = { sessionToken, failedLoginAttempts: 0, lockedUntil: null, updatedAt: new Date() };
+      const update: any = { failedLoginAttempts: 0, lockedUntil: null, updatedAt: new Date() };
       // Upgrade legacy hash to PBKDF2 on successful login
       if (needsUpgrade) {
         update.pinHash = candidateNew;
         update.pinVersion = 1;
       }
+      // Keep legacy token for backward compat during migration
+      update.sessionToken = sessionToken;
       await db.update(schema.accounts).set(update).where(eq(schema.accounts.id, account.id));
+      // Create session record (supports multiple concurrent devices)
+      await db.insert(schema.sessions).values({ accountId: account.id, sessionToken, sessionKind: "user" }).onConflictDoNothing();
       return { account_id: account.id, session_token: sessionToken, session_kind: "user", shopkeeper_name: account.shopkeeperName, phone: account.phone ?? args.phone };
     },
   }),

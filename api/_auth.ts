@@ -62,15 +62,32 @@ export class AuthError extends Error {
 
 export async function requireAccount(_ctx: unknown, args: AuthArgs) {
   const db = getDb();
-  const tokenColumn = args.session_kind === "admin" ? schema.accounts.adminSessionToken : schema.accounts.sessionToken;
-  const rows = await db.select().from(schema.accounts).where(and(
-    eq(schema.accounts.id, args.account_id),
-    eq(tokenColumn, args.session_token),
+  // Check sessions table (supports multiple concurrent devices)
+  // Fall back to legacy accounts.token for sessions created before migration
+  const sessionRows = await db.select().from(schema.sessions).where(and(
+    eq(schema.sessions.accountId, args.account_id),
+    eq(schema.sessions.sessionToken, args.session_token),
   )).limit(1);
+  let accountId = args.account_id;
+  let sessionKind = args.session_kind;
+  if (sessionRows[0]) {
+    sessionKind = sessionRows[0].sessionKind as typeof args.session_kind;
+    // Update last used (fire and forget)
+    db.update(schema.sessions).set({ lastUsedAt: new Date() }).where(eq(schema.sessions.id, sessionRows[0].id)).catch(() => {});
+  } else {
+    // Legacy fallback: check token on accounts table
+    const tokenColumn = args.session_kind === "admin" ? schema.accounts.adminSessionToken : schema.accounts.sessionToken;
+    const legacyRows = await db.select({ id: schema.accounts.id }).from(schema.accounts).where(and(
+      eq(schema.accounts.id, args.account_id),
+      eq(tokenColumn, args.session_token),
+    )).limit(1);
+    if (!legacyRows[0]) throw new AuthError("Your session has expired. Please log in again.");
+  }
+  const rows = await db.select().from(schema.accounts).where(eq(schema.accounts.id, accountId)).limit(1);
   const account = rows[0];
   if (!account) throw new AuthError("Your session has expired. Please log in again.");
-  if (args.session_kind === "user" && !account.claimed) throw new AuthError("Your session has expired. Please log in again.");
-  if (args.session_kind === "admin" && (!account.isOwner || !account.adminEmail)) throw new AuthError("Administrator access is required.");
+  if (sessionKind === "user" && !account.claimed) throw new AuthError("Your session has expired. Please log in again.");
+  if (sessionKind === "admin" && (!account.isOwner || !account.adminEmail)) throw new AuthError("Administrator access is required.");
   return account;
 }
 

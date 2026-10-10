@@ -96,6 +96,16 @@ CREATE INDEX IF NOT EXISTS idx_purchase_invoices_account ON purchase_invoices(ac
 CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_purchase_items_purchase ON purchase_invoice_items(purchase_invoice_id);
 CREATE INDEX IF NOT EXISTS idx_settings_account ON business_settings(account_id);
+CREATE TABLE IF NOT EXISTS sessions (
+  id SERIAL PRIMARY KEY,
+  account_id INTEGER NOT NULL,
+  session_token TEXT NOT NULL UNIQUE,
+  session_kind TEXT NOT NULL DEFAULT 'user',
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  last_used_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_sessions_account ON sessions(account_id);
 CREATE TABLE IF NOT EXISTS user_feedback (
   id SERIAL PRIMARY KEY,
   account_id INTEGER NOT NULL,
