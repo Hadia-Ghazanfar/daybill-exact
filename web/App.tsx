@@ -2747,7 +2747,7 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
       </div>
       {directoryView === "accounts" ? <RegisteredAccountsPanel accounts={dashboard.data.accounts} /> : <UserFeedbackPanel feedback={dashboard.data.feedback} />}
     </section> : <AdminProfile session={session} onLogout={onLogout} />}</main>
-    <nav className="bottom-nav" aria-label="Primary navigation">
+    <nav className="bottom-nav admin-nav" aria-label="Primary navigation">
       <div className="sidebar-topbar">
         <button className="theme-fab admin-notif-bell" onClick={() => setShowNotifications((s) => !s)} aria-label="New account notifications" title="New account notifications">
           <Icon name="bell" />

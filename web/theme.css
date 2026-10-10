@@ -3520,3 +3520,30 @@ html[data-theme="dark"] .category-filter-chips .chip.active { background: #7fd1b
 .admin-notif-mobile .admin-notif-item small { color: var(--dim); }
 .admin-notif-mobile .admin-notif-empty { color: var(--dim); }
 .admin-notif-mobile .admin-notif-head .text-button { color: var(--accent); }
+
+/* Admin desktop sidebar - same as user */
+@media (min-width: 760px) {
+  html:not(.phone-layout) .bottom-nav.admin-nav {
+    position: fixed !important; z-index: 40;
+    top: 112px !important; left: 0 !important; right: auto !important; bottom: 0 !important;
+    width: 264px !important; height: auto !important;
+    display: flex !important; flex-direction: column !important;
+    padding: 6px 0 12px 12px !important; margin: 0 !important;
+    border: 0 !important; border-radius: 0 !important;
+    background: #0a403d !important; box-shadow: none !important;
+  }
+  html:not(.phone-layout) .bottom-nav.admin-nav .sidebar-topbar,
+  html:not(.phone-layout) .bottom-nav.admin-nav .sidebar-profile,
+  html:not(.phone-layout) .bottom-nav.admin-nav .nav-entry,
+  html:not(.phone-layout) .bottom-nav.admin-nav .sidebar-bottom { display: flex !important; }
+  html:not(.phone-layout) .bottom-nav.admin-nav .nav-group-label { display: block !important; }
+}
+
+/* Mobile admin nav: hide sidebar-only elements, show only 2 buttons */
+html.phone-layout .bottom-nav.admin-nav .sidebar-topbar,
+html.phone-layout .bottom-nav.admin-nav .sidebar-profile,
+html.phone-layout .bottom-nav.admin-nav .nav-group-label,
+html.phone-layout .bottom-nav.admin-nav .sidebar-bottom,
+html.phone-layout .bottom-nav.admin-nav .admin-notif-dropdown { display: none !important; }
+html.phone-layout .bottom-nav.admin-nav .nav-entry { margin: 0 !important; }
+html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important; }
