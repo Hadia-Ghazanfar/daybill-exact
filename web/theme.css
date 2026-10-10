@@ -3384,3 +3384,6 @@ button.danger.small, button.secondary.small { padding: 8px 12px; font-size: 13px
 .bulk-actions .secondary { border: 1px solid var(--border); background: var(--bg); color: var(--text); }
 .bulk-actions .primary { border: 0; background: #0d3b42; color: #fff; }
 .bulk-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
+.loading-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 48px 24px; text-align: center; min-height: 300px; }
+.loading-panel p { color: var(--dim); font-size: 15px; margin: 0; }
+.loading-panel p.error { color: #c0392b; }
