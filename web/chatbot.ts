@@ -271,8 +271,8 @@ const ROMAN_ANSWERS: Record<string, { en: string; ur: string }> = {
 };
 
 const FALLBACK = {
-  en: "I can help with using Daybill and with your shop's numbers. Try asking things like:\n• How do I add a product?\n• Is Fajar's invoice paid?\n• Total revenue this month?\n• Stock of Sugar?\n• Who owes me money?",
-  ur: "میں Daybill کے استعمال اور آپ کی دکان کے حساب کتاب میں مدد کر سکتا ہوں۔ مثلاً پوچھیں:\n• پروڈکٹ کیسے شامل کروں؟\n• فجر کا انوائس paid ہے؟\n• اس مہینے کی آمدنی؟",
+  en: "I can help with using Daybill and with your shop's numbers. Try asking things like:\n• How do I add a product?\n• Is the customer's invoice paid?\n• Total revenue this month?\n• Stock of a product?\n• Who owes me money?",
+  ur: "میں Daybill کے استعمال اور آپ کی دکان کے حساب کتاب میں مدد کر سکتا ہوں۔ مثلاً پوچھیں:\n• پروڈکٹ کیسے شامل کروں؟\n• کسٹمر کا انوائس paid ہے؟\n• اس مہینے کی آمدنی؟",
 };
 
 const GREETINGS = ["hello", "hi", "hey", "salam", "assalam", "aoa", "aoa,"];
