@@ -551,6 +551,9 @@ export const Actions = {
       }
       const imageKey = args.image_data_base64 && args.image_mime_type ? `data:${args.image_mime_type};base64,${args.image_data_base64}` : undefined;
       if (args.id) {
+        // Get old stock to compare
+        const oldRows = await db.select({ stockQuantity: schema.products.stockQuantity }).from(schema.products).where(and(eq(schema.products.id, args.id), eq(schema.products.accountId, account.id))).limit(1);
+        const oldStock = oldRows[0]?.stockQuantity;
         const rows = await db.update(schema.products).set({
           name: args.name,
           unit: args.unit,
@@ -569,8 +572,13 @@ export const Actions = {
         }).where(and(eq(schema.products.id, args.id), eq(schema.products.accountId, account.id))).returning({ id: schema.products.id });
         const updated = rows[0];
         if (!updated) throw new Error("Product not found");
-        await createNotification(db, account.id, "stock_updated", "Stock updated",
-          `${args.name} stock updated to ${args.stock_quantity}.`);
+        // Only notify if stock actually changed
+        if (oldStock !== undefined && oldStock !== args.stock_quantity) {
+          const diff = args.stock_quantity - oldStock;
+          const changeText = diff > 0 ? `+${diff}` : `${diff}`;
+          await createNotification(db, account.id, "stock_updated", "Stock updated",
+            `${args.name} stock ${changeText} (now ${args.stock_quantity}).`);
+        }
         await checkLowStock(db, account.id);
         ctx.invalidateQueries();
         return { id: updated.id };
