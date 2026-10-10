@@ -2120,8 +2120,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   });
   const doResetPin = useMutation({
     mutationFn: () => {
-      if (otpCode.length < 3) throw new Error("Please enter the verification code sent to your phone");
-      return api.resetPin({ phone: resetPhone, new_pin: resetPin, otp_code: otpCode });
+      return api.resetPin({ phone: resetPhone, new_pin: resetPin });
     },
     onSuccess: () => { setResetDone(true); },
   });
