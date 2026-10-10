@@ -92,6 +92,13 @@ export const products = pgTable("products", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
 });
 
+export const productCategories = pgTable("product_categories", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+});
+
 export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
   accountId: integer("account_id").notNull(),

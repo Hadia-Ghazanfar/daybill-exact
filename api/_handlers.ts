@@ -333,12 +333,13 @@ export const Actions = {
     async handler(ctx, args) {
       const db = ctx.db;
       const account = await requireUserAccount(ctx, args);
-      const [settingsRows, contactRows, productRows, invoiceRows, purchaseRows] = await Promise.all([
+      const [settingsRows, contactRows, productRows, invoiceRows, purchaseRows, categoryRows] = await Promise.all([
         db.select().from(schema.businessSettings).where(eq(schema.businessSettings.accountId, account.id)).limit(1),
         db.select().from(schema.contacts).where(and(eq(schema.contacts.accountId, account.id), eq(schema.contacts.active, true))).orderBy(asc(schema.contacts.name)),
         db.select().from(schema.products).where(and(eq(schema.products.accountId, account.id), eq(schema.products.active, true))).orderBy(asc(schema.products.name)),
         db.select().from(schema.invoices).where(and(eq(schema.invoices.accountId, account.id), isNull(schema.invoices.deletedAt))).orderBy(desc(schema.invoices.id)),
         db.select().from(schema.purchaseInvoices).where(and(eq(schema.purchaseInvoices.accountId, account.id), isNull(schema.purchaseInvoices.deletedAt))).orderBy(desc(schema.purchaseInvoices.id)),
+        db.select().from(schema.productCategories).where(eq(schema.productCategories.accountId, account.id)).orderBy(asc(schema.productCategories.name)),
       ]);
       const invoiceIds = invoiceRows.map((row) => row.id);
       const itemRows = invoiceIds.length ? await db.select().from(schema.invoiceItems).where(inArray(schema.invoiceItems.invoiceId, invoiceIds)) : [];
@@ -401,6 +402,7 @@ export const Actions = {
             discount_amount: row.discountAmount, total: row.total, cost_total: costByInvoice.get(row.id) ?? 0, currency: row.currency,
           };
         }),
+        categories: categoryRows.map((row) => ({ id: row.id, name: row.name })),
         purchases: purchaseRows.map((row) => {
           const contact = contactsById.get(row.supplierId);
           return {
@@ -664,6 +666,43 @@ export const Actions = {
       }
       ctx.invalidateQueries();
       return { id: inserted.id };
+    },
+  }),
+  listCategories: defineAction({
+    ...actionDefs.listCategories,
+    async handler(ctx, args) {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      const rows = await db.select().from(schema.productCategories).where(eq(schema.productCategories.accountId, account.id)).orderBy(asc(schema.productCategories.name));
+      return { categories: rows.map((r) => ({ id: r.id, name: r.name })) };
+    },
+  }),
+  saveCategory: defineAction({
+    ...actionDefs.saveCategory,
+    async handler(ctx, args) {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      // Check for duplicate name
+      const existing = await db.select().from(schema.productCategories).where(and(eq(schema.productCategories.accountId, account.id), eq(schema.productCategories.name, args.name))).limit(1);
+      if (existing[0] && existing[0].id !== args.id) throw new Error("Category already exists");
+      if (args.id) {
+        await db.update(schema.productCategories).set({ name: args.name }).where(and(eq(schema.productCategories.id, args.id), eq(schema.productCategories.accountId, account.id)));
+        ctx.invalidateQueries();
+        return { id: args.id };
+      }
+      const rows = await db.insert(schema.productCategories).values({ accountId: account.id, name: args.name }).returning({ id: schema.productCategories.id });
+      ctx.invalidateQueries();
+      return { id: rows[0].id };
+    },
+  }),
+  deleteCategory: defineAction({
+    ...actionDefs.deleteCategory,
+    async handler(ctx, args) {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await db.delete(schema.productCategories).where(and(eq(schema.productCategories.id, args.id), eq(schema.productCategories.accountId, account.id)));
+      ctx.invalidateQueries();
+      return { ok: true as const };
     },
   }),
   archiveProduct: defineAction({

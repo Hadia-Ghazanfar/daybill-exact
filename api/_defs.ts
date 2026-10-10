@@ -343,6 +343,18 @@ export const actionDefs = {
     }),
     response: z.object({ id: z.number() }),
   },
+  listCategories: {
+    request: z.object({ ...authFields }),
+    response: z.object({ categories: z.array(z.object({ id: z.number(), name: z.string() })) }),
+  },
+  saveCategory: {
+    request: z.object({ ...authFields, id: z.number().int().positive().optional(), name: z.string().trim().min(1).max(60) }),
+    response: z.object({ id: z.number() }),
+  },
+  deleteCategory: {
+    request: z.object({ ...authFields, id: z.number().int().positive() }),
+    response: z.object({ ok: z.boolean() }),
+  },
   archiveProduct: {
     request: z.object({
       ...authFields, id: z.number().int().positive() }),
