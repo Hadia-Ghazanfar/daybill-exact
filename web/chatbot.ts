@@ -347,14 +347,14 @@ export function answerQuestion(raw: string, ctx: ChatContext): string {
       : `Revenue collected this month: ${money(sum, ctx.currency)} (${m.length} paid invoices).\nAll-time revenue: ${money(ctx.dashboard.revenue, ctx.currency)}.`;
   }
 
-  // profit
+  // profit — use dashboard values so it matches the Overview screen
   if (q.includes("profit") || q.includes("munafa") || q.includes("faida") || q.includes("nafa")) {
-    const m = invoicesThisMonth(ctx).filter((i) => i.payment_status === "paid");
-    const rev = m.reduce((s, i) => s + i.total, 0);
-    const cost = m.reduce((s, i) => s + i.cost_total, 0);
+    const rev = ctx.dashboard.revenue;
+    const cost = ctx.dashboard.cost;
+    const profit = ctx.dashboard.profit;
     return lang === "ur"
-      ? `اس مہینے کا منافع: ${money(rev - cost, ctx.currency)} (آمدنی ${money(rev, ctx.currency)} − لاگت ${money(cost, ctx.currency)})۔`
-      : `This month's profit: ${money(rev - cost, ctx.currency)} (revenue ${money(rev, ctx.currency)} − cost ${money(cost, ctx.currency)}).`;
+      ? `منافع: ${money(profit, ctx.currency)} (آمدنی ${money(rev, ctx.currency)} − لاگت ${money(cost, ctx.currency)})۔`
+      : `Profit: ${money(profit, ctx.currency)} (revenue ${money(rev, ctx.currency)} − cost ${money(cost, ctx.currency)}).`;
   }
 
   // pending dues / who owes
