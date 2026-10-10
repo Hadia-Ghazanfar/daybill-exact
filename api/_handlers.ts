@@ -11,7 +11,7 @@
 // Request/response zod schemas live in ./_defs.ts (extracted verbatim).
 import { sendOtp, verifyOtp } from "./_myotp.js";
 import { z } from "zod";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import * as schema from "./_schema.js";
 import { actionDefs, type ActionName } from "./_defs.js";
 import { hashAdminPassword, hashPin, randomSalt, requireAccount, requireAdminAccount, requireUserAccount, secureEqual } from "./_auth.js";
@@ -38,6 +38,13 @@ type ActionsModule = Record<
   { request: z.ZodTypeAny; response: z.ZodTypeAny; handler: (ctx: Ctx, args: any) => Promise<any> }
 >;
 
+
+/** Verify the 4-digit PIN against the account. Throws if wrong. */
+async function verifyAccountPin(account: { pinSalt: string | null; pinHash: string | null }, pin: string): Promise<void> {
+  if (!account.pinSalt || !account.pinHash) throw new Error("PIN is not set for this account");
+  const candidate = await hashPin(pin, account.pinSalt);
+  if (!secureEqual(candidate, account.pinHash)) throw new Error("Incorrect PIN");
+}
 
 export const Actions = {
   getAdminLoginStatus: defineAction({
@@ -299,8 +306,8 @@ export const Actions = {
         db.select().from(schema.businessSettings).where(eq(schema.businessSettings.accountId, account.id)).limit(1),
         db.select().from(schema.contacts).where(and(eq(schema.contacts.accountId, account.id), eq(schema.contacts.active, true))).orderBy(asc(schema.contacts.name)),
         db.select().from(schema.products).where(and(eq(schema.products.accountId, account.id), eq(schema.products.active, true))).orderBy(asc(schema.products.name)),
-        db.select().from(schema.invoices).where(eq(schema.invoices.accountId, account.id)).orderBy(desc(schema.invoices.id)),
-        db.select().from(schema.purchaseInvoices).where(eq(schema.purchaseInvoices.accountId, account.id)).orderBy(desc(schema.purchaseInvoices.id)),
+        db.select().from(schema.invoices).where(and(eq(schema.invoices.accountId, account.id), isNull(schema.invoices.deletedAt))).orderBy(desc(schema.invoices.id)),
+        db.select().from(schema.purchaseInvoices).where(and(eq(schema.purchaseInvoices.accountId, account.id), isNull(schema.purchaseInvoices.deletedAt))).orderBy(desc(schema.purchaseInvoices.id)),
       ]);
       const invoiceIds = invoiceRows.map((row) => row.id);
       const itemRows = invoiceIds.length ? await db.select().from(schema.invoiceItems).where(inArray(schema.invoiceItems.invoiceId, invoiceIds)) : [];
@@ -892,6 +899,133 @@ export const Actions = {
           })),
         },
       };
+    },
+  }),
+  trashInvoice: defineAction({
+    ...actionDefs.trashInvoice,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await verifyAccountPin(account, args.pin);
+      const rows = await db.select().from(schema.invoices)
+        .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id), isNull(schema.invoices.deletedAt)))
+        .limit(1);
+      if (!rows[0]) throw new Error("Invoice not found");
+      await db.update(schema.invoices)
+        .set({ deletedAt: new Date(), deleteReason: args.reason })
+        .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id)));
+      return { ok: true as const };
+    },
+  }),
+  trashPurchase: defineAction({
+    ...actionDefs.trashPurchase,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await verifyAccountPin(account, args.pin);
+      const rows = await db.select().from(schema.purchaseInvoices)
+        .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id), isNull(schema.purchaseInvoices.deletedAt)))
+        .limit(1);
+      if (!rows[0]) throw new Error("Purchase invoice not found");
+      await db.update(schema.purchaseInvoices)
+        .set({ deletedAt: new Date(), deleteReason: args.reason })
+        .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id)));
+      return { ok: true as const };
+    },
+  }),
+  listTrashed: defineAction({
+    ...actionDefs.listTrashed,
+    async handler(ctx, args) {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await verifyAccountPin(account, args.pin);
+      const [invoiceRows, purchaseRows] = await Promise.all([
+        db.select().from(schema.invoices)
+          .where(and(eq(schema.invoices.accountId, account.id), isNotNull(schema.invoices.deletedAt)))
+          .orderBy(desc(schema.invoices.deletedAt)),
+        db.select().from(schema.purchaseInvoices)
+          .where(and(eq(schema.purchaseInvoices.accountId, account.id), isNotNull(schema.purchaseInvoices.deletedAt)))
+          .orderBy(desc(schema.purchaseInvoices.deletedAt)),
+      ]);
+      return {
+        invoices: invoiceRows.map((row) => ({
+          id: row.id, invoice_number: row.invoiceNumber, customer_id: row.customerId,
+          customer_name: row.customerName, customer_phone: row.customerPhone, customer_address: row.customerAddress,
+          issue_date: row.issueDate, due_date: row.dueDate, payment_status: row.paymentStatus, payment_method: row.paymentMethod,
+          discount_amount: row.discountAmount, total: row.total, cost_total: 0, currency: row.currency,
+          delete_reason: row.deleteReason ?? "", deleted_at: row.deletedAt ? row.deletedAt.toISOString() : null,
+        })),
+        purchases: purchaseRows.map((row) => ({
+          id: row.id, purchase_number: row.purchaseNumber, supplier_id: row.supplierId,
+          supplier_name: row.supplierName, supplier_phone: row.supplierPhone, supplier_address: row.supplierAddress,
+          issue_date: row.issueDate, due_date: row.dueDate, document_type: row.documentType, delivery_status: row.deliveryStatus,
+          payment_status: row.paymentStatus, payment_method: row.paymentMethod, supplier_reference: row.supplierReference,
+          total: row.total, currency: row.currency,
+          delete_reason: row.deleteReason ?? "", deleted_at: row.deletedAt ? row.deletedAt.toISOString() : null,
+        })),
+      };
+    },
+  }),
+  restoreInvoice: defineAction({
+    ...actionDefs.restoreInvoice,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await verifyAccountPin(account, args.pin);
+      const rows = await db.select().from(schema.invoices)
+        .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id), isNotNull(schema.invoices.deletedAt)))
+        .limit(1);
+      if (!rows[0]) throw new Error("Invoice not found in trash");
+      await db.update(schema.invoices)
+        .set({ deletedAt: null, deleteReason: "" })
+        .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id)));
+      return { ok: true as const };
+    },
+  }),
+  restorePurchase: defineAction({
+    ...actionDefs.restorePurchase,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await verifyAccountPin(account, args.pin);
+      const rows = await db.select().from(schema.purchaseInvoices)
+        .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id), isNotNull(schema.purchaseInvoices.deletedAt)))
+        .limit(1);
+      if (!rows[0]) throw new Error("Purchase invoice not found in trash");
+      await db.update(schema.purchaseInvoices)
+        .set({ deletedAt: null, deleteReason: "" })
+        .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id)));
+      return { ok: true as const };
+    },
+  }),
+  deleteInvoiceForever: defineAction({
+    ...actionDefs.deleteInvoiceForever,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await verifyAccountPin(account, args.pin);
+      const rows = await db.select().from(schema.invoices)
+        .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id), isNotNull(schema.invoices.deletedAt)))
+        .limit(1);
+      if (!rows[0]) throw new Error("Invoice not found in trash");
+      await db.delete(schema.invoiceItems).where(eq(schema.invoiceItems.invoiceId, args.invoice_id));
+      await db.delete(schema.invoices).where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id)));
+      return { ok: true as const };
+    },
+  }),
+  deletePurchaseForever: defineAction({
+    ...actionDefs.deletePurchaseForever,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await verifyAccountPin(account, args.pin);
+      const rows = await db.select().from(schema.purchaseInvoices)
+        .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id), isNotNull(schema.purchaseInvoices.deletedAt)))
+        .limit(1);
+      if (!rows[0]) throw new Error("Purchase invoice not found in trash");
+      await db.delete(schema.purchaseInvoiceItems).where(eq(schema.purchaseInvoiceItems.purchaseInvoiceId, args.purchase_id));
+      await db.delete(schema.purchaseInvoices).where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id)));
+      return { ok: true as const };
     },
   }),
 } satisfies ActionsModule;

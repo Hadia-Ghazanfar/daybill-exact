@@ -119,6 +119,16 @@ const purchaseSummaryShape = z.object({
   currency: z.string(),
 });
 
+const trashedInvoiceShape = invoiceSummaryShape.extend({
+  delete_reason: z.string(),
+  deleted_at: z.string().nullable(),
+});
+
+const trashedPurchaseShape = purchaseSummaryShape.extend({
+  delete_reason: z.string(),
+  deleted_at: z.string().nullable(),
+});
+
 const registeredAccountShape = z.object({
   id: z.number(),
   account_holder_name: z.string(),
@@ -388,6 +398,66 @@ export const actionDefs = {
     request: z.object({
       ...authFields, id: z.number().int().positive() }),
     response: z.object({ invoice: invoiceDetailShape }),
+  },
+  trashInvoice: {
+    request: z.object({
+      ...authFields,
+      invoice_id: z.number().int().positive(),
+      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      reason: z.string().trim().min(3, "Please give a reason").max(300),
+    }),
+    response: z.object({ ok: z.literal(true) }),
+  },
+  trashPurchase: {
+    request: z.object({
+      ...authFields,
+      purchase_id: z.number().int().positive(),
+      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      reason: z.string().trim().min(3, "Please give a reason").max(300),
+    }),
+    response: z.object({ ok: z.literal(true) }),
+  },
+  listTrashed: {
+    request: z.object({
+      ...authFields,
+      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+    }),
+    response: z.object({
+      invoices: z.array(trashedInvoiceShape),
+      purchases: z.array(trashedPurchaseShape),
+    }),
+  },
+  restoreInvoice: {
+    request: z.object({
+      ...authFields,
+      invoice_id: z.number().int().positive(),
+      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+    }),
+    response: z.object({ ok: z.literal(true) }),
+  },
+  restorePurchase: {
+    request: z.object({
+      ...authFields,
+      purchase_id: z.number().int().positive(),
+      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+    }),
+    response: z.object({ ok: z.literal(true) }),
+  },
+  deleteInvoiceForever: {
+    request: z.object({
+      ...authFields,
+      invoice_id: z.number().int().positive(),
+      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+    }),
+    response: z.object({ ok: z.literal(true) }),
+  },
+  deletePurchaseForever: {
+    request: z.object({
+      ...authFields,
+      purchase_id: z.number().int().positive(),
+      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+    }),
+    response: z.object({ ok: z.literal(true) }),
   },
 } satisfies Record<string, ActionDef>;
 

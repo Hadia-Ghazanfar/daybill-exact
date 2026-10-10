@@ -111,6 +111,8 @@ export const invoices = pgTable("invoices", {
   currency: text("currency").notNull(),
   subtotal: integer("subtotal").notNull(),
   total: integer("total").notNull(),
+  deletedAt: timestamp("deleted_at", { mode: "date" }),
+  deleteReason: text("delete_reason").notNull().default(""),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
 });
 
@@ -144,6 +146,8 @@ export const purchaseInvoices = pgTable("purchase_invoices", {
   notes: text("notes").notNull().default(""),
   currency: text("currency").notNull(),
   total: integer("total").notNull(),
+  deletedAt: timestamp("deleted_at", { mode: "date" }),
+  deleteReason: text("delete_reason").notNull().default(""),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
 });
 
