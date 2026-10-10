@@ -3301,10 +3301,16 @@ html.phone-layout .chatbot-panel { right: 8px; left: 8px; bottom: 88px; width: a
 
 /* === Bulk invoice download === */
 .manage-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.bills-download-btn { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: #0d3b42; cursor: pointer; display: grid; place-items: center; margin-top: 4px; }
-.bills-download-btn:hover { background: #0d3b42; color: #fff; border-color: #0d3b42; }
-html[data-theme="dark"] .bills-download-btn { color: #7fd1b9; }
-html[data-theme="dark"] .bills-download-btn:hover { background: #7fd1b9; color: #0d3b42; border-color: #7fd1b9; }
+.bulk-success-popup { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 16px; background: #0d3b42; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.25); z-index: 1000; animation: bulk-pop-in .3s ease; max-width: calc(100vw - 48px); }
+.bulk-success-popup p { margin: 0; font-size: 14px; font-weight: 600; }
+.bulk-success-icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #149a5b; font-size: 16px; font-weight: 700; flex-shrink: 0; }
+.bulk-success-popup button { background: none; border: none; color: rgba(255,255,255,.7); font-size: 16px; cursor: pointer; padding: 4px; }
+.bulk-success-popup button:hover { color: #fff; }
+@keyframes bulk-pop-in { from { opacity: 0; transform: translateX(-50%) translateY(16px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.bills-download-btn { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: none; background: #149a5b; color: #fff; cursor: pointer; display: grid; place-items: center; margin-top: 4px; box-shadow: 0 2px 8px rgba(20,154,91,.3); }
+.bills-download-btn:hover { background: #0d7a46; transform: scale(1.05); }
+.bills-download-btn:active { transform: scale(0.95); }
+.manage-head .bills-download-btn { align-self: flex-start; }
 .bulk-modal-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(5, 30, 28, 0.55); display: flex; align-items: flex-end; justify-content: center; padding: 0; }
 .bulk-modal { width: 100%; max-width: 560px; max-height: 92dvh; display: flex; flex-direction: column; background: var(--surface); border-radius: 24px 24px 0 0; overflow: hidden; animation: bulk-slide-up 0.25s ease-out; }
 @keyframes bulk-slide-up { from { transform: translateY(40px); opacity: 0.6; } to { transform: translateY(0); opacity: 1; } }

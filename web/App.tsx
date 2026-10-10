@@ -2827,6 +2827,7 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
   const [pdfSize, setPdfSize] = useState<PdfPageSize>("a4");
   const [working, setWorking] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Group invoices by day (YYYY-MM-DD) or month (YYYY-MM)
   const groups = useMemo(() => {
@@ -2908,6 +2909,8 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
         downloadBlob(blob, `invoice-${invoice.invoice_number}.png`);
         if (i < rendered.length - 1) await new Promise((r) => setTimeout(r, 400));
       }
+      setSuccess(`${rendered.length} invoice${rendered.length === 1 ? "" : "s"} downloaded as images ✓`);
+      setTimeout(() => setSuccess(null), 4000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not prepare the images.");
     } finally {
@@ -2922,7 +2925,7 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
       const rendered = await renderSelected();
       const { w, h } = PDF_SIZES[pdfSize];
       const pdf = new jsPDF({ unit: "mm", format: [w, h], orientation: h >= w ? "portrait" : "landscape" });
-      const margin = 8;
+      const margin = 4;
       for (let i = 0; i < rendered.length; i++) {
         if (i > 0) pdf.addPage([w, h], h >= w ? "portrait" : "landscape");
         const dataUrl = await blobToDataUrl(rendered[i].blob);
@@ -2943,6 +2946,8 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
       }
       const today = new Date().toISOString().slice(0, 10);
       pdf.save(`invoices-${today}.pdf`);
+      setSuccess(`PDF with ${rendered.length} invoice${rendered.length === 1 ? "" : "s"} downloaded ✓`);
+      setTimeout(() => setSuccess(null), 4000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create the PDF.");
     } finally {
@@ -3003,6 +3008,7 @@ function BulkDownloadModal({ invoices, settings, onClose }: {
         </div>
 
         {error ? <p className="bulk-error" role="alert">{error}</p> : null}
+        {success ? <div className="bulk-success-popup" role="status"><span className="bulk-success-icon">✓</span><p>{success}</p><button type="button" onClick={() => setSuccess(null)} aria-label="Dismiss">✕</button></div> : null}
         {working ? <p className="bulk-working" role="status">{working}</p> : null}
 
         <footer className="bulk-foot">
