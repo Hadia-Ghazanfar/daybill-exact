@@ -87,6 +87,15 @@ CREATE TABLE IF NOT EXISTS accounts (
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP;
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS pin_version INTEGER NOT NULL DEFAULT 0;
+-- Performance: indexes for common queries
+CREATE INDEX IF NOT EXISTS idx_contacts_account ON contacts(account_id);
+CREATE INDEX IF NOT EXISTS idx_products_account ON products(account_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_account ON invoices(account_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_deleted ON invoices(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_purchase_invoices_account ON purchase_invoices(account_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_purchase_items_purchase ON purchase_invoice_items(purchase_invoice_id);
+CREATE INDEX IF NOT EXISTS idx_settings_account ON business_settings(account_id);
 CREATE TABLE IF NOT EXISTS user_feedback (
   id SERIAL PRIMARY KEY,
   account_id INTEGER NOT NULL,
