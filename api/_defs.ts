@@ -6,6 +6,15 @@
 import { z } from "zod";
 
 const sessionKindSchema = z.enum(["user", "admin"]);
+const notificationShape = z.object({
+  id: z.number(),
+  type: z.string(),
+  title: z.string(),
+  message: z.string(),
+  is_read: z.boolean(),
+  created_at: z.string(),
+});
+
 const authFields = {
   account_id: z.number().int().positive(),
   session_token: z.string().min(20).max(200),
@@ -457,6 +466,21 @@ export const actionDefs = {
       purchase_id: z.number().int().positive(),
       pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
     }),
+    response: z.object({ ok: z.literal(true) }),
+  },
+  listNotifications: {
+    request: z.object({ ...authFields }),
+    response: z.object({
+      notifications: z.array(notificationShape),
+      unreadCount: z.number(),
+    }),
+  },
+  markNotificationRead: {
+    request: z.object({ ...authFields, id: z.number().int().positive() }),
+    response: z.object({ ok: z.literal(true) }),
+  },
+  markAllNotificationsRead: {
+    request: z.object({ ...authFields }),
     response: z.object({ ok: z.literal(true) }),
   },
 } satisfies Record<string, ActionDef>;

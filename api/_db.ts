@@ -258,6 +258,7 @@ export async function ensureInit(): Promise<void> {
     await getSql().unsafe(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS delete_reason TEXT NOT NULL DEFAULT ''`);
     await getSql().unsafe(`ALTER TABLE purchase_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`);
     await getSql().unsafe(`ALTER TABLE purchase_invoices ADD COLUMN IF NOT EXISTS delete_reason TEXT NOT NULL DEFAULT ''`);
+    await getSql().unsafe(`CREATE TABLE IF NOT EXISTS notifications (id SERIAL PRIMARY KEY, account_id INTEGER NOT NULL, type TEXT NOT NULL, title TEXT NOT NULL, message TEXT NOT NULL, is_read BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
   } catch { /* ignore */ }
   // Create owner admin account if none exists (for first-time setup)
   try {

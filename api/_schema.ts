@@ -151,6 +151,16 @@ export const purchaseInvoices = pgTable("purchase_invoices", {
   createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
 });
 
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+});
+
 export const purchaseInvoiceItems = pgTable("purchase_invoice_items", {
   id: serial("id").primaryKey(),
   purchaseInvoiceId: integer("purchase_invoice_id").notNull(),

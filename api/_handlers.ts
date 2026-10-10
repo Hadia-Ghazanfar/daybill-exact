@@ -11,7 +11,7 @@
 // Request/response zod schemas live in ./_defs.ts (extracted verbatim).
 import { sendOtp, verifyOtp } from "./_myotp.js";
 import { z } from "zod";
-import { and, asc, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, like, lte } from "drizzle-orm";
 import * as schema from "./_schema.js";
 import { actionDefs, type ActionName } from "./_defs.js";
 import { hashAdminPassword, hashPin, randomSalt, requireAccount, requireAdminAccount, requireUserAccount, secureEqual } from "./_auth.js";
@@ -44,6 +44,35 @@ async function verifyAccountPin(account: { pinSalt: string | null; pinHash: stri
   if (!account.pinSalt || !account.pinHash) throw new Error("PIN is not set for this account");
   const candidate = await hashPin(pin, account.pinSalt);
   if (!secureEqual(candidate, account.pinHash)) throw new Error("Incorrect PIN");
+}
+
+/** Create a notification for an account. Best-effort: never throws. */
+async function createNotification(db: any, accountId: number, type: string, title: string, message: string): Promise<void> {
+  try {
+    await db.insert(schema.notifications).values({ accountId, type, title, message });
+  } catch { /* notifications are best-effort */ }
+}
+
+/** Check for low-stock products (≤15) and notify, avoiding duplicates per product. */
+async function checkLowStock(db: any, accountId: number): Promise<void> {
+  try {
+    const lowProducts = await db.select().from(schema.products)
+      .where(and(eq(schema.products.accountId, accountId), eq(schema.products.active, true), lte(schema.products.stockQuantity, 15)));
+    for (const prod of lowProducts) {
+      // Skip if there's already an unread low_stock notification for this product
+      const existing = await db.select().from(schema.notifications)
+        .where(and(
+          eq(schema.notifications.accountId, accountId),
+          eq(schema.notifications.type, "low_stock"),
+          eq(schema.notifications.isRead, false),
+          like(schema.notifications.message, `%${prod.name}%`)
+        )).limit(1);
+      if (existing.length === 0) {
+        await createNotification(db, accountId, "low_stock", "Low stock warning",
+          `${prod.name} is running low — only ${prod.stockQuantity} left in stock.`);
+      }
+    }
+  } catch { /* best-effort */ }
 }
 
 export const Actions = {
@@ -491,6 +520,10 @@ export const Actions = {
       }).returning({ id: schema.contacts.id });
       const inserted = rows[0];
       if (!inserted) throw new Error("Could not save contact");
+      await createNotification(db, account.id,
+        args.kind === "supplier" ? "supplier_added" : "customer_added",
+        args.kind === "supplier" ? "New supplier added" : "New customer added",
+        `${args.name} was added to your ${args.kind === "supplier" ? "suppliers" : "customers"}.`);
       ctx.invalidateQueries();
       return { id: inserted.id };
     },
@@ -534,6 +567,9 @@ export const Actions = {
         }).where(and(eq(schema.products.id, args.id), eq(schema.products.accountId, account.id))).returning({ id: schema.products.id });
         const updated = rows[0];
         if (!updated) throw new Error("Product not found");
+        await createNotification(db, account.id, "stock_updated", "Stock updated",
+          `${args.name} stock updated to ${args.stock_quantity}.`);
+        await checkLowStock(db, account.id);
         ctx.invalidateQueries();
         return { id: updated.id };
       }
@@ -555,6 +591,9 @@ export const Actions = {
       }).returning({ id: schema.products.id });
       const inserted = rows[0];
       if (!inserted) throw new Error("Could not save product");
+      await createNotification(db, account.id, "product_added", "New product added",
+        `${args.name} was added to your catalog.`);
+      await checkLowStock(db, account.id);
       // Auto-create a delivered purchase invoice when a new product is created
       // with opening stock from a supplier — records the stock in the supplier's ledger
       if (args.supplier_id && args.stock_quantity > 0) {
@@ -688,6 +727,7 @@ export const Actions = {
         const product = byId.get(productId);
         if (product) await db.update(schema.products).set({ stockQuantity: product.stockQuantity - quantity, updatedAt: new Date() }).where(and(eq(schema.products.id, productId), eq(schema.products.accountId, account.id)));
       }
+      await checkLowStock(db, account.id);
       ctx.invalidateQueries();
       return { id: inserted.id, invoice_number: invoiceNumber };
     },
@@ -758,6 +798,7 @@ export const Actions = {
           await db.update(schema.products).set({ stockQuantity: newStock, unitCost: newCost, supplierId: supplier.id, updatedAt: new Date() }).where(and(eq(schema.products.id, productId), eq(schema.products.accountId, account.id)));
         }
       }
+      await checkLowStock(db, account.id);
       ctx.invalidateQueries();
       return { id: inserted.id, purchase_number: purchaseNumber };
     },
@@ -789,6 +830,7 @@ export const Actions = {
         await db.update(schema.products).set({ stockQuantity: newStock, unitCost: newCost, supplierId: purchase.supplierId, updatedAt: new Date() }).where(and(eq(schema.products.id, productId), eq(schema.products.accountId, account.id)));
       }
       await db.update(schema.purchaseInvoices).set({ deliveryStatus: "delivered" }).where(and(eq(schema.purchaseInvoices.id, purchase.id), eq(schema.purchaseInvoices.accountId, account.id), eq(schema.purchaseInvoices.deliveryStatus, "pending")));
+      await checkLowStock(db, account.id);
       ctx.invalidateQueries();
       return { ok: true, already_delivered: false };
     },
@@ -922,6 +964,9 @@ export const Actions = {
       await db.update(schema.invoices)
         .set({ deletedAt: new Date(), deleteReason: args.reason })
         .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id)));
+      await createNotification(db, account.id, "invoice_deleted", "Invoice deleted",
+        `${rows[0].invoiceNumber} moved to trash: ${args.reason}`);
+      await checkLowStock(db, account.id);
       ctx.invalidateQueries();
       return { ok: true as const };
     },
@@ -950,6 +995,9 @@ export const Actions = {
       await db.update(schema.purchaseInvoices)
         .set({ deletedAt: new Date(), deleteReason: args.reason })
         .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id)));
+      await createNotification(db, account.id, "invoice_deleted", "Supplier invoice deleted",
+        `${purchase.purchaseNumber} moved to trash: ${args.reason}`);
+      await checkLowStock(db, account.id);
       ctx.invalidateQueries();
       return { ok: true as const };
     },
@@ -1008,6 +1056,7 @@ export const Actions = {
       await db.update(schema.invoices)
         .set({ deletedAt: null, deleteReason: "" })
         .where(and(eq(schema.invoices.id, args.invoice_id), eq(schema.invoices.accountId, account.id)));
+      await checkLowStock(db, account.id);
       ctx.invalidateQueries();
       return { ok: true as const };
     },
@@ -1036,6 +1085,7 @@ export const Actions = {
       await db.update(schema.purchaseInvoices)
         .set({ deletedAt: null, deleteReason: "" })
         .where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id)));
+      await checkLowStock(db, account.id);
       ctx.invalidateQueries();
       return { ok: true as const };
     },
@@ -1067,6 +1117,49 @@ export const Actions = {
       if (!rows[0]) throw new Error("Purchase invoice not found in trash");
       await db.delete(schema.purchaseInvoiceItems).where(eq(schema.purchaseInvoiceItems.purchaseInvoiceId, args.purchase_id));
       await db.delete(schema.purchaseInvoices).where(and(eq(schema.purchaseInvoices.id, args.purchase_id), eq(schema.purchaseInvoices.accountId, account.id)));
+      return { ok: true as const };
+    },
+  }),
+  listNotifications: defineAction({
+    ...actionDefs.listNotifications,
+    async handler(ctx, args) {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      const rows = await db.select().from(schema.notifications)
+        .where(eq(schema.notifications.accountId, account.id))
+        .orderBy(desc(schema.notifications.createdAt))
+        .limit(50);
+      const unreadCount = rows.filter((r) => !r.isRead).length;
+      return {
+        notifications: rows.map((r) => ({
+          id: r.id,
+          type: r.type,
+          title: r.title,
+          message: r.message,
+          is_read: r.isRead,
+          created_at: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+        })),
+        unreadCount,
+      };
+    },
+  }),
+  markNotificationRead: defineAction({
+    ...actionDefs.markNotificationRead,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await db.update(schema.notifications).set({ isRead: true })
+        .where(and(eq(schema.notifications.id, args.id), eq(schema.notifications.accountId, account.id)));
+      return { ok: true as const };
+    },
+  }),
+  markAllNotificationsRead: defineAction({
+    ...actionDefs.markAllNotificationsRead,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await db.update(schema.notifications).set({ isRead: true })
+        .where(eq(schema.notifications.accountId, account.id));
       return { ok: true as const };
     },
   }),
