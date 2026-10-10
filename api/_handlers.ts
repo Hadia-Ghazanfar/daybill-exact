@@ -56,20 +56,21 @@ async function createNotification(db: any, accountId: number, type: string, titl
 /** Check for low-stock products (≤15) and notify, avoiding duplicates per product. */
 async function checkLowStock(db: any, accountId: number): Promise<void> {
   try {
-    const lowProducts = await db.select().from(schema.products)
+    const lowProducts = await db.select({ id: schema.products.id, name: schema.products.name, stockQuantity: schema.products.stockQuantity }).from(schema.products)
       .where(and(eq(schema.products.accountId, accountId), eq(schema.products.active, true), lte(schema.products.stockQuantity, 15)));
+    if (!lowProducts.length) return;
+    // Single query for all existing unread low-stock notifications
+    const existing = await db.select({ message: schema.notifications.message }).from(schema.notifications)
+      .where(and(
+        eq(schema.notifications.accountId, accountId),
+        eq(schema.notifications.type, "low_stock"),
+        eq(schema.notifications.isRead, false)
+      ));
+    const notifiedNames = new Set(existing.map((r: any) => r.message));
     for (const prod of lowProducts) {
-      // Skip if there's already an unread low_stock notification for this product
-      const existing = await db.select().from(schema.notifications)
-        .where(and(
-          eq(schema.notifications.accountId, accountId),
-          eq(schema.notifications.type, "low_stock"),
-          eq(schema.notifications.isRead, false),
-          like(schema.notifications.message, `%${prod.name}%`)
-        )).limit(1);
-      if (existing.length === 0) {
-        await createNotification(db, accountId, "low_stock", "Low stock warning",
-          `${prod.name} is running low — only ${prod.stockQuantity} left in stock.`);
+      const msg = `${prod.name} is running low — only ${prod.stockQuantity} left in stock.`;
+      if (!notifiedNames.has(msg)) {
+        await createNotification(db, accountId, "low_stock", "Low stock warning", msg);
       }
     }
   } catch { /* best-effort */ }
@@ -1125,8 +1126,6 @@ export const Actions = {
     async handler(ctx, args) {
       const db = ctx.db;
       const account = await requireUserAccount(ctx, args);
-      // Backfill: check current low stock every time notifications are opened
-      try { await checkLowStock(db, account.id); } catch { /* ignore */ }
       const rows = await db.select().from(schema.notifications)
         .where(eq(schema.notifications.accountId, account.id))
         .orderBy(desc(schema.notifications.createdAt))
