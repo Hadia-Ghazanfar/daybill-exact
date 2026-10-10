@@ -2397,12 +2397,31 @@ function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAd
   const create = useMutation({ mutationFn: () => api.createPurchaseInvoice({ supplier_id: supplierId ?? 0, document_type: documentType, issue_date: issueDate, due_date: dueDate || null, payment_method: paymentMethod, payment_status: purchasePaymentStatus, supplier_reference: supplierReference, notes, items: draftItems.map((item) => ({ product_id: item.product_id, quantity: item.quantity, unit_cost: item.unit_cost })) }), onSuccess: async (result) => { onSaved(result.id); setStep(3); await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
   const payment = useMutation({ mutationFn: (status: "pending" | "paid") => api.setPurchasePaymentStatus({ id: savedPurchaseId ?? 0, status }), onSuccess: async () => { await Promise.all([queryClient.invalidateQueries({ queryKey: ["workspace"] }), queryClient.invalidateQueries({ queryKey: ["purchase", savedPurchaseId] })]); } });
   const deliver = useMutation({ mutationFn: () => api.markPurchaseDelivered({ id: savedPurchaseId ?? 0 }), onSuccess: async () => { await Promise.all([queryClient.invalidateQueries({ queryKey: ["workspace"] }), queryClient.invalidateQueries({ queryKey: ["purchase", savedPurchaseId] })]); } });
-  if (savedPurchaseId && saved.isPending) return <div className="purchase-flow"><div className="loading-panel"><p>Loading purchase…</p></div></div>;
+  if (savedPurchaseId && saved.isPending && !listPurchase) return <div className="purchase-flow"><div className="loading-panel"><p>Loading purchase…</p></div></div>;
   if (savedPurchaseId && saved.error) return <div className="purchase-flow"><div className="loading-panel"><p className="error">Could not load this purchase: {String(saved.error instanceof Error ? saved.error.message : saved.error)}</p><button className="secondary" onClick={onBackToBills}>← Back to Bills</button></div></div>;
   const invalid = lines.some((line) => line.productId === null || !Number.isInteger(Number(line.quantity)) || Number(line.quantity) < 1 || !Number.isFinite(Number(line.unitCost)) || Number(line.unitCost) < 0 || line.unitCost === "");
   const canReviewPurchase = Boolean(supplierId && !invalid && draftItems.length > 0);
   const reset = () => { onSaved(null); setStep(1); setDocumentType("delivered_purchase"); setSupplierId(null); setIssueDate(localDate()); setDueDate(""); setPaymentMethod("credit"); setPurchasePaymentStatus("pending"); setSupplierReference(""); setNotes(""); setLines([{ key: lineKey, productId: null, quantity: "", unitCost: "" }]); setLineKey((value) => value + 1); setShareMessage(""); };
-  const display = saved.data?.purchase ?? draft;
+  // Use list data immediately if available, enhance with full data when it loads
+  const listPurchase = savedPurchaseId ? workspace.purchases?.find((pr) => pr.id === savedPurchaseId) : null;
+  const display = saved.data?.purchase ?? (listPurchase ? {
+    purchase_number: listPurchase.purchase_number,
+    supplier_id: listPurchase.supplier_id,
+    supplier_name: listPurchase.supplier_name,
+    supplier_phone: listPurchase.supplier_phone ?? "",
+    supplier_address: listPurchase.supplier_address ?? "",
+    issue_date: listPurchase.issue_date,
+    due_date: listPurchase.due_date,
+    document_type: listPurchase.document_type,
+    delivery_status: listPurchase.delivery_status,
+    payment_status: listPurchase.payment_status,
+    payment_method: listPurchase.payment_method ?? "credit",
+    supplier_reference: listPurchase.supplier_reference ?? "",
+    notes: listPurchase.notes ?? "",
+    total: listPurchase.total,
+    currency: listPurchase.currency,
+    items: [],
+  } : draft);
   const sharePurchaseImage = async () => {
     onPrepareShare();
     setShareMessage("");
@@ -2581,10 +2600,99 @@ const CHART_RANGES: Array<{ id: ChartRange; label: string; days: number | null; 
   { id: "lifetime", label: "Lifetime", days: null, buckets: 12 },
 ];
 
+type AppNotification = {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+};
+
+function timeAgo(iso: string, language: string): string {
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const diffMs = Math.max(0, now - then);
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return language === "ur" ? "ابھی" : "Just now";
+  if (mins < 60) return language === "ur" ? `${mins} منٹ پہلے` : `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return language === "ur" ? `${hours} گھنٹے پہلے` : `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return language === "ur" ? `${days} دن پہلے` : `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function notificationIcon(type: string): string {
+  switch (type) {
+    case "low_stock": return "box";
+    case "invoice_deleted": return "trash";
+    case "customer_added":
+    case "supplier_added": return "people";
+    case "product_added": return "plus";
+    case "stock_updated": return "arrow";
+    default: return "bell";
+  }
+}
+
+function NotificationPanel({ onClose }: { onClose: () => void }) {
+  const { language } = useLanguage();
+  const queryClient = useQueryClient();
+  const { data, isPending } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => api.listNotifications({}),
+  });
+  const markRead = useMutation({
+    mutationFn: (id: number) => api.markNotificationRead({ id }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+  const markAll = useMutation({
+    mutationFn: () => api.markAllNotificationsRead({}),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+  const notifications: AppNotification[] = (data as any)?.notifications ?? [];
+  const unreadCount: number = (data as any)?.unreadCount ?? 0;
+  return (
+    <div className="notif-backdrop" onClick={onClose}>
+      <section className="notif-panel" role="dialog" aria-modal="true" aria-label="Notifications" onClick={(e) => e.stopPropagation()}>
+        <div className="notif-head">
+          <div><p className="eyebrow">ALERTS</p><h2>{ui(language, "Notifications")}</h2></div>
+          <div className="notif-head-actions">
+            {unreadCount > 0 ? <button type="button" className="text-button" onClick={() => markAll.mutate()} disabled={markAll.isPending}>{ui(language, "Mark all as read")}</button> : null}
+            <button type="button" className="close-button" aria-label="Close notifications" onClick={onClose}>×</button>
+          </div>
+        </div>
+        {isPending ? <p className="notif-loading">Loading…</p> : notifications.length === 0 ? (
+          <div className="notif-empty"><Icon name="bell" /><p>{ui(language, "No notifications yet")}</p><small>{ui(language, "Stock alerts and activity will appear here.")}</small></div>
+        ) : (
+          <ul className="notif-list">
+            {notifications.map((n) => (
+              <li key={n.id}>
+                <button type="button" className={`notif-item${n.is_read ? "" : " unread"}`} onClick={() => { if (!n.is_read) markRead.mutate(n.id); }}>
+                  <span className={`notif-icon notif-${n.type}`}><Icon name={notificationIcon(n.type) as any} /></span>
+                  <span className="notif-body">
+                    <strong>{n.title}</strong>
+                    <p>{n.message}</p>
+                    <small>{timeAgo(n.created_at, language)}</small>
+                  </span>
+                  {!n.is_read ? <span className="notif-dot" aria-label="Unread" /> : null}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
 function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, onOpenPurchase, onOpenContact, onInventory }: { workspace: Workspace; onCreate: () => void; onCreatePurchase: () => void; onOpenInvoice: (id: number) => void; onOpenPurchase: (id: number) => void; onOpenContact: (id: number) => void; onInventory: () => void }) {
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
   const [chartRange, setChartRange] = useState<ChartRange>("1m");
+  const [showNotifications, setShowNotifications] = useState(false);
+  const { data: notifData } = useQuery({ queryKey: ["notifications"], queryFn: () => api.listNotifications({}), refetchInterval: 30000 });
+  const unreadCount: number = (notifData as any)?.unreadCount ?? 0;
   const today = localDate();
   const overdue = workspace.invoices.filter((invoice) => invoice.payment_status === "pending" && invoice.due_date && invoice.due_date < today);
   const overduePurchases = workspace.purchases.filter((purchase) => purchase.delivery_status === "delivered" && purchase.payment_status === "pending" && purchase.due_date && purchase.due_date < today);
@@ -2643,7 +2751,8 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const attentionCount = overdue.length + overduePurchases.length;
 
   return <section className="dashboard-view overview-view">
-    <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="theme-toggle-header" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="notification-button" aria-label={`${attentionCount} payment alerts`} onClick={() => document.getElementById(attentionCount ? "attention-section" : "recent-activity")?.scrollIntoView({ behavior: "smooth", block: "start" })}><Icon name="bell" />{attentionCount ? <span>{attentionCount}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
+    <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="theme-toggle-header" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="notification-button" aria-label={`${unreadCount} unread notifications`} onClick={() => setShowNotifications(true)}><Icon name="bell" />{unreadCount > 0 ? <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
+    {showNotifications ? <NotificationPanel onClose={() => setShowNotifications(false)} /> : null}
     <section className="received-card" aria-label="Received total">
       <div className="received-copy"><span>Received <i className={`trend-badge ${trendPercent < 0 ? "down" : ""}`}>{trendPercent >= 0 ? "+" : ""}{trendPercent}%</i></span><strong>{money(paidRevenue, workspace.settings.currency)}</strong><small>{ui(language, "Payments collected from paid invoices")}</small></div>
       <div className="received-chart" role="img" aria-label="Daily invoice sales for the last seven days"><ResponsiveContainer width="100%" height="100%"><AreaChart data={salesSeries} margin={{ top: 10, right: 4, left: 4, bottom: 0 }}><defs><linearGradient id="overviewFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#34d995" stopOpacity={0.45} /><stop offset="100%" stopColor="#34d995" stopOpacity={0.02} /></linearGradient></defs><Area type="monotone" dataKey="sales" stroke="#54e6aa" strokeWidth={2.5} fill="url(#overviewFill)" dot={false} /></AreaChart></ResponsiveContainer></div>
