@@ -3048,8 +3048,9 @@ function AdjustStockModal({ products, onClose }: { products: Product[]; onClose:
       setError("Select a product and enter a valid adjustment");
       return;
     }
-    if (pin.length !== 4) {
-      setError("Enter your 4-digit PIN");
+    const pwValid = pin.length >= 8 && /\d/.test(pin) && /[^a-zA-Z0-9]/.test(pin);
+    if (!pwValid) {
+      setError("Enter your password (8+ characters with a number and special character)");
       return;
     }
     setSaving(true);
@@ -3085,9 +3086,9 @@ function AdjustStockModal({ products, onClose }: { products: Product[]; onClose:
           {selectedProduct ? <p style={{ fontSize: 14, color: "var(--dim)" }}>{ui(language, "Current stock")}: <strong style={{ color: "var(--text)", fontSize: 18 }}>{selectedProduct.stock_quantity}</strong></p> : null}
           <label className="field"><span>{ui(language, "Adjustment (use - to reduce)")}</span><input inputMode="numeric" value={adjustment} onChange={(e) => setAdjustment(e.target.value.replace(/[^\d-]/g, ""))} placeholder="+10 or -5" /></label>
           <label className="field"><span>{ui(language, "Reason (optional)")}</span><input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={ui(language, "e.g. Damaged, recount")} maxLength={120} /></label>
-          <label className="field"><span>{ui(language, "Enter PIN to confirm")}</span><input type="password" inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
+          <label className="field"><span>Enter password to confirm</span><input type="password" autoComplete="current-password" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••••••" /></label>
           {error ? <p className="auth-error" role="alert">{error}</p> : null}
-          <button type="button" className="primary wide" disabled={!selectedId || !adjustment || pin.length !== 4 || saving} onClick={applyAdjustment}>{saving ? "…" : ui(language, "Apply Adjustment")}</button>
+          <button type="button" className="primary wide" disabled={!selectedId || !adjustment || !(pin.length >= 8 && /\d/.test(pin) && /[^a-zA-Z0-9]/.test(pin)) || saving} onClick={applyAdjustment}>{saving ? "…" : ui(language, "Apply Adjustment")}</button>
         </div>
       </div>
     </div>
