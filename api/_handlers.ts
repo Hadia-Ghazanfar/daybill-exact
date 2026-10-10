@@ -403,7 +403,7 @@ export const Actions = {
             payment_status: row.paymentStatus, payment_method: row.paymentMethod, supplier_reference: row.supplierReference, total: row.total, currency: row.currency,
           };
         }),
-        dashboard: { revenue, cost, profit: revenue - cost, outstanding, payables, purchases: purchaseTotal, low_stock_count: productRows.filter((row) => row.stockQuantity <= 5).length },
+        dashboard: { revenue, cost: cost + purchaseTotal, profit: revenue - (cost + purchaseTotal), outstanding, payables, purchases: purchaseTotal, low_stock_count: productRows.filter((row) => row.stockQuantity <= 5).length },
       };
     },
   }),
