@@ -2722,7 +2722,12 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
       </div>
       {directoryView === "accounts" ? <RegisteredAccountsPanel accounts={dashboard.data.accounts} /> : <UserFeedbackPanel feedback={dashboard.data.feedback} />}
     </section> : <AdminProfile session={session} onLogout={onLogout} />}</main>
-    <nav className="bottom-nav admin-nav" aria-label="Primary navigation"><button className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><Icon name="dashboard" /><span>{ui(language, "Home")}</span></button><button className={view === "profile" ? "active" : ""} onClick={() => setView("profile")}><Icon name="profile" /><span>{ui(language, "Profile")}</span></button></nav>
+    <nav className="bottom-nav" aria-label="Primary navigation">
+      <div className="sidebar-profile"><span className="sidebar-avatar-fallback"><Icon name="profile" /></span><div><strong>Administrator</strong></div></div>
+      <div className="nav-entry"><span className="nav-group-label">MENU</span><button aria-label="Home" className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><Icon name="dashboard" /><span>{ui(language, "Home")}</span></button></div>
+      <div className="nav-entry"><span className="nav-group-label">TOOLS</span><button aria-label="Profile" className={view === "profile" ? "active" : ""} onClick={() => setView("profile")}><Icon name="profile" /><span>{ui(language, "Profile")}</span></button></div>
+      <div className="sidebar-bottom"><button className="sidebar-logout" onClick={onLogout}><Icon name="logout" /><span>{ui(language, "Logout")}</span></button></div>
+    </nav>
   </div>;
 }
 
