@@ -8,10 +8,20 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "./_db.js";
 import * as schema from "./_schema.js";
 
-export async function hashPin(pin: string, salt: string) {
+// Legacy SHA-256 (for verifying old hashes during migration)
+export async function hashPinLegacy(pin: string, salt: string) {
   const bytes = new TextEncoder().encode(`${salt}:${pin}`);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+// New: PBKDF2 with 210k iterations (same as admin passwords)
+// Works with any salt string (UUID or hex)
+export async function hashPin(pin: string, salt: string) {
+  const saltBytes = new TextEncoder().encode(salt);
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: saltBytes, iterations: 210_000, hash: "SHA-256" }, key, 256);
+  return Array.from(new Uint8Array(bits), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export function randomSalt() {

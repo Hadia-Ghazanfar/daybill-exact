@@ -14,7 +14,7 @@ import { z } from "zod";
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, like, lte } from "drizzle-orm";
 import * as schema from "./_schema.js";
 import { actionDefs, type ActionName } from "./_defs.js";
-import { hashAdminPassword, hashPin, randomSalt, requireAccount, requireAdminAccount, requireUserAccount, secureEqual } from "./_auth.js";
+import { hashAdminPassword, hashPin, hashPinLegacy, randomSalt, requireAccount, requireAdminAccount, requireUserAccount, secureEqual } from "./_auth.js";
 import type { Db } from "./_db.js";
 import type { Blobs } from "./_blobs.js";
 
@@ -158,6 +158,7 @@ export const Actions = {
           phone: args.phone,
           pinSalt: salt,
           pinHash,
+          pinVersion: 1,
           sessionToken,
           claimed: true,
           updatedAt: new Date(),
@@ -191,6 +192,7 @@ export const Actions = {
         phone: args.phone,
         pinSalt: salt,
         pinHash,
+        pinVersion: 1,
         sessionToken,
         claimed: true,
       }).returning({ id: schema.accounts.id });
@@ -216,11 +218,44 @@ export const Actions = {
       const db = ctx.db;
       const rows = await db.select().from(schema.accounts).where(and(eq(schema.accounts.phone, args.phone), eq(schema.accounts.claimed, true))).limit(1);
       const account = rows[0];
-      if (!account?.pinSalt || !account.pinHash) throw new Error("Phone number or PIN is incorrect");
-      const candidate = await hashPin(args.pin, account.pinSalt);
-      if (candidate !== account.pinHash) throw new Error("Phone number or PIN is incorrect");
+      if (!account?.pinSalt || !account.pinHash) throw new Error("Phone number or password is incorrect");
+      // Rate limiting: check if account is locked
+      if (account.lockedUntil && new Date(account.lockedUntil).getTime() > Date.now()) {
+        const mins = Math.ceil((new Date(account.lockedUntil).getTime() - Date.now()) / 60000);
+        throw new Error(`Too many failed attempts. Try again in ${mins} minute(s).`);
+      }
+      // Try PBKDF2 first (new), fall back to SHA-256 (legacy) for migration
+      let valid = false;
+      let needsUpgrade = false;
+      const candidateNew = await hashPin(args.pin, account.pinSalt);
+      if (secureEqual(candidateNew, account.pinHash)) {
+        valid = true;
+      } else if ((account.pinVersion ?? 0) === 0) {
+        const candidateOld = await hashPinLegacy(args.pin, account.pinSalt);
+        if (secureEqual(candidateOld, account.pinHash)) {
+          valid = true;
+          needsUpgrade = true;
+        }
+      }
+      if (!valid) {
+        // Increment failed attempts, lock after 5
+        const attempts = (account.failedLoginAttempts ?? 0) + 1;
+        const update: any = { failedLoginAttempts: attempts, updatedAt: new Date() };
+        if (attempts >= 5) {
+          update.lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 min lock
+          update.failedLoginAttempts = 0;
+        }
+        await db.update(schema.accounts).set(update).where(eq(schema.accounts.id, account.id));
+        throw new Error("Phone number or password is incorrect");
+      }
       const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-      await db.update(schema.accounts).set({ sessionToken, updatedAt: new Date() }).where(eq(schema.accounts.id, account.id));
+      const update: any = { sessionToken, failedLoginAttempts: 0, lockedUntil: null, updatedAt: new Date() };
+      // Upgrade legacy hash to PBKDF2 on successful login
+      if (needsUpgrade) {
+        update.pinHash = candidateNew;
+        update.pinVersion = 1;
+      }
+      await db.update(schema.accounts).set(update).where(eq(schema.accounts.id, account.id));
       return { account_id: account.id, session_token: sessionToken, session_kind: "user", shopkeeper_name: account.shopkeeperName, phone: account.phone ?? args.phone };
     },
   }),
@@ -243,7 +278,7 @@ export const Actions = {
       const pinHash = await hashPin(args.new_pin, salt);
       // Invalidate all sessions by rotating the session token
       const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-      await db.update(schema.accounts).set({ pinSalt: salt, pinHash, sessionToken, updatedAt: new Date() }).where(eq(schema.accounts.id, account.id));
+      await db.update(schema.accounts).set({ pinSalt: salt, pinHash, pinVersion: 1, sessionToken, failedLoginAttempts: 0, lockedUntil: null, updatedAt: new Date() }).where(eq(schema.accounts.id, account.id));
       ctx.invalidateQueries();
       return { ok: true };
     },

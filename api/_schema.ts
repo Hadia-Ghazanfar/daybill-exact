@@ -27,6 +27,9 @@ export const accounts = pgTable("accounts", {
   adminPasswordSalt: text("admin_password_salt"),
   adminPasswordHash: text("admin_password_hash"),
   adminSessionToken: text("admin_session_token"),
+  failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
+  lockedUntil: timestamp("locked_until", { mode: "date" }),
+  pinVersion: integer("pin_version").notNull().default(0),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
 });
