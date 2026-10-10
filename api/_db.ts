@@ -83,6 +83,10 @@ CREATE TABLE IF NOT EXISTS accounts (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+-- Migration: add rate limiting and password version columns if missing
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP;
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS pin_version INTEGER NOT NULL DEFAULT 0;
 CREATE TABLE IF NOT EXISTS user_feedback (
   id SERIAL PRIMARY KEY,
   account_id INTEGER NOT NULL,
