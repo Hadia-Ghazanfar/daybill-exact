@@ -211,7 +211,7 @@ const urduUi: Record<string, string> = {
   "See revenue, profit, pending payments and inventory at a glance.": "آمدن، منافع، زیرِ التوا ادائیگیاں اور انوینٹری ایک نظر میں دیکھیں۔",
   "Share Clearly on WhatsApp": "واٹس ایپ پر واضح طور پر شیئر کریں",
   "Save a clean invoice image and open the right customer chat.": "صاف رسید کی تصویر محفوظ کریں اور درست گاہک کی چیٹ کھولیں۔",
-  "Phone number + 4-digit PIN": "فون نمبر + 4 ہندسوں کا پن",
+  "Phone number + password": "فون نمبر + پاس ورڈ",
   "Email + secure password": "ای میل + محفوظ پاس ورڈ",
   "Regular users can create separate shop accounts after choosing User Login. Administrator access has no registration option.": "عام صارفین صارف لاگ اِن منتخب کرنے کے بعد الگ دکان اکاؤنٹ بنا سکتے ہیں۔ ایڈمن رسائی کے لیے رجسٹریشن کا کوئی اختیار نہیں۔",
   "ADMIN ACCESS": "ایڈمن رسائی",
@@ -726,7 +726,7 @@ const urduUi: Record<string, string> = {
   "· cost": "· لاگت",
   "· current stock": "· موجودہ اسٹاک",
   "· due": "· واجب الادا",
-  "4-digit PIN": "4 ہندسوں کا پن",
+  "Password": "پاس ورڈ",
   "ACCOUNT DIRECTORY": "اکاؤنٹ ڈائریکٹری",
   "Active shop accounts": "فعال دکان اکاؤنٹس",
   "Add Item": "شے شامل کریں",
@@ -776,7 +776,7 @@ const urduUi: Record<string, string> = {
   "SENT": "بھیجا گیا",
   "Admin records": "ایڈمن ریکارڈز",
   "Chart time range": "چارٹ کی مدت",
-  "Confirm 4-digit PIN": "4 ہندسوں کے پن کی تصدیق کریں",
+  "Confirm password": "پاس ورڈ کی تصدیق کریں",
   "Daybill administrator header": "ڈے بل ایڈمنسٹریٹر ہیڈر",
   "Daybill app sidebar": "ڈے بل ایپ سائڈبار",
   "Daybill business overview": "ڈے بل کاروباری جائزہ",
@@ -2187,7 +2187,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
     doResetPin.reset();
   };
   const phoneValid = /^03\d{2}-\d{7}$/.test(phone);
-  const pinValid = /^\d{4}$/.test(pin);
+  const pinValid = pin.length >= 8 && /\d/.test(pin) && /[^a-zA-Z0-9]/.test(pin);
   const adminPasswordValid = adminPassword.length >= 10;
   const adminFormValid = emailValid && adminPasswordValid && !adminStatus.isLoading && (!adminSetupRequired || adminPassword === adminConfirmation);
   const error = mode === "admin" ? adminLogin.error : login.error ?? create.error;
@@ -2228,7 +2228,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
                 {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
               </div>
               {otpStep === "verify" ? <>
-                <label><span>New 4-digit PIN</span><input aria-label="New PIN" type="password" inputMode="numeric" maxLength={4} value={resetPin} onChange={(e) => setResetPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
+                <label><span>New password</span><input aria-label="New password" type="password" value={resetPin} onChange={(e) => setResetPin(e.target.value)} placeholder="••••••••" /></label>
                 <label><span>Confirm new PIN</span><input aria-label="Confirm new PIN" type="password" inputMode="numeric" maxLength={4} value={resetConfirm} onChange={(e) => setResetConfirm(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
                 {resetConfirm.length === 4 && resetPin !== resetConfirm ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
                 {doResetPin.error ? <p className="auth-error" role="alert">{doResetPin.error instanceof Error ? doResetPin.error.message : "Could not reset PIN."}</p> : null}
@@ -2264,10 +2264,11 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             </> : null}
             <label><span>Phone number</span><input autoFocus={!isCreating} aria-label="Phone number" inputMode="numeric" autoComplete="tel" maxLength={12} value={phone} onChange={(event) => setPhone(normalizePhone(event.target.value))} placeholder="0300-0000000" /></label>
             <p className="auth-field-help">Use the local format 0300-0000000.</p>
-            <label><span>4-digit PIN</span><span className="password-field"><input aria-label={isCreating ? "Set 4-digit PIN" : "4-digit PIN"} type={showPassword ? "text" : "password"} inputMode="numeric" autoComplete={isCreating ? "new-password" : "current-password"} maxLength={4} pattern="[0-9]{4}" placeholder="••••" value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 4))} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide PIN" : "Show PIN"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Icon name="eye-off" /> : <Icon name="eye" />}</button></span></label>
-            {isCreating ? <label><span>Confirm PIN</span><span className="password-field"><input aria-label="Confirm 4-digit PIN" type={showPassword ? "text" : "password"} inputMode="numeric" autoComplete="new-password" maxLength={4} pattern="[0-9]{4}" placeholder="••••" value={confirmation} onChange={(event) => setConfirmation(event.target.value.replace(/\D/g, "").slice(0, 4))} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide PIN" : "Show PIN"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Icon name="eye-off" /> : <Icon name="eye" />}</button></span></label> : null}
+            <label><span>Password</span><span className="password-field"><input aria-label={isCreating ? "Set password" : "Password"} type={showPassword ? "text" : "password"} autoComplete={isCreating ? "new-password" : "current-password"} placeholder="••••••••" value={pin} onChange={(event) => setPin(event.target.value)} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide PIN" : "Show PIN"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Icon name="eye-off" /> : <Icon name="eye" />}</button></span></label>
+            {isCreating ? <label><span>Confirm password</span><span className="password-field"><input aria-label="Confirm password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="••••••••" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide PIN" : "Show PIN"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Icon name="eye-off" /> : <Icon name="eye" />}</button></span></label> : null}
             {!phoneValid && phone.length > 0 ? <p className="auth-error" role="alert">Phone number must use the 0300-0000000 format.</p> : null}
-            {isCreating && confirmation.length === 4 && pin !== confirmation ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
+            {isCreating && confirmation && pin !== confirmation ? <p className="auth-error" role="alert">Passwords do not match.</p> : null}
+            {isCreating && pin && !pinValid ? <p className="auth-error" role="alert">Password must be 8+ characters with a number and special character.</p> : null}
             {error ? <p className="auth-error" role="alert">{error instanceof Error ? error.message : "Could not continue. Try again."}</p> : null}
             <label className="remember-row"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} /><span>Remember me</span></label>
             {/* OTP verification hidden for now - will be re-enabled later */}
