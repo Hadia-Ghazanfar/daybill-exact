@@ -2697,7 +2697,24 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
   const { language } = useLanguage();
   const [view, setView] = useState<"dashboard" | "profile">("dashboard");
   const [directoryView, setDirectoryView] = useState<"accounts" | "feedback">("accounts");
+  const [showNotifications, setShowNotifications] = useState(false);
   const dashboard = useQuery({ queryKey: ["admin-dashboard"], queryFn: () => api.getAdminDashboard({}) });
+  // New account notifications: compare against last seen timestamp
+  const lastSeenKey = "admin_last_seen_accounts";
+  const getLastSeen = () => {
+    try { return Number(localStorage.getItem(lastSeenKey) || 0); } catch { return 0; }
+  };
+  const [lastSeen, setLastSeen] = useState<number>(getLastSeen);
+  const newAccounts = (dashboard.data?.accounts ?? []).filter((a: any) => {
+    const t = a.created_at ? new Date(a.created_at).getTime() : 0;
+    return t > lastSeen;
+  });
+  const markNotificationsSeen = () => {
+    const now = Date.now();
+    try { localStorage.setItem(lastSeenKey, String(now)); } catch {}
+    setLastSeen(now);
+    setShowNotifications(false);
+  };
   if (dashboard.isPending) return <div className="loading"><div className="loader" /><p>Opening the ledger…</p></div>;
   if (dashboard.error || !dashboard.data) {
     const adminErr = String(dashboard.error ?? "Unknown error");
@@ -2723,6 +2740,20 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
       {directoryView === "accounts" ? <RegisteredAccountsPanel accounts={dashboard.data.accounts} /> : <UserFeedbackPanel feedback={dashboard.data.feedback} />}
     </section> : <AdminProfile session={session} onLogout={onLogout} />}</main>
     <nav className="bottom-nav" aria-label="Primary navigation">
+      <div className="sidebar-topbar">
+        <button className="theme-fab admin-notif-bell" onClick={() => setShowNotifications((s) => !s)} aria-label="New account notifications" title="New account notifications">
+          <Icon name="bell" />
+          {newAccounts.length > 0 ? <span className="notif-badge">{newAccounts.length}</span> : null}
+        </button>
+      </div>
+      {showNotifications ? <div className="admin-notif-dropdown" role="dialog" aria-label="New account notifications">
+        <div className="admin-notif-head"><strong>New accounts</strong><button className="text-button" onClick={markNotificationsSeen}>Mark seen</button></div>
+        {newAccounts.length ? newAccounts.slice(0, 10).map((a: any) => <div key={a.id} className="admin-notif-item">
+          <strong>{a.account_holder_name || "New account"}</strong>
+          <small>{a.phone || ""}{a.shop_name ? ` · ${a.shop_name}` : ""}</small>
+          <small>{a.created_at ? new Date(a.created_at).toLocaleString() : ""}</small>
+        </div>) : <p className="admin-notif-empty">No new accounts since you last checked.</p>}
+      </div> : null}
       <div className="sidebar-profile"><span className="sidebar-avatar-fallback"><Icon name="profile" /></span><div><strong>Administrator</strong></div></div>
       <div className="nav-entry"><span className="nav-group-label">MENU</span><button aria-label="Home" className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><Icon name="dashboard" /><span>{ui(language, "Home")}</span></button></div>
       <div className="nav-entry"><span className="nav-group-label">TOOLS</span><button aria-label="Profile" className={view === "profile" ? "active" : ""} onClick={() => setView("profile")}><Icon name="profile" /><span>{ui(language, "Profile")}</span></button></div>
