@@ -22,6 +22,12 @@ const authFields = {
 };
 
 const phoneSchema = z.string().regex(/^03\d{2}-\d{7}$/, "Use the local 0300-0000000 format").transform((value) => `92${value.replace(/\D/g, "").slice(1)}`);
+// Password: min 8 chars, at least one number, at least one special character
+const passwordSchema = z.string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/\d/, "Password must include at least one number")
+  .regex(/[^a-zA-Z0-9]/, "Password must include at least one special character");
+
 const adminEmailSchema = z.string().trim().toLowerCase().email().max(254);
 const adminPasswordSchema = z.string().min(10, "Use at least 10 characters").max(128);
 
@@ -238,13 +244,13 @@ export const actionDefs = {
       shop_name: z.string().trim().min(2).max(120),
       shop_address: z.string().trim().min(3).max(300),
       phone: phoneSchema,
-      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      pin: passwordSchema,
       otp_code: z.string().regex(/^\d{3,8}$/, "Invalid verification code").optional(),
     }),
     response: z.object({ account_id: z.number(), session_token: z.string(), session_kind: z.literal("user"), shopkeeper_name: z.string(), phone: z.string(), claimed_existing_data: z.boolean() }),
   },
   login: {
-    request: z.object({ phone: phoneSchema, pin: z.string().regex(/^\d{4}$/) }),
+    request: z.object({ phone: phoneSchema, pin: passwordSchema }),
     response: z.object({ account_id: z.number(), session_token: z.string(), session_kind: z.literal("user"), shopkeeper_name: z.string(), phone: z.string() }),
   },
   sendOtpCode: {
@@ -254,7 +260,7 @@ export const actionDefs = {
   resetPin: {
     request: z.object({
       phone: phoneSchema,
-      new_pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      new_pin: passwordSchema,
       otp_code: z.string().regex(/^\d{3,8}$/, "Invalid verification code"),
     }),
     response: z.object({ ok: z.literal(true) }),
@@ -371,7 +377,7 @@ export const actionDefs = {
       product_id: z.number().int().positive(),
       adjustment: z.number().int(),
       reason: z.string().trim().max(300).optional(),
-      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      pin: passwordSchema,
     }),
     response: z.object({ ok: z.literal(true), new_stock: z.number() }),
   },
@@ -444,7 +450,7 @@ export const actionDefs = {
     request: z.object({
       ...authFields,
       invoice_id: z.number().int().positive(),
-      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      pin: passwordSchema,
       reason: z.string().trim().min(3, "Please give a reason").max(300),
     }),
     response: z.object({ ok: z.literal(true) }),
@@ -453,7 +459,7 @@ export const actionDefs = {
     request: z.object({
       ...authFields,
       purchase_id: z.number().int().positive(),
-      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      pin: passwordSchema,
       reason: z.string().trim().min(3, "Please give a reason").max(300),
     }),
     response: z.object({ ok: z.literal(true) }),
@@ -461,7 +467,7 @@ export const actionDefs = {
   listTrashed: {
     request: z.object({
       ...authFields,
-      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      pin: passwordSchema,
     }),
     response: z.object({
       invoices: z.array(trashedInvoiceShape),
@@ -472,7 +478,7 @@ export const actionDefs = {
     request: z.object({
       ...authFields,
       invoice_id: z.number().int().positive(),
-      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      pin: passwordSchema,
     }),
     response: z.object({ ok: z.literal(true) }),
   },
@@ -480,7 +486,7 @@ export const actionDefs = {
     request: z.object({
       ...authFields,
       purchase_id: z.number().int().positive(),
-      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      pin: passwordSchema,
     }),
     response: z.object({ ok: z.literal(true) }),
   },
@@ -488,7 +494,7 @@ export const actionDefs = {
     request: z.object({
       ...authFields,
       invoice_id: z.number().int().positive(),
-      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      pin: passwordSchema,
     }),
     response: z.object({ ok: z.literal(true) }),
   },
@@ -496,7 +502,7 @@ export const actionDefs = {
     request: z.object({
       ...authFields,
       purchase_id: z.number().int().positive(),
-      pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+      pin: passwordSchema,
     }),
     response: z.object({ ok: z.literal(true) }),
   },
