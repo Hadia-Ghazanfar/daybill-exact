@@ -1125,6 +1125,8 @@ export const Actions = {
     async handler(ctx, args) {
       const db = ctx.db;
       const account = await requireUserAccount(ctx, args);
+      // Backfill: check current low stock every time notifications are opened
+      try { await checkLowStock(db, account.id); } catch { /* ignore */ }
       const rows = await db.select().from(schema.notifications)
         .where(eq(schema.notifications.accountId, account.id))
         .orderBy(desc(schema.notifications.createdAt))
