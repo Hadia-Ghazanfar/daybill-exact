@@ -11,7 +11,7 @@
 // Request/response zod schemas live in ./_defs.ts (extracted verbatim).
 import { sendOtp, verifyOtp } from "./_myotp.js";
 import { z } from "zod";
-import { and, asc, desc, eq, inArray, isNotNull, isNull, like, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, like, lte } from "drizzle-orm";
 import * as schema from "./_schema.js";
 import { actionDefs, type ActionName } from "./_defs.js";
 import { hashAdminPassword, hashPin, randomSalt, requireAccount, requireAdminAccount, requireUserAccount, secureEqual } from "./_auth.js";
@@ -59,19 +59,20 @@ async function checkLowStock(db: any, accountId: number): Promise<void> {
     const lowProducts = await db.select({ id: schema.products.id, name: schema.products.name, stockQuantity: schema.products.stockQuantity }).from(schema.products)
       .where(and(eq(schema.products.accountId, accountId), eq(schema.products.active, true), lte(schema.products.stockQuantity, 15)));
     if (!lowProducts.length) return;
-    // Single query for all existing unread low-stock notifications
-    const existing = await db.select({ message: schema.notifications.message }).from(schema.notifications)
+    // Get all low-stock notifications from the last 24 hours (read or unread)
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const recent = await db.select({ message: schema.notifications.message, createdAt: schema.notifications.createdAt }).from(schema.notifications)
       .where(and(
         eq(schema.notifications.accountId, accountId),
         eq(schema.notifications.type, "low_stock"),
-        eq(schema.notifications.isRead, false)
+        gte(schema.notifications.createdAt, oneDayAgo)
       ));
-    const notifiedNames = new Set(existing.map((r: any) => r.message));
     for (const prod of lowProducts) {
+      // Skip if we already notified about this product in the last 24 hours
+      const alreadyNotified = recent.some((r: any) => r.message && r.message.includes(prod.name));
+      if (alreadyNotified) continue;
       const msg = `${prod.name} is running low — only ${prod.stockQuantity} left in stock.`;
-      if (!notifiedNames.has(msg)) {
-        await createNotification(db, accountId, "low_stock", "Low stock warning", msg);
-      }
+      await createNotification(db, accountId, "low_stock", "Low stock warning", msg);
     }
   } catch { /* best-effort */ }
 }
