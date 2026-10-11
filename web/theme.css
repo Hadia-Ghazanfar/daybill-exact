@@ -4026,3 +4026,14 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   .sidebar-open-btn:active { transform: scale(.92); }
 }
 
+/* Product detail popup */
+.product-clickable { cursor: pointer; }
+.product-clickable:hover { background: var(--surface-hover, rgba(0,0,0,.02)); }
+.product-detail-sheet { max-width: 480px; }
+.product-detail-body { padding: 0 20px 24px; }
+.product-detail-image { width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; margin-bottom: 16px; background: var(--surface); }
+.product-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.product-detail-grid > div { background: var(--surface); border-radius: 10px; padding: 10px 12px; }
+.product-detail-grid span { display: block; font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.product-detail-grid strong { font-size: 15px; }
+
