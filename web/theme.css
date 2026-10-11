@@ -182,7 +182,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .invoice-id time { margin-top: 2px; color: #69737d; font-size: 10px; }
 .payment-badge { margin-top: 7px; padding: 3px 7px; border-radius: 999px; font-size: 8px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .payment-badge.pending { background: #fff0d6; color: #84520b; }
-.payment-badge.paid { background: #dff4e8; color: #176341; }
+.payment-badge.paid { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); }
 .bill-to { padding: 22px 0; }
 .bill-to > span { display: block; margin-bottom: 5px; color: var(--invoice-accent); font-size: 9px; font-weight: 700; letter-spacing: .1em; }
 .bill-to > strong { font-size: 14px; }
@@ -280,7 +280,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .due-list b, .compact-list b, .inventory-list b { font-size: 12px; }
 .mini-status { display: inline-block; margin-top: 4px; padding: 2px 6px; border-radius: 999px; font-size: 8px; font-style: normal; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .mini-status.pending { background: #fff0d6; color: #84520b; }
-.mini-status.paid { background: #dff4e8; color: #176341; }
+.mini-status.paid { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); }
 .stock-low { color: var(--danger) !important; font-weight: 800 !important; }
 .manage-view { padding-top: 20px; }
 .manage-head { align-items: flex-start; margin-bottom: 24px; }
@@ -1202,7 +1202,7 @@ html.phone-layout .admin-dashboard { padding-top: 4px; }
 .section-heading span { color: var(--accent); }
 .status-toggle.paid { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
 .mini-status.pending { background: #fff0cd; color: #775100; }
-.mini-status.paid { background: #d7f7e8; color: #08734a; }
+.mini-status.paid { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); }
 .mini-status.overdue { background: #ffe1df; color: #a43b3d; }
 
 .launch-screen { background: #0b3b39; }
@@ -3070,7 +3070,7 @@ button:active { transform: scale(.96); }
   .product-table .cell-main { flex: 1 1 auto; min-width: 0; }
   .product-table .cell-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .product-table .cell-top strong { font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-  .product-table .stock-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: #e3f7ec; color: #149a5b; white-space: nowrap; flex-shrink: 0; }
+  .product-table .stock-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); white-space: nowrap; flex-shrink: 0; }
   .product-table .stock-badge.low { background: #fdecec; color: #d33f3f; }
   .product-table .cell-meta { font-size: 12px; color: var(--dim); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .product-table .cell-meta .price { font-weight: 800; color: var(--text); font-size: 13px; }
