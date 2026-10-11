@@ -3966,6 +3966,63 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   }
 }
 
-
-
+/* Sidebar close/open buttons - desktop */
+.sidebar-close-btn { display: none; }
+.sidebar-open-btn { display: none; }
+@media (min-width: 760px) {
+  .sidebar-close-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.18);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.25);
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+  .sidebar-close-btn:hover { background: rgba(255,255,255,.3); }
+  .sidebar-close-btn:active { transform: scale(.92); }
+  .sidebar-topbar {
+    display: flex !important;
+    align-items: center;
+  }
+  .sidebar-topbar .theme-fab { margin-right: auto; }
+  /* When collapsed: hide sidebar, show floating open button */
+  .sidebar-collapsed .bottom-nav {
+    display: none !important;
+  }
+  .sidebar-collapsed .app-brand-bar {
+    display: none !important;
+  }
+  .sidebar-collapsed .app-shell,
+  .app-shell.sidebar-collapsed {
+    padding-left: 0 !important;
+  }
+  .sidebar-open-btn {
+    display: flex !important;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 100;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: #0a403d;
+    color: #fff;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  }
+  .sidebar-open-btn:active { transform: scale(.92); }
+}
 
