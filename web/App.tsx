@@ -8,6 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
+import obHer1 from "./assets/onboarding-her/slide1.png";
+import obHer2 from "./assets/onboarding-her/slide2.png";
+import obHer3 from "./assets/onboarding-her/slide3.png";
+import obHer4 from "./assets/onboarding-her/slide4.png";
 
 import welcomeSlideSharing from "./assets/approved/welcome-slide-sharing.png";
 import desktopShopkeeper from "./assets/approved/desktop-shopkeeper-3d.png";
@@ -2097,24 +2101,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  {
-    title: "Create Invoices Faster and Easier",
-    body: "Build polished sales and supplier invoices in a few simple steps.",
-    image: welcomeShopkeeper,
-    imageAlt: "Shopkeeper holding an invoice at the counter",
-  },
-  {
-    title: "Simple Digital Billing",
-    body: "Keep invoices and daily calculations clear and organized.",
-    image: welcomeSlideBilling,
-    imageAlt: "Invoice papers with a calculator and payment coins",
-  },
-  {
-    title: "Share Clearly and Grow",
-    body: "Send clean invoice images and keep customer conversations moving.",
-    image: welcomeSlideSharing,
-    imageAlt: "Phone sharing a digital invoice with business growth symbols",
-  },
+  { id: "s1", title: "Your business,", accent: "simplified.", body: "Create invoices, manage stock, track payments, and stay on top of your shop.", image: obHer1 },
+  { id: "s2", title: "Know your business", accent: "at a glance.", body: "Track sales, stock, and outstanding payments from one simple dashboard.", image: obHer2 },
+  { id: "s3", title: "Professional bills,", accent: "in seconds.", body: "Create, download, print, and share invoices with your customers.", image: obHer3 },
+  { id: "s4", title: "Your shop assistant,", accent: "always ready.", body: "Ask about stock levels, revenue, invoices, and customer dues.", image: obHer4 },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
@@ -2171,15 +2161,15 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
   const current = onboardingSlides[slide];
   return <main className="welcome-page" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
     <SafeAreaTopScrim backgroundColor="#ffffff" />
-    <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip &gt;</button></header>
-    <section className="welcome-content">
-      <div className="welcome-art"><img key={slide} className={`welcome-shopkeeper-image welcome-slide-image slide-${slide + 1} welcome-slide-enter`} src={current?.image ?? welcomeShopkeeper} alt={current?.imageAlt ?? "Daybill welcome illustration"} /></div>
+    <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip</button></header>
+    <section className="welcome-content her-ob">
+      <div className="welcome-art her-ob-art"><img key={slide} className="welcome-slide-enter her-ob-img" src={current?.image} alt="Daybill" /></div>
       <div className="welcome-copy">
-        <h1 key={`t-${slide}`} className="welcome-slide-enter">{current?.title}</h1>
+        <h1 key={`t-${slide}`} className="welcome-slide-enter her-ob-title">{current?.title} <span>{current?.accent}</span></h1>
         <p key={`b-${slide}`} className="welcome-tagline welcome-slide-enter">{current?.body}</p>
-        <div className="welcome-dots" aria-label={`Page ${slide + 1} of ${onboardingSlides.length}`}>{onboardingSlides.map((item, index) => <button key={item.title} type="button" aria-label={`Go to page ${index + 1}`} className={index === slide ? "active" : ""} onClick={() => setSlide(index)} />)}</div>
+        <div className="welcome-dots" aria-label={`Page ${slide + 1} of ${onboardingSlides.length}`}>{onboardingSlides.map((item, index) => <button key={item.id} type="button" aria-label={`Go to page ${index + 1}`} className={index === slide ? "active" : ""} onClick={() => setSlide(index)} />)}</div>
       </div>
-      <div className="welcome-actions"><button className="welcome-access" type="button" onClick={goNext}>{isLast ? "Get Started" : "Continue"}</button>{!isLast && <button className="welcome-signup" type="button" onClick={onSignup}>Don’t have an account? <span>Signup</span></button>}</div>
+      <div className="welcome-actions">{slide === 0 ? <><button className="welcome-access her-ob-btn" type="button" onClick={goNext}>Get Started →</button><button className="welcome-signup her-ob-btn2" type="button" onClick={onLogin}>I already have an account</button></> : isLast ? <button className="welcome-access her-ob-btn" type="button" onClick={goNext}>Get Started →</button> : <button className="her-ob-arrow" type="button" onClick={goNext}>→</button>}</div>
     </section>
   </main>;
 }

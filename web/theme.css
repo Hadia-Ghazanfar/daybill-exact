@@ -4081,3 +4081,11 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .ob2-her-image { width: 100%; max-width: 320px; height: auto; border-radius: 16px; }
 .ob2-art { padding: 0 !important; }
 
+.her-ob-img { width: 100%; max-width: 340px; height: auto; border-radius: 20px; }
+.her-ob-art { padding: 0; margin: 8px 0 16px; }
+.her-ob-title { font-size: 30px !important; line-height: 1.2; }
+.her-ob-title span { color: #0a8a6e; }
+.her-ob-btn { background: #0a3d3a !important; border-radius: 50px !important; }
+.her-ob-btn2 { background: transparent !important; border: 1.5px solid #0a3d3a !important; color: #0a3d3a !important; border-radius: 50px !important; }
+.her-ob-arrow { width: 56px; height: 56px; border-radius: 50%; background: #0a3d3a; color: #fff; border: none; font-size: 22px; margin-left: auto; }
+
