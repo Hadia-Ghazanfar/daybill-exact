@@ -990,7 +990,6 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     root.dataset.textSize = effectiveTextSize;
     root.style.colorScheme = effectiveTheme;
     // Save to account-scoped keys (each account keeps its own settings)
-    // and sync to server so all devices/browsers show the same theme
     if (accountId) {
       try {
         localStorage.setItem(getScopedKey(THEME_STORAGE_KEY, accountId), theme);
@@ -999,10 +998,6 @@ function ThemeProvider({ children }: { children: ReactNode }) {
       } catch {
         // The selected theme still applies for the current session.
       }
-      // Sync to server (non-blocking)
-      api.updateAppearance({ theme_mode: theme, app_accent: accent, app_text_size: textSize }).catch(() => {
-        // Offline or error - localStorage keeps the setting
-      });
     }
   }, [theme, accent, textSize, accountId]);
   return <ThemeContext.Provider value={{ theme, setTheme, accent, setAccent, textSize, setTextSize }}>{children}</ThemeContext.Provider>;
@@ -1581,35 +1576,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const { language } = useLanguage();
   const { theme, setTheme } = useTheme();
   const workspace = useQuery({ queryKey: ["workspace"], queryFn: () => api.getWorkspace({}) });
-  const { setAccent, setTextSize } = useTheme();
-  // Sync appearance: localStorage (this device) wins if set; otherwise use server (other devices)
-  // New accounts get green/teal defaults from the server
-  const serverTheme = workspace.data?.settings?.theme_mode;
-  const serverAccent = workspace.data?.settings?.app_accent;
-  const serverTextSize = workspace.data?.settings?.app_text_size;
-  const accountIdForSync = workspace.data?.account?.id ? String(workspace.data.account.id) : null;
-  useEffect(() => {
-    if (!accountIdForSync) return;
-    const localTheme = getStored(getScopedKey(THEME_STORAGE_KEY, accountIdForSync), null as Theme | null);
-    const localAccent = getStored(getScopedKey(ACCENT_KEY, accountIdForSync), null as AccentColor | null);
-    const localTextSize = getStored(getScopedKey(TEXTSIZE_KEY, accountIdForSync), null as TextSize | null);
-    // If this device has saved settings, keep them and push to server
-    if (localTheme || localAccent || localTextSize) {
-      if (localTheme) setTheme(localTheme);
-      if (localAccent) setAccent(localAccent);
-      if (localTextSize) setTextSize(localTextSize);
-      api.updateAppearance({
-        theme_mode: localTheme ?? (serverTheme === "dark" ? "dark" : "light"),
-        app_accent: localAccent ?? serverAccent ?? "teal",
-        app_text_size: localTextSize ?? serverTextSize ?? "medium",
-      }).catch(() => {});
-    } else {
-      // New device or new account: use server values (defaults to green/teal for new accounts)
-      if (serverTheme === "light" || serverTheme === "dark") setTheme(serverTheme);
-      if (serverAccent) setAccent(serverAccent as AccentColor);
-      if (serverTextSize) setTextSize(serverTextSize as TextSize);
-    }
-  }, [accountIdForSync, serverTheme, serverAccent, serverTextSize]);
+  // Appearance syncs via ThemeProvider account-scoped localStorage
   const restoreBillsOnMount = useRef(isMobileAppLayout() && sessionStorage.getItem(MOBILE_BILLS_RETURN_KEY) === "1");
   const [tab, setTabState] = useState<Tab>(() => getTabFromPath() ?? (restoreBillsOnMount.current ? "history" : "dashboard"));
   // Wrapper that syncs tab changes to the URL
