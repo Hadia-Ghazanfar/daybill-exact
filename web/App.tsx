@@ -26,18 +26,7 @@ import desktopShopkeeper from "./assets/approved/desktop-shopkeeper-3d.png";
 import notFoundFull from "./assets/404-full.jpg";
 import QRCode from "qrcode";
 import { jsPDF } from "jspdf";
-import avatar1 from "./assets/avatars/avatar-1.png";
-import avatar2 from "./assets/avatars/avatar-2.png";
-import avatar3 from "./assets/avatars/avatar-3.png";
-import avatar4 from "./assets/avatars/avatar-4.png";
-import avatar5 from "./assets/avatars/avatar-5.png";
-import avatar6 from "./assets/avatars/avatar-6.png";
-import avatar7 from "./assets/avatars/avatar-7.png";
-import avatar8 from "./assets/avatars/avatar-8.png";
-import avatar9 from "./assets/avatars/avatar-9.png";
-import avatar10 from "./assets/avatars/avatar-10.png";
-import avatar11 from "./assets/avatars/avatar-11.png";
-import avatar12 from "./assets/avatars/avatar-12.png";
+const AVATAR_URLS = ["/avatars/avatar-1.png", "/avatars/avatar-2.png", "/avatars/avatar-3.png", "/avatars/avatar-4.png", "/avatars/avatar-5.png", "/avatars/avatar-6.png", "/avatars/avatar-7.png", "/avatars/avatar-8.png", "/avatars/avatar-9.png", "/avatars/avatar-10.png", "/avatars/avatar-11.png", "/avatars/avatar-12.png"];
 import mascotAvatar from "./assets/mascot.png";
 import { sendOtpCode } from "./myotp";
 import { answerQuestion, QUICK_CHIPS } from "./chatbot";
@@ -1119,7 +1108,7 @@ type ContactAvatarProps = {
   className?: string;
 };
 
-const CONTACT_AVATARS = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6, avatar7, avatar8, avatar9, avatar10, avatar11, avatar12] as const;
+const CONTACT_AVATARS = AVATAR_URLS;
 const SHOP_AVATARS = CONTACT_AVATARS;
 
 function buildPaymentQrContent(settings: { bank_name?: string; bank_account_title?: string; bank_account_number?: string; bank_iban?: string }): string | null {
