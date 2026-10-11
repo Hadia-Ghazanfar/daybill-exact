@@ -2590,6 +2590,9 @@ function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAd
   const [lineKey, setLineKey] = useState(2);
   const [shareMessage, setShareMessage] = useState("");
   const [isSharing, setIsSharing] = useState(false);
+  const create = useMutation({ mutationFn: () => api.createPurchaseInvoice({ supplier_id: supplierId ?? 0, document_type: documentType, issue_date: issueDate, due_date: dueDate || null, payment_method: paymentMethod, payment_status: purchasePaymentStatus, supplier_reference: supplierReference, notes, items: draftItems.map((item) => ({ product_id: item.product_id, quantity: item.quantity, unit_cost: item.unit_cost })) }), onSuccess: async (result) => { onSaved(result.id); setStep(3); await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
+  const payment = useMutation({ mutationFn: (status: "pending" | "paid") => api.setPurchasePaymentStatus({ id: savedPurchaseId ?? 0, status }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
+  const deliver = useMutation({ mutationFn: () => api.markPurchaseDelivered({ id: savedPurchaseId ?? 0 }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
   // Defensive: if workspace data isn't ready, show loading instead of crashing
   // (placed AFTER all hooks to comply with React rules)
   if (!workspace || !workspace.contacts || !workspace.products || !workspace.settings) return <div className="purchase-flow"><div className="loading-panel"><p>Loading…</p></div></div>;
@@ -2605,9 +2608,6 @@ function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAd
   const draft: PurchaseDraft = { purchase_number: "DRAFT", supplier_id: supplier?.id ?? null, supplier_name: supplier?.name ?? "", supplier_phone: supplier?.phone ?? "", supplier_address: supplier?.address ?? "", issue_date: issueDate, due_date: dueDate || null, document_type: documentType, delivery_status: documentType === "purchase_order" ? "pending" : "delivered", payment_status: purchasePaymentStatus, payment_method: paymentMethod, supplier_reference: supplierReference, notes, total, currency: workspace.settings.currency, items: draftItems };
   // Get purchase from workspace data (includes items now)
   const listPurchase = savedPurchaseId ? workspace.purchases?.find((pr) => pr.id === savedPurchaseId) : null;
-  const create = useMutation({ mutationFn: () => api.createPurchaseInvoice({ supplier_id: supplierId ?? 0, document_type: documentType, issue_date: issueDate, due_date: dueDate || null, payment_method: paymentMethod, payment_status: purchasePaymentStatus, supplier_reference: supplierReference, notes, items: draftItems.map((item) => ({ product_id: item.product_id, quantity: item.quantity, unit_cost: item.unit_cost })) }), onSuccess: async (result) => { onSaved(result.id); setStep(3); await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
-  const payment = useMutation({ mutationFn: (status: "pending" | "paid") => api.setPurchasePaymentStatus({ id: savedPurchaseId ?? 0, status }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
-  const deliver = useMutation({ mutationFn: () => api.markPurchaseDelivered({ id: savedPurchaseId ?? 0 }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
   if (savedPurchaseId) {
     if (!listPurchase) return <div className="purchase-flow"><div className="loading-panel"><p className="error">Could not find this purchase.</p><button className="secondary" onClick={onBackToBills}>← Back to Bills</button></div></div>;
     return <SupplierDetailView purchase={listPurchase} settings={workspace.settings} onBackToBills={onBackToBills} onOpenContact={onOpenContact} onDelete={onDeletePurchase} onShare={onPrepareShare} />;
