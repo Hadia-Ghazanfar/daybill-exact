@@ -130,8 +130,23 @@ CREATE TABLE IF NOT EXISTS business_settings (
   bank_account_title TEXT NOT NULL DEFAULT '',
   bank_account_number TEXT NOT NULL DEFAULT '',
   bank_iban TEXT NOT NULL DEFAULT '',
+  theme_mode TEXT NOT NULL DEFAULT 'light',
+  app_accent TEXT NOT NULL DEFAULT 'teal',
+  app_text_size TEXT NOT NULL DEFAULT 'medium',
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+-- Add appearance columns to existing tables
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='business_settings' AND column_name='theme_mode') THEN
+    ALTER TABLE business_settings ADD COLUMN theme_mode TEXT NOT NULL DEFAULT 'light';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='business_settings' AND column_name='app_accent') THEN
+    ALTER TABLE business_settings ADD COLUMN app_accent TEXT NOT NULL DEFAULT 'teal';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='business_settings' AND column_name='app_text_size') THEN
+    ALTER TABLE business_settings ADD COLUMN app_text_size TEXT NOT NULL DEFAULT 'medium';
+  END IF;
+END $$;
 CREATE TABLE IF NOT EXISTS contacts (
   id SERIAL PRIMARY KEY,
   account_id INTEGER NOT NULL,

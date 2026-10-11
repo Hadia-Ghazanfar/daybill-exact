@@ -59,6 +59,9 @@ export const businessSettings = pgTable("business_settings", {
   bankAccountTitle: text("bank_account_title").notNull().default(""),
   bankAccountNumber: text("bank_account_number").notNull().default(""),
   bankIban: text("bank_iban").notNull().default(""),
+  themeMode: text("theme_mode").notNull().default("light"),
+  appAccent: text("app_accent").notNull().default("teal"),
+  appTextSize: text("app_text_size").notNull().default("medium"),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });
 

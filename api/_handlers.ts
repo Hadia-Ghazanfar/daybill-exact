@@ -424,6 +424,9 @@ export const Actions = {
           bank_account_title: saved?.bankAccountTitle ?? "",
           bank_account_number: saved?.bankAccountNumber ?? "",
           bank_iban: saved?.bankIban ?? "",
+          theme_mode: saved?.themeMode ?? "light",
+          app_accent: saved?.appAccent ?? "teal",
+          app_text_size: saved?.appTextSize ?? "medium",
         },
         contacts: contactRows.map((row) => ({ id: row.id, name: row.name, phone: row.phone, address: row.address, kind: row.kind })),
         products: productRows.map((row) => ({
@@ -463,6 +466,31 @@ export const Actions = {
       };
     },
   }),
+  updateAppearance: defineAction({
+    ...actionDefs.updateAppearance,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireUserAccount(ctx, args);
+      await db.insert(schema.businessSettings).values({
+        id: account.id,
+        accountId: account.id,
+        businessName: "",
+        themeMode: args.theme_mode,
+        appAccent: args.app_accent,
+        appTextSize: args.app_text_size,
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: schema.businessSettings.id,
+        set: {
+          themeMode: args.theme_mode,
+          appAccent: args.app_accent,
+          appTextSize: args.app_text_size,
+          updatedAt: new Date(),
+        },
+      });
+      return { ok: true };
+    },
+  },
   saveSettings: defineAction({
     ...actionDefs.saveSettings,
     async handler(ctx, args): Promise<{ ok: true }> {

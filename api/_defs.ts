@@ -43,6 +43,9 @@ const settingsShape = z.object({
   bank_account_title: z.string().optional(),
   bank_account_number: z.string().optional(),
   bank_iban: z.string().optional(),
+  theme_mode: z.string().optional(),
+  app_accent: z.string().optional(),
+  app_text_size: z.string().optional(),
 });
 
 const contactShape = z.object({
@@ -297,6 +300,15 @@ export const actionDefs = {
         low_stock_count: z.number(),
       }),
     }),
+  },
+  updateAppearance: {
+    request: z.object({
+      ...authFields,
+      theme_mode: z.enum(["light", "dark"]),
+      app_accent: z.string().trim().min(1).max(20),
+      app_text_size: z.enum(["small", "medium", "large", "xlarge"]),
+    }),
+    response: z.object({ ok: z.literal(true) }),
   },
   saveSettings: {
     request: z.object({
