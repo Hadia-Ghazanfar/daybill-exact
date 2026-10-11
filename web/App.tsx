@@ -8,10 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import obFinal1 from "./assets/onboarding-final/s1.jpg";
-import obFinal2 from "./assets/onboarding-final/s2.jpg";
-import obFinal3 from "./assets/onboarding-final/s3.jpg";
-import obFinal4 from "./assets/onboarding-final/s4.jpg";
+import obWelcome from "./assets/onboarding-final/s1.jpg";
+import obDashboard from "./assets/onboarding-real/dashboard.png";
+import obInvoice from "./assets/onboarding-real/invoice.png";
+import obChatbot from "./assets/onboarding-real/chatbot.png";
 
 
 
@@ -2105,10 +2105,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  { id: "s1", image: obFinal1, hasButtons: true },
-  { id: "s2", image: obFinal2, hasButtons: false },
-  { id: "s3", image: obFinal3, hasButtons: false },
-  { id: "s4", image: obFinal4, hasButtons: true },
+  { id: "s1", image: obWelcome, hasButtons: true },
+  { id: "s2", image: obDashboard, hasButtons: false },
+  { id: "s3", image: obInvoice, hasButtons: false },
+  { id: "s4", image: obChatbot, hasButtons: true },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
