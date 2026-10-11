@@ -5,7 +5,7 @@ import { fileToBase64, SafeAreaTopScrim } from "./sdk-shim";
 import { api, setApiSession, type AccountSession, type ApiResponse } from "./api";
 import daybillLogoDark from "./assets/daybill-logo-dark.png";
 import daybillLogoWhite from "./assets/daybill-logo-white.png";
-import daybillIcon from "./assets/brand/daybill-app-icon.png";
+import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
 import welcomeSlideSharing from "./assets/approved/welcome-slide-sharing.png";
@@ -933,18 +933,55 @@ function getStored<T extends string>(key: string, fallback: T): T {
     return (v as T) || fallback;
   } catch { return fallback; }
 }
+function getAccountId(): string | null {
+  try {
+    const session = readAccountSession();
+    return session ? String(session.account_id) : null;
+  } catch { return null; }
+}
+
+function getScopedKey(base: string, accountId: string | null): string {
+  return accountId ? `${base}-${accountId}` : base;
+}
+
 function ThemeProvider({ children }: { children: ReactNode }) {
+  const [accountId, setAccountId] = useState<string | null>(() => getAccountId());
   const [theme, setTheme] = useState<Theme>(initialTheme);
-  const [accent, setAccent] = useState<AccentColor>(() => getStored(ACCENT_KEY, "teal"));
-  const [textSize, setTextSize] = useState<TextSize>(() => getStored(TEXTSIZE_KEY, "medium"));
+  const [accent, setAccent] = useState<AccentColor>("teal");
+  const [textSize, setTextSize] = useState<TextSize>("medium");
+
+  // Load account-specific settings when account changes (defaults: teal/light/medium for new accounts)
+  useLayoutEffect(() => {
+    const id = getAccountId();
+    if (id !== accountId) {
+      setAccountId(id);
+      return;
+    }
+    if (id) {
+      setTheme(getStored(getScopedKey(THEME_STORAGE_KEY, id), initialTheme));
+      setAccent(getStored(getScopedKey(ACCENT_KEY, id), "teal"));
+      setTextSize(getStored(getScopedKey(TEXTSIZE_KEY, id), "medium"));
+    } else {
+      setTheme("light");
+      setAccent("teal");
+      setTextSize("medium");
+    }
+  }, [accountId]);
+
+  // Poll for account changes (login/logout/switch)
+  useEffect(() => {
+    const check = () => {
+      const id = getAccountId();
+      if (id !== accountId) setAccountId(id);
+    };
+    const interval = setInterval(check, 1000);
+    window.addEventListener("storage", check);
+    return () => { clearInterval(interval); window.removeEventListener("storage", check); };
+  }, [accountId]);
+
   useLayoutEffect(() => {
     const root = document.documentElement;
-    // Force light theme on login/loading screens (no active session)
-    // User's dark mode only applies inside the logged-in app
-    let hasSession = false;
-    try {
-      hasSession = !!(localStorage.getItem(SESSION_STORAGE_KEY) || sessionStorage.getItem(SESSION_STORAGE_KEY));
-    } catch { /* ignore */ }
+    const hasSession = !!accountId;
     const effectiveTheme = hasSession ? theme : "light";
     const effectiveAccent = hasSession ? accent : "teal";
     const effectiveTextSize = hasSession ? textSize : "medium";
@@ -952,14 +989,17 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     root.dataset.accent = effectiveAccent;
     root.dataset.textSize = effectiveTextSize;
     root.style.colorScheme = effectiveTheme;
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
-      localStorage.setItem(ACCENT_KEY, accent);
-      localStorage.setItem(TEXTSIZE_KEY, textSize);
-    } catch {
-      // The selected theme still applies for the current session.
+    // Save to account-scoped keys (each account keeps its own settings)
+    if (accountId) {
+      try {
+        localStorage.setItem(getScopedKey(THEME_STORAGE_KEY, accountId), theme);
+        localStorage.setItem(getScopedKey(ACCENT_KEY, accountId), accent);
+        localStorage.setItem(getScopedKey(TEXTSIZE_KEY, accountId), textSize);
+      } catch {
+        // The selected theme still applies for the current session.
+      }
     }
-  }, [theme, accent, textSize]);
+  }, [theme, accent, textSize, accountId]);
   return <ThemeContext.Provider value={{ theme, setTheme, accent, setAccent, textSize, setTextSize }}>{children}</ThemeContext.Provider>;
 }
 
