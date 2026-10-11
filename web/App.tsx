@@ -143,7 +143,7 @@ function saveAccountSession(session: AccountSession, remember = true) {
 type LanguageContextValue = { language: Language; setLanguage: (language: Language) => void };
 const LanguageContext = createContext<LanguageContextValue>({ language: "en", setLanguage: () => undefined });
 type AccentColor = "teal" | "violet" | "blue" | "pink" | "orange" | "yellow";
-type TextSize = "small" | "medium" | "large" | "xlarge";
+type TextSize = "medium" | "large";
 type ThemeContextValue = {
   theme: Theme; setTheme: (theme: Theme) => void;
   accent: AccentColor; setAccent: (a: AccentColor) => void;
@@ -2972,11 +2972,9 @@ function ProfileView({ settings, account, onEdit, onLogout }: { settings: Worksp
     { id: "orange", color: "#E8A87C", label: "Orange" },
     { id: "yellow", color: "#DDBB6A", label: "Yellow" },
   ];
-  const textSizes: { id: "small" | "medium" | "large" | "xlarge"; label: string }[] = [
-    { id: "small", label: "Small" },
+  const textSizes: { id: "medium" | "large"; label: string }[] = [
     { id: "medium", label: "Medium" },
     { id: "large", label: "Large" },
-    { id: "xlarge", label: "Extra large" },
   ];
   return <section className="profile-view">
     <div className="profile-hero">{settings.logo_url ? <img src={settings.logo_url} alt={`${settings.business_name || "Shop"} logo`} /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="Shop avatar" className="shopkeeper-avatar" /> : <ContactAvatar name={account.shopkeeper_name || settings.business_name || "Shop owner"} contactKey={`profile-${account.phone || account.shopkeeper_name}`} className="shopkeeper-avatar" />}<div><p className="eyebrow">{ui(language, "SHOP PROFILE")}</p><h1>{settings.business_name || ui(language, "Your shop")}</h1><p>{settings.address || ui(language, "No address added")}</p></div></div>
