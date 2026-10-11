@@ -2097,24 +2097,61 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 
 const onboardingSlides = [
   {
-    title: "Create Invoices Faster and Easier",
-    body: "Build polished sales and supplier invoices in a few simple steps.",
-    image: welcomeShopkeeper,
-    imageAlt: "Shopkeeper holding an invoice at the counter",
+    id: "intro",
+    headline: "Your business,",
+    headlineAccent: "simplified.",
+    body: "Create invoices, manage stock, track payments, and stay on top of your shop.",
+    mockup: "intro",
   },
   {
-    title: "Simple Digital Billing",
-    body: "Keep invoices and daily calculations clear and organized.",
-    image: welcomeSlideBilling,
-    imageAlt: "Invoice papers with a calculator and payment coins",
+    id: "dashboard",
+    headline: "Know your business",
+    headlineAccent: "at a glance.",
+    body: "Track sales, stock, and outstanding payments from one simple dashboard.",
+    mockup: "dashboard",
   },
   {
-    title: "Share Clearly and Grow",
-    body: "Send clean invoice images and keep customer conversations moving.",
-    image: welcomeSlideSharing,
-    imageAlt: "Phone sharing a digital invoice with business growth symbols",
+    id: "invoice",
+    headline: "Professional bills,",
+    headlineAccent: "in seconds.",
+    body: "Create, download, print, and share invoices with your customers.",
+    mockup: "invoice",
+  },
+  {
+    id: "assistant",
+    headline: "Your shop assistant,",
+    headlineAccent: "always ready.",
+    body: "Ask about stock levels, revenue, invoices, and customer dues.",
+    mockup: "assistant",
   },
 ] as const;
+
+function OnboardingMockup({ type }: { type: string }) {
+  if (type === "intro") return <div className="ob2-phone"><div className="ob2-intro-art">
+    <div className="ob2-invoice-card"><span>INVOICE</span><div className="ob2-inv-lines"><i></i><i></i><i></i></div><b>PKR</b><div className="ob2-check">✓</div></div>
+    <div className="ob2-float-icon" style={{top:"8%",left:"4%"}}>📦</div>
+    <div className="ob2-float-icon" style={{top:"4%",right:"12%"}}>📊</div>
+    <div className="ob2-float-icon" style={{bottom:"24%",left:"0%"}}>👥</div>
+    <div className="ob2-float-icon" style={{bottom:"30%",right:"4%"}}>📈</div>
+  </div></div>;
+  if (type === "dashboard") return <div className="ob2-phone"><div className="ob2-screen">
+    <div className="ob2-dash-top"><span>Overview</span></div>
+    <div className="ob2-recv"><span>Received <em>+100%</em></span><strong>PKR 11,008</strong><small>Payments collected</small><div className="ob2-spark"></div></div>
+    <div className="ob2-stats"><div><b>PKR 11,008</b><span>Revenue</span></div><div><b>PKR 7,000</b><span>Cost</span></div><div><b>-PKR 28,992</b><span>Profit</span></div><div><b>PKR 0</b><span>Dues</span></div></div>
+  </div></div>;
+  if (type === "invoice") return <div className="ob2-phone"><div className="ob2-screen">
+    <div className="ob2-bill-head"><div><strong>General store</strong><span>Lahore</span></div><div className="ob2-inv-no"><span>INVOICE</span><b>INV-0002</b></div></div>
+    <div className="ob2-bill-to"><span>BILL TO</span><strong>Fajar</strong></div>
+    <div className="ob2-items"><div><span>C type Cable × 4</span><b>PKR 3,200</b></div><div className="ob2-total"><span>Total</span><b>PKR 3,168</b></div></div>
+    <div className="ob2-share-row"><div>📱<span>WhatsApp</span></div><div>⬇<span>PDF</span></div><div>🖨<span>Print</span></div></div>
+  </div></div>;
+  return <div className="ob2-phone"><div className="ob2-screen">
+    <div className="ob2-chat-head"><div className="ob2-bot">🤖</div><div><strong>Daybill Assistant</strong><span>● Online</span></div></div>
+    <div className="ob2-msg bot">Hi! I'm the Daybill assistant. Ask me about your shop.</div>
+    <div className="ob2-msg user">Kitny products inventory ma hn</div>
+    <div className="ob2-msg bot">No products below 20 in stock ✓</div>
+  </div></div>;
+}
 
 function LoginShowcase() {
   return <section className="login-showcase desktop-business-showcase" aria-label="Daybill business overview">
@@ -2143,15 +2180,24 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
   const current = onboardingSlides[slide];
   return <main className="welcome-page" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
     <SafeAreaTopScrim backgroundColor="#ffffff" />
-    <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip &gt;</button></header>
-    <section className="welcome-content">
-      <div className="welcome-art"><img key={slide} className={`welcome-shopkeeper-image welcome-slide-image slide-${slide + 1} welcome-slide-enter`} src={current?.image ?? welcomeShopkeeper} alt={current?.imageAlt ?? "Daybill welcome illustration"} /></div>
-      <div className="welcome-copy">
-        <h1 key={`t-${slide}`} className="welcome-slide-enter">{current?.title}</h1>
+    <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip</button></header>
+    <section className="welcome-content ob2">
+      <div className="welcome-art ob2-art"><div key={slide} className="welcome-slide-enter"><OnboardingMockup type={current?.mockup ?? "intro"} /></div></div>
+      <div className="welcome-copy ob2-copy">
+        <h1 key={`t-${slide}`} className="welcome-slide-enter">{current?.headline} <span className="accent">{current?.headlineAccent}</span></h1>
         <p key={`b-${slide}`} className="welcome-tagline welcome-slide-enter">{current?.body}</p>
-        <div className="welcome-dots" aria-label={`Page ${slide + 1} of ${onboardingSlides.length}`}>{onboardingSlides.map((item, index) => <button key={item.title} type="button" aria-label={`Go to page ${index + 1}`} className={index === slide ? "active" : ""} onClick={() => setSlide(index)} />)}</div>
+        <div className="welcome-dots ob2-dots" aria-label={`Page ${slide + 1} of ${onboardingSlides.length}`}>{onboardingSlides.map((item, index) => <button key={item.id} type="button" aria-label={`Go to page ${index + 1}`} className={index === slide ? "active" : ""} onClick={() => setSlide(index)} />)}</div>
       </div>
-      <div className="welcome-actions"><button className="welcome-access" type="button" onClick={goNext}>{isLast ? "Get Started" : "Continue"}</button>{!isLast && <button className="welcome-signup" type="button" onClick={onSignup}>Don’t have an account? <span>Signup</span></button>}</div>
+      <div className="welcome-actions ob2-actions">
+        {slide === 0 ? <>
+          <button className="welcome-access ob2-primary" type="button" onClick={goNext}>Get Started <span>→</span></button>
+          <button className="welcome-signup ob2-secondary" type="button" onClick={onLogin}>I already have an account</button>
+        </> : isLast ? <>
+          <button className="welcome-access ob2-primary" type="button" onClick={goNext}>Get Started <span>→</span></button>
+        </> : <>
+          <button className="ob2-arrow" type="button" onClick={goNext} aria-label="Next">→</button>
+        </>}
+      </div>
     </section>
   </main>;
 }
