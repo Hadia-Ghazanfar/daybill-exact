@@ -8,10 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-full.jpg";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import finalWelcome from "./assets/onboarding-exact/final-welcome.jpg";
-import finalDashboard from "./assets/onboarding-exact/final-dashboard.jpg";
-import finalInvoice from "./assets/onboarding-exact/final-invoice.jpg";
-import finalAssistant from "./assets/onboarding-exact/final-assistant.jpg";
+import finalWelcome from "./assets/onboarding-exact/ob-welcome-notext.jpg";
+import finalDashboard from "./assets/onboarding-exact/ob-dashboard-notext.jpg";
+import finalInvoice from "./assets/onboarding-exact/ob-invoice-notext.jpg";
+import finalAssistant from "./assets/onboarding-exact/ob-assistant-notext.jpg";
 
 
 
