@@ -3785,10 +3785,10 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 :root[data-accent="teal"][data-theme="dark"] { --accent: #57c878 !important; --chart-accent: #57c878 !important; --space-accent: #57c878 !important; }
 
 /* ===== Text Sizes (zoom-based scaling) ===== */
-:root[data-text-size="small"] body { zoom: 0.9 !important; }
-:root[data-text-size="medium"] body { zoom: 1 !important; }
-:root[data-text-size="large"] body { zoom: 1.12 !important; }
-:root[data-text-size="xlarge"] body { zoom: 1.25 !important; }
+:root[data-text-size="small"] body { zoom: 0.9 !important; width: 111.12% !important; }
+:root[data-text-size="medium"] body { zoom: 1 !important; width: 100% !important; }
+:root[data-text-size="large"] body { zoom: 1.12 !important; width: 89.29% !important; }
+:root[data-text-size="xlarge"] body { zoom: 1.25 !important; width: 80% !important; }
 /* Keep bottom nav full width at all zoom levels - counteract body zoom */
 :root[data-text-size="small"] .bottom-nav { zoom: 1.1111 !important; }
 :root[data-text-size="large"] .bottom-nav { zoom: 0.8929 !important; }
