@@ -8,6 +8,9 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
+import ssDashboard from "./assets/onboarding-real/dashboard.png";
+import ssInvoice from "./assets/onboarding-real/invoice.png";
+import ssChatbot from "./assets/onboarding-real/chatbot.png";
 
 
 
@@ -2105,10 +2108,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  { id: "s1", type: "welcome" },
-  { id: "s2", type: "dashboard" },
-  { id: "s3", type: "invoice" },
-  { id: "s4", type: "assistant" },
+  { id: "s1", type: "welcome", screenshot: null },
+  { id: "s2", type: "dashboard", screenshot: ssDashboard },
+  { id: "s3", type: "invoice", screenshot: ssInvoice },
+  { id: "s4", type: "assistant", screenshot: ssChatbot },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
@@ -2191,16 +2194,7 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
       </>}
       
       {current?.type === "dashboard" && <>
-        <div className="ob-phone">
-          <div className="ob-phone-head"><span>● Overview</span></div>
-          <div className="ob-phone-hero"><div className="ob-ph-label">Received</div><div className="ob-ph-amt">PKR 11,008</div></div>
-          <div className="ob-phone-grid">
-            <div className="ob-pg-card"><b>PKR 11,008</b><span>Revenue</span></div>
-            <div className="ob-pg-card"><b>PKR 40,000</b><span>Cost</span></div>
-            <div className="ob-pg-card"><b>-PKR 28,992</b><span>Profit</span></div>
-            <div className="ob-pg-card"><b>PKR 0</b><span>Pending dues</span></div>
-          </div>
-        </div>
+        <div className="ob-ss-wrap"><img className="ob-ss" src={current?.screenshot} alt="Dashboard preview" /></div>
         <h1 className="ob-headline">Know your business<br/><span>at a glance.</span></h1>
         <p className="ob-sub">Track sales, stock, and outstanding payments from one simple dashboard.</p>
         <div className="ob-dots"><span></span><span className="active"></span><span></span><span></span></div>
@@ -2208,14 +2202,7 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
       </>}
       
       {current?.type === "invoice" && <>
-        <div className="ob-inv-card">
-          <div className="ob-ic-shop">General store</div>
-          <div className="ob-ic-meta">INVOICE INV-0002</div>
-          <div className="ob-ic-bill">BILL TO<br/><b>Customer</b><br/>03XX-XXXXXXX</div>
-          <div className="ob-ic-row"><span>C type Cable × 4</span><b>PKR 3,200</b></div>
-          <div className="ob-ic-total"><span>Total</span><b>PKR 3,168</b></div>
-          <div className="ob-ic-actions"><span>◉<br/>WhatsApp</span><span>↓<br/>PDF</span><span>⎙<br/>Print</span></div>
-        </div>
+        <div className="ob-ss-wrap"><img className="ob-ss" src={current?.screenshot} alt="Invoice preview" /></div>
         <h1 className="ob-headline">Professional bills,<br/><span>in seconds.</span></h1>
         <p className="ob-sub">Create, download, print, and share invoices with your customers.</p>
         <div className="ob-dots"><span></span><span></span><span className="active"></span><span></span></div>
@@ -2223,12 +2210,7 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
       </>}
       
       {current?.type === "assistant" && <>
-        <div className="ob-chat">
-          <div className="ob-chat-head"><span>◉</span><div><b>Daybill Assistant</b><small>● Online</small></div></div>
-          <div className="ob-msg bot">Hi! I'm the Daybill assistant. Ask me about your shop's numbers.</div>
-          <div className="ob-msg user">Total revenue this month?</div>
-          <div className="ob-msg bot">Revenue: PKR 11,008 ✓</div>
-        </div>
+        <div className="ob-ss-wrap"><img className="ob-ss" src={current?.screenshot} alt="Assistant preview" /></div>
         <h1 className="ob-headline">Your shop assistant,<br/><span>always ready.</span></h1>
         <p className="ob-sub">Ask about stock levels, revenue, invoices, and customer dues.</p>
         <div className="ob-dots"><span></span><span></span><span></span><span className="active"></span></div>
