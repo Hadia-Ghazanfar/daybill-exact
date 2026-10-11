@@ -8,6 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
+import obFinal1 from "./assets/onboarding-final/s1.jpg";
+import obFinal2 from "./assets/onboarding-final/s2.jpg";
+import obFinal3 from "./assets/onboarding-final/s3.jpg";
+import obFinal4 from "./assets/onboarding-final/s4.jpg";
 
 
 
@@ -2101,10 +2105,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  { id: "s1", mockup: "welcome", title: "Your business,", accent: "simplified.", body: "Create invoices, manage stock, track payments, and stay on top of your shop." },
-  { id: "s2", mockup: "dashboard", title: "Know your business", accent: "at a glance.", body: "Track sales, stock, and outstanding payments from one simple dashboard." },
-  { id: "s3", mockup: "invoice", title: "Professional bills,", accent: "in seconds.", body: "Create, download, print, and share invoices with your customers." },
-  { id: "s4", mockup: "assistant", title: "Your shop assistant,", accent: "always ready.", body: "Ask about stock levels, revenue, invoices, and customer dues." },
+  { id: "s1", image: obFinal1, hasButtons: true },
+  { id: "s2", image: obFinal2, hasButtons: false },
+  { id: "s3", image: obFinal3, hasButtons: false },
+  { id: "s4", image: obFinal4, hasButtons: true },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
@@ -2161,14 +2165,16 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
   const current = onboardingSlides[slide];
   return <main className="welcome-page" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
     <SafeAreaTopScrim backgroundColor="#ffffff" />
-    <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip</button></header>
-    <section className="welcome-content her-ob">
-      <div className="welcome-art her-ob-art"><div key={slide} className="welcome-slide-enter"><OnboardingMockup type={current?.mockup ?? "welcome"} /></div></div>
-      <div className="welcome-copy">
-        <div className="welcome-dots" aria-label={`Page ${slide + 1} of ${onboardingSlides.length}`}>{onboardingSlides.map((item, index) => <button key={item.id} type="button" aria-label={`Go to page ${index + 1}`} className={index === slide ? "active" : ""} onClick={() => setSlide(index)} />)}</div>
-      </div>
-      <div className="welcome-actions">{slide === 0 ? <><button className="welcome-access her-ob-btn" type="button" onClick={goNext}>Get Started →</button><button className="welcome-signup her-ob-btn2" type="button" onClick={onLogin}>I already have an account</button></> : isLast ? <button className="welcome-access her-ob-btn" type="button" onClick={goNext}>Get Started →</button> : <button className="her-ob-arrow" type="button" onClick={goNext}>→</button>}</div>
-    </section>
+    <div className="ob-final-wrap">
+      <img key={slide} className="ob-final-img welcome-slide-enter" src={current?.image} alt="Daybill" />
+      <button className="ob-final-skip" type="button" onClick={onLogin}>Skip</button>
+      {slide === 0 && <>
+        <button className="ob-final-btn ob-final-getstarted" type="button" onClick={goNext}>Get Started →</button>
+        <button className="ob-final-btn ob-final-haveaccount" type="button" onClick={onLogin}>I already have an account</button>
+      </>}
+      {(slide === 1 || slide === 2) && <button className="ob-final-btn ob-final-arrow" type="button" onClick={goNext}>→</button>}
+      {slide === 3 && <button className="ob-final-btn ob-final-getstarted-s4" type="button" onClick={goNext}>Get Started →</button>}
+    </div>
   </main>;
 }
 
