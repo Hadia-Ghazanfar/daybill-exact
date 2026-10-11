@@ -8,9 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import ssDashboard from "./assets/onboarding-real/dashboard.png";
-import ssInvoice from "./assets/onboarding-real/invoice.png";
-import ssChatbot from "./assets/onboarding-real/chatbot.png";
+import proWelcome from "./assets/onboarding-pro/welcome.png";
+import proDashboard from "./assets/onboarding-pro/dashboard.png";
+import proInvoice from "./assets/onboarding-pro/invoice.png";
+import proAssistant from "./assets/onboarding-pro/assistant.png";
 
 
 
@@ -2108,10 +2109,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  { id: "s1", type: "welcome", screenshot: null },
-  { id: "s2", type: "dashboard", screenshot: ssDashboard },
-  { id: "s3", type: "invoice", screenshot: ssInvoice },
-  { id: "s4", type: "assistant", screenshot: ssChatbot },
+  { id: "s1", type: "welcome", screenshot: proWelcome },
+  { id: "s2", type: "dashboard", screenshot: proDashboard },
+  { id: "s3", type: "invoice", screenshot: proInvoice },
+  { id: "s4", type: "assistant", screenshot: proAssistant },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
@@ -2173,19 +2174,7 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
       
       {current?.type === "welcome" && <>
         <div className="ob-logo"><img src={daybillLogoDark} alt="Daybill" /></div>
-        <div className="ob-visual">
-          <div className="ob-inv-illus">
-            <div className="ob-inv-paper">
-              <div className="ob-inv-title">INVOICE</div>
-              <div className="ob-inv-lines"><i></i><i></i><i></i></div>
-              <div className="ob-inv-check">✓</div>
-              <div className="ob-inv-amt">PKR 3,200</div>
-            </div>
-            <div className="ob-float-icon ob-fi1">☰</div>
-            <div className="ob-float-icon ob-fi2">◈</div>
-            <div className="ob-float-icon ob-fi3">◉</div>
-          </div>
-        </div>
+        <div className="ob-ss-wrap ob-pro-wrap"><img className="ob-ss" src={current?.screenshot} alt="Welcome" /></div>
         <h1 className="ob-headline">Your business,<br/><span>simplified.</span></h1>
         <p className="ob-sub">Create invoices, manage stock, track payments, and stay on top of your shop.</p>
         <div className="ob-dots"><span className="active"></span><span></span><span></span><span></span></div>
