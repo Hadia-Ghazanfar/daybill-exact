@@ -8,6 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
+import obSlide1 from "./assets/onboarding-her/slide1.png";
+import obSlide2 from "./assets/onboarding-her/slide2.png";
+import obSlide3 from "./assets/onboarding-her/slide3.png";
+import obSlide4 from "./assets/onboarding-her/slide4.png";
 import welcomeSlideSharing from "./assets/approved/welcome-slide-sharing.png";
 import desktopShopkeeper from "./assets/approved/desktop-shopkeeper-3d.png";
 import lostMonster from "./assets/approved/404-monster.png";
@@ -2101,28 +2105,28 @@ const onboardingSlides = [
     headline: "Your business,",
     headlineAccent: "simplified.",
     body: "Create invoices, manage stock, track payments, and stay on top of your shop.",
-    mockup: "intro",
+    image: obSlide1,
   },
   {
     id: "dashboard",
     headline: "Know your business",
     headlineAccent: "at a glance.",
     body: "Track sales, stock, and outstanding payments from one simple dashboard.",
-    mockup: "dashboard",
+    image: obSlide2,
   },
   {
     id: "invoice",
     headline: "Professional bills,",
     headlineAccent: "in seconds.",
     body: "Create, download, print, and share invoices with your customers.",
-    mockup: "invoice",
+    image: obSlide3,
   },
   {
     id: "assistant",
     headline: "Your shop assistant,",
     headlineAccent: "always ready.",
     body: "Ask about stock levels, revenue, invoices, and customer dues.",
-    mockup: "assistant",
+    image: obSlide4,
   },
 ] as const;
 
@@ -2182,7 +2186,7 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
     <SafeAreaTopScrim backgroundColor="#ffffff" />
     <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip</button></header>
     <section className="welcome-content ob2">
-      <div className="welcome-art ob2-art"><div key={slide} className="welcome-slide-enter"><OnboardingMockup type={current?.mockup ?? "intro"} /></div></div>
+      <div className="welcome-art ob2-art"><img key={slide} className="welcome-slide-enter ob2-her-image" src={current?.image} alt="Daybill onboarding" /></div>
       <div className="welcome-copy ob2-copy">
         <h1 key={`t-${slide}`} className="welcome-slide-enter">{current?.headline} <span className="accent">{current?.headlineAccent}</span></h1>
         <p key={`b-${slide}`} className="welcome-tagline welcome-slide-enter">{current?.body}</p>

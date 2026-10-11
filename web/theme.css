@@ -4078,3 +4078,6 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .ob2-secondary { background: transparent !important; border: 1.5px solid #0a3d3a !important; color: #0a3d3a !important; border-radius: 50px !important; }
 .ob2-arrow { width: 56px; height: 56px; border-radius: 50%; background: #0a3d3a; color: #fff; border: none; font-size: 22px; margin-left: auto; cursor: pointer; }
 
+.ob2-her-image { width: 100%; max-width: 320px; height: auto; border-radius: 16px; }
+.ob2-art { padding: 0 !important; }
+
