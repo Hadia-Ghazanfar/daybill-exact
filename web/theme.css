@@ -1194,12 +1194,12 @@ html.phone-layout .admin-dashboard { padding-top: 4px; }
 .primary:hover { filter: brightness(.96); }
 .primary.whatsapp, .reminder-button { background: var(--accent); color: #062a20; }
 .secondary { border-color: var(--border); background: var(--surface); }
-.text-button, .return-link, .add-line { color: #159c64; }
+.text-button, .return-link, .add-line { color: var(--accent); }
 .icon-button, .round-create { color: var(--ink); }
 .avatar, .registered-avatar, .registered-count, .count-badge { background: var(--ink); color: #fff; }
 .setup-prompt, .inline-form { border-top-color: var(--accent); }
 .stepper button.active::after { background: var(--accent); }
-.section-heading span { color: #159c64; }
+.section-heading span { color: var(--accent); }
 .status-toggle.paid { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
 .mini-status.pending { background: #fff0cd; color: #775100; }
 .mini-status.paid { background: #d7f7e8; color: #08734a; }
@@ -1211,11 +1211,11 @@ html.phone-layout .admin-dashboard { padding-top: 4px; }
 .launch-line::after { background: var(--accent); }
 .auth-screen { background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 8%, var(--bg)), var(--bg) 42%); }
 .auth-card { border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border)); box-shadow: 0 22px 55px rgba(11,59,57,.13); }
-.auth-kicker { color: #159c64; }
+.auth-kicker { color: var(--accent); }
 .owner-database-card, .profile-hero, .admin-status { background: #0b3b39; }
 .owner-database-card .secondary { border-color: rgba(255,255,255,.2); color: #0b3b39; }
 .admin-section-switch button.active b { background: var(--accent); color: #062a20; }
-.feedback-category.suggestion { color: #159c64; }
+.feedback-category.suggestion { color: var(--accent); }
 
 .balance-card {
   background: #0b3b39;
@@ -1232,9 +1232,9 @@ html.phone-layout .admin-dashboard { padding-top: 4px; }
 .metrics-grid .positive strong { color: #159c64; }
 .analytics-card, .dashboard-section { border: 1px solid color-mix(in srgb, var(--accent) 7%, var(--border)); }
 .sales-chart .recharts-cartesian-axis-tick-value { fill: var(--dim); }
-.list-avatar, .record-icon { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); color: #159c64; }
+.list-avatar, .record-icon { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); color: var(--accent); }
 .choice.selected, .selected-contact { background: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
-.option-grid button.active, .transaction-switch button.active, .filter-tabs button.active, .segmented button.active, .language-switch button.active, .theme-switch button.active { color: #08734a; }
+/* removed hardcoded - uses var(--accent) from rule below */
 
 .bottom-nav {
   border: 1px solid var(--border);
@@ -1242,7 +1242,7 @@ html.phone-layout .admin-dashboard { padding-top: 4px; }
   box-shadow: 0 14px 34px rgba(11,59,57,.16);
 }
 .bottom-nav button { color: var(--dim); }
-.bottom-nav button.active { background: color-mix(in srgb, var(--accent) 15%, var(--surface)); color: #08734a; box-shadow: none; }
+.bottom-nav button.active { background: color-mix(in srgb, var(--accent) 15%, var(--surface)); color: var(--accent); box-shadow: none; }
 html[data-theme="dark"] .primary { background: var(--accent); color: #062a20; }
 html[data-theme="dark"] .bottom-nav { border-color: var(--border); background: #092523; }
 html[data-theme="dark"] .bottom-nav button.active { background: var(--accent); color: #062a20; }
@@ -1438,7 +1438,7 @@ html.phone-layout .bottom-nav {
   background: color-mix(in srgb, var(--surface) 97%, transparent);
   box-shadow: 0 14px 34px rgba(11,59,57,.16);
 }
-html.phone-layout .bottom-nav button.active { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: #08734a; }
+html.phone-layout .bottom-nav button.active { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--accent); }
 html[data-theme="dark"].phone-layout .bottom-nav { border-color: var(--border); background: #092523; }
 html[data-theme="dark"].phone-layout .bottom-nav button.active { background: var(--accent); color: #062a20; }
 @media (prefers-color-scheme: dark) {
@@ -3774,9 +3774,13 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 
 /* ===== Accent Color Themes (high specificity to override theme) ===== */
 :root[data-accent="violet"] { --accent: #8B5CF6 !important; --chart-accent: #8B5CF6 !important; --space-accent: #8B5CF6 !important; }
+:root[data-accent="violet"][data-theme="dark"] { --accent: #A78BFA !important; --chart-accent: #A78BFA !important; --space-accent: #A78BFA !important; }
 :root[data-accent="blue"] { --accent: #3B82F6 !important; --chart-accent: #3B82F6 !important; --space-accent: #3B82F6 !important; }
+:root[data-accent="blue"][data-theme="dark"] { --accent: #60A5FA !important; --chart-accent: #60A5FA !important; --space-accent: #60A5FA !important; }
 :root[data-accent="pink"] { --accent: #EC4899 !important; --chart-accent: #EC4899 !important; --space-accent: #EC4899 !important; }
+:root[data-accent="pink"][data-theme="dark"] { --accent: #F472B6 !important; --chart-accent: #F472B6 !important; --space-accent: #F472B6 !important; }
 :root[data-accent="orange"] { --accent: #F97316 !important; --chart-accent: #F97316 !important; --space-accent: #F97316 !important; }
+:root[data-accent="orange"][data-theme="dark"] { --accent: #FB923C !important; --chart-accent: #FB923C !important; --space-accent: #FB923C !important; }
 :root[data-accent="teal"] { --accent: #168a45 !important; --chart-accent: #168a45 !important; --space-accent: #168a45 !important; }
 :root[data-accent="teal"][data-theme="dark"] { --accent: #57c878 !important; --chart-accent: #57c878 !important; --space-accent: #57c878 !important; }
 
