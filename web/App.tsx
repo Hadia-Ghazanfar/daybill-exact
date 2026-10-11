@@ -133,7 +133,7 @@ function saveAccountSession(session: AccountSession, remember = true) {
 
 type LanguageContextValue = { language: Language; setLanguage: (language: Language) => void };
 const LanguageContext = createContext<LanguageContextValue>({ language: "en", setLanguage: () => undefined });
-type AccentColor = "teal" | "violet" | "blue" | "pink" | "orange";
+type AccentColor = "teal" | "violet" | "blue" | "pink" | "orange" | "yellow";
 type TextSize = "small" | "medium" | "large" | "xlarge";
 type ThemeContextValue = {
   theme: Theme; setTheme: (theme: Theme) => void;
@@ -2836,12 +2836,13 @@ function ProfileView({ settings, account, onEdit, onLogout }: { settings: Worksp
   const { theme, setTheme, accent, setAccent, textSize, setTextSize } = useTheme();
   const [showFeedback, setShowFeedback] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
-  const accents: { id: "teal" | "violet" | "blue" | "pink" | "orange"; color: string; label: string }[] = [
+  const accents: { id: "teal" | "violet" | "blue" | "pink" | "orange" | "yellow"; color: string; label: string }[] = [
     { id: "teal", color: "#17765A", label: "Teal" },
     { id: "violet", color: "#9D8DF1", label: "Violet" },
     { id: "blue", color: "#7AA8D7", label: "Blue" },
     { id: "pink", color: "#E79FB8", label: "Pink" },
     { id: "orange", color: "#E8A87C", label: "Orange" },
+    { id: "yellow", color: "#DDBB6A", label: "Yellow" },
   ];
   const textSizes: { id: "small" | "medium" | "large" | "xlarge"; label: string }[] = [
     { id: "small", label: "Small" },

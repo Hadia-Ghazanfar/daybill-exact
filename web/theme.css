@@ -2446,11 +2446,8 @@ html[data-theme="dark"] .login-role-tabs { background: #143735; }
   background: color-mix(in srgb, var(--tile-color, var(--accent)) 6%, var(--surface));
   box-shadow: 0 12px 26px rgba(10, 64, 61, .09), 0 2px 7px rgba(10, 64, 61, .05);
 }
-.stat-tile.revenue { --tile-color: #20bd78; }
-.stat-tile.cost { --tile-color: #d89a24; }
-.stat-tile.profit { --tile-color: #08766e; }
-.stat-tile.pending { --tile-color: #d86d5f; }
-.stat-tile.payables { --tile-color: #4c7f79; }
+.stat-tile.revenue, .stat-tile.cost, .stat-tile.profit,
+.stat-tile.pending, .stat-tile.payables, .stat-tile.purchases { --tile-color: var(--accent); }
 .stat-tile > span:not(.stat-icon), .stat-tile > strong, .stat-tile > small { position: relative; z-index: 1; display: block; }
 .stat-tile > strong { overflow: hidden; margin: 15px 0 5px; color: var(--text); font-size: clamp(19px, 5.4vw, 28px); line-height: 1; letter-spacing: -.045em; text-overflow: ellipsis; white-space: nowrap; }
 .stat-tile > span:not(.stat-icon) { color: var(--text); font-size: 11px; font-weight: 800; }
@@ -3782,6 +3779,8 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 :root[data-accent="pink"][data-theme="dark"] { --accent: #EDB4C7 !important; --chart-accent: #EDB4C7 !important; --space-accent: #EDB4C7 !important; --bg: #1c1418 !important; --surface: #241b20 !important; --surface-2: #2d2329 !important; }
 :root[data-accent="orange"] { --accent: #E8A87C !important; --chart-accent: #E8A87C !important; --space-accent: #E8A87C !important; --bg: #fbf8f5 !important; --surface-2: #f6efe8 !important; }
 :root[data-accent="orange"][data-theme="dark"] { --accent: #EDB992 !important; --chart-accent: #EDB992 !important; --space-accent: #EDB992 !important; --bg: #1c1611 !important; --surface: #241d16 !important; --surface-2: #2d251d !important; }
+:root[data-accent="yellow"] { --accent: #DDBB6A !important; --chart-accent: #DDBB6A !important; --space-accent: #DDBB6A !important; --bg: #fbf9f4 !important; --surface-2: #f5efe2 !important; }
+:root[data-accent="yellow"][data-theme="dark"] { --accent: #E5C87E !important; --chart-accent: #E5C87E !important; --space-accent: #E5C87E !important; --bg: #1c1810 !important; --surface: #242016 !important; --surface-2: #2d281d !important; }
 :root[data-accent="teal"] { --accent: #168a45 !important; --chart-accent: #168a45 !important; --space-accent: #168a45 !important; }
 :root[data-accent="teal"][data-theme="dark"] { --accent: #57c878 !important; --chart-accent: #57c878 !important; --space-accent: #57c878 !important; }
 
