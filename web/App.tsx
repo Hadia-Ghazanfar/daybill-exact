@@ -2209,7 +2209,12 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
 }
 
 function NotFoundPage({ loggedIn, onHome }: { loggedIn: boolean; onHome: () => void }) {
-  return <main className="not-found-fullscreen" onClick={onHome} style={{cursor: 'pointer'}}>
+  return <main className="not-found-fullscreen">
+    <nav className="not-found-breadcrumbs" aria-label="Breadcrumb">
+      <button onClick={onHome} className="crumb-link">Home</button>
+      <span className="crumb-sep">/</span>
+      <span className="crumb-current">404 Error</span>
+    </nav>
     <img className="not-found-full-img" src={notFoundFull} alt="404 - Page not found" />
     <button className="not-found-home-btn" onClick={(e) => { e.stopPropagation(); onHome(); }} aria-label="Back to home" />
   </main>;
@@ -2444,7 +2449,20 @@ function AppContent() {
   const [phase, setPhase] = useState<LaunchPhase>("splash");
   const [session, setSession] = useState<AccountSession | null>(null);
   const [authInitialMode, setAuthInitialMode] = useState<"user-login" | "create">("user-login");
-  const [unknownRoute, setUnknownRoute] = useState(() => !["", "/index.html"].includes(routeTail()));
+  const [unknownRoute, setUnknownRoute] = useState(() => {
+    const tail = routeTail();
+    if (tail === "/404error") return true;
+    return !["", "/index.html"].includes(tail);
+  });
+
+  useEffect(() => {
+    if (unknownRoute && !window.location.pathname.toLowerCase().endsWith("/404error")) {
+      const marker = "/invoicing-app";
+      const markerIndex = window.location.pathname.indexOf(marker);
+      const base = markerIndex >= 0 ? window.location.pathname.slice(0, markerIndex + marker.length) : "";
+      window.history.replaceState(null, "", `${base}/404error`);
+    }
+  }, [unknownRoute]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
