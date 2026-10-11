@@ -1833,7 +1833,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
     setMessage("");
   };
 
-  if (workspace.isPending) return <div className="loading"><div className="loader" /><p>Opening the ledger…</p></div>;
+  if (workspace.isPending) return <div className="loading brand-loading"><img className="brand-loading-logo" src={daybillLogoDark} alt="Daybill" /><div className="loader" /></div>;
   if (workspace.error || !workspace.data) {
     const errMsg = String(workspace.error ?? "Unknown error");
     if (/session|expired|unauthori|please log in|log in again/i.test(errMsg)) return <SessionExpiredNotice onLogout={onLogout} />;
@@ -2740,7 +2740,7 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
     setLastSeen(now);
     setShowNotifications(false);
   };
-  if (dashboard.isPending) return <div className="loading"><div className="loader" /><p>Opening the ledger…</p></div>;
+  if (dashboard.isPending) return <div className="loading brand-loading"><img className="brand-loading-logo" src={daybillLogoDark} alt="Daybill" /><div className="loader" /></div>;
   if (dashboard.error || !dashboard.data) {
     const adminErr = String(dashboard.error ?? "Unknown error");
     if (/session|expired|unauthori|please log in|log in again/i.test(adminErr)) return <SessionExpiredNotice onLogout={onLogout} />;
