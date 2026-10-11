@@ -989,6 +989,7 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [accountId]);
 
+  const prevAccountId = useRef<string | null>(accountId);
   useLayoutEffect(() => {
     const root = document.documentElement;
     const hasSession = !!accountId;
@@ -999,8 +1000,11 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     root.dataset.accent = effectiveAccent;
     root.dataset.textSize = effectiveTextSize;
     root.style.colorScheme = effectiveTheme;
-    // Save to account-scoped keys (each account keeps its own settings)
-    if (accountId) {
+    // Save to account-scoped keys ONLY when user changes theme (not on account switch)
+    // This prevents overwriting saved settings with defaults on login
+    const accountJustChanged = prevAccountId.current !== accountId;
+    prevAccountId.current = accountId;
+    if (accountId && !accountJustChanged) {
       try {
         localStorage.setItem(getScopedKey(THEME_STORAGE_KEY, accountId), theme);
         localStorage.setItem(getScopedKey(ACCENT_KEY, accountId), accent);
