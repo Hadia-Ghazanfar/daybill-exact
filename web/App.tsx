@@ -2891,8 +2891,8 @@ function FeedbackSheet({ onClose }: { onClose: () => void }) {
 
 
 function PrivacyPolicyModal({ onClose }: { onClose: () => void }) {
-  return <div className="modal-overlay" onClick={onClose}><div className="modal-sheet legal-sheet" onClick={(e) => e.stopPropagation()}>
-    <div className="modal-head"><h2>Privacy Policy</h2><button className="icon-button" onClick={onClose} aria-label="Close">×</button></div>
+  return <div className="sheet-backdrop" onClick={onClose}><div className="sheet legal-sheet" onClick={(e) => e.stopPropagation()}>
+    <div className="sheet-handle" /><div className="sheet-head"><h2>Privacy Policy</h2><button className="icon-button" onClick={onClose} aria-label="Close">×</button></div>
     <div className="legal-body">
       <p><strong>Last updated:</strong> October 2026</p>
       <h3>What we collect</h3>
@@ -2910,8 +2910,8 @@ function PrivacyPolicyModal({ onClose }: { onClose: () => void }) {
 }
 
 function TermsModal({ onClose }: { onClose: () => void }) {
-  return <div className="modal-overlay" onClick={onClose}><div className="modal-sheet legal-sheet" onClick={(e) => e.stopPropagation()}>
-    <div className="modal-head"><h2>Terms of Service</h2><button className="icon-button" onClick={onClose} aria-label="Close">×</button></div>
+  return <div className="sheet-backdrop" onClick={onClose}><div className="sheet legal-sheet" onClick={(e) => e.stopPropagation()}>
+    <div className="sheet-handle" /><div className="sheet-head"><h2>Terms of Service</h2><button className="icon-button" onClick={onClose} aria-label="Close">×</button></div>
     <div className="legal-body">
       <p><strong>Last updated:</strong> October 2026</p>
       <h3>1. The service</h3>
