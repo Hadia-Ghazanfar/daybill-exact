@@ -2838,10 +2838,10 @@ function ProfileView({ settings, account, onEdit, onLogout }: { settings: Worksp
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const accents: { id: "teal" | "violet" | "blue" | "pink" | "orange"; color: string; label: string }[] = [
     { id: "teal", color: "#17765A", label: "Teal" },
-    { id: "violet", color: "#8B5CF6", label: "Violet" },
-    { id: "blue", color: "#3B82F6", label: "Blue" },
-    { id: "pink", color: "#EC4899", label: "Pink" },
-    { id: "orange", color: "#F97316", label: "Orange" },
+    { id: "violet", color: "#9D8DF1", label: "Violet" },
+    { id: "blue", color: "#7AA8D7", label: "Blue" },
+    { id: "pink", color: "#E79FB8", label: "Pink" },
+    { id: "orange", color: "#E8A87C", label: "Orange" },
   ];
   const textSizes: { id: "small" | "medium" | "large" | "xlarge"; label: string }[] = [
     { id: "small", label: "Small" },
