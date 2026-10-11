@@ -3966,61 +3966,6 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   }
 }
 
-.sidebar-close { display: none; }
-@media (min-width: 760px) {
-  /* Sidebar fixed to top, properly aligned */
-  .bottom-nav:not(.admin-nav) {
-    top: 0 !important;
-    padding-top: 12px !important;
-  }
-  .sidebar-topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 12px 8px !important;
-    margin-bottom: 4px;
-  }
-  .sidebar-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.2);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,.3);
-    font-size: 22px;
-    font-weight: 700;
-    cursor: pointer;
-    line-height: 1;
-  }
-  .sidebar-close:hover { background: rgba(255,255,255,.3); }
-  .sidebar-collapsed .bottom-nav:not(.admin-nav) { display: none; }
-  .sidebar-collapsed .app-shell { padding-left: 0 !important; }
-  .sidebar-collapsed .app-brand-bar { display: none; }
-}
 
-.sidebar-reopen { display: none; }
-@media (min-width: 760px) {
-  .sidebar-reopen {
-    display: flex;
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 30;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: #0a403d;
-    color: #fff;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,.2);
-  }
-}
 
 
