@@ -2345,6 +2345,17 @@ function AppContent() {
     localStorage.removeItem(SESSION_STORAGE_KEY);
     sessionStorage.removeItem(SESSION_STORAGE_KEY);
     localStorage.removeItem("hisaab-app-lock-v1");
+    // Reset appearance to defaults so login screen isn't affected by account settings
+    try {
+      localStorage.removeItem(THEME_STORAGE_KEY);
+      localStorage.removeItem(ACCENT_KEY);
+      localStorage.removeItem(TEXTSIZE_KEY);
+      const root = document.documentElement;
+      root.dataset.theme = "light";
+      root.dataset.accent = "teal";
+      root.dataset.textSize = "medium";
+      root.style.colorScheme = "light";
+    } catch { /* ignore */ }
     setApiSession(null);
     setSession(null);
     queryClient.clear();
