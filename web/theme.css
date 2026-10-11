@@ -3949,21 +3949,34 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 
 .sidebar-close { display: none; }
 @media (min-width: 760px) {
+  /* Sidebar fixed to top, properly aligned */
+  .bottom-nav:not(.admin-nav) {
+    top: 0 !important;
+    padding-top: 12px !important;
+  }
+  .sidebar-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px 8px !important;
+    margin-bottom: 4px;
+  }
   .sidebar-close {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: rgba(255,255,255,.15);
+    background: rgba(255,255,255,.2);
     color: #fff;
-    border: none;
-    font-size: 20px;
+    border: 1px solid rgba(255,255,255,.3);
+    font-size: 22px;
+    font-weight: 700;
     cursor: pointer;
-    margin-left: auto;
+    line-height: 1;
   }
-  .sidebar-close:hover { background: rgba(255,255,255,.25); }
+  .sidebar-close:hover { background: rgba(255,255,255,.3); }
   .sidebar-collapsed .bottom-nav:not(.admin-nav) { display: none; }
   .sidebar-collapsed .app-shell { padding-left: 0 !important; }
   .sidebar-collapsed .app-brand-bar { display: none; }
@@ -3991,55 +4004,4 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   }
 }
 
-/* Anything-style splash: black screen, logo animating in */
-.anything-splash {
-  background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100dvh;
-  overflow: hidden;
-}
-.anything-splash-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 24px;
-}
-.anything-logo {
-  width: 110px;
-  height: 110px;
-  border-radius: 28px;
-  opacity: 0;
-  transform: scale(.6);
-  animation: anythingLogoIn 1.1s cubic-bezier(.2,.9,.25,1.2) .15s forwards;
-  box-shadow: 0 0 60px rgba(23,118,90,.45);
-}
-.anything-wordmark {
-  margin: 22px 0 0;
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  color: #fff;
-  opacity: 0;
-  transform: translateY(18px);
-  animation: anythingFadeUp .8s ease .7s forwards;
-}
-.anything-tagline {
-  margin: 10px 0 0;
-  font-size: 15px;
-  color: rgba(255,255,255,.55);
-  opacity: 0;
-  transform: translateY(14px);
-  animation: anythingFadeUp .8s ease .95s forwards;
-}
-@keyframes anythingLogoIn {
-  0% { opacity: 0; transform: scale(.6); }
-  60% { opacity: 1; transform: scale(1.06); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes anythingFadeUp {
-  to { opacity: 1; transform: translateY(0); }
-}
 
