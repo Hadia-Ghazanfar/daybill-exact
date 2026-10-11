@@ -1485,7 +1485,7 @@ body { background: var(--bg); color: var(--text); }
 .filter-tabs, .segmented, .transaction-switch, .option-grid, .language-switch, .theme-switch { background: var(--surface-2); }
 .filter-tabs button, .segmented button, .transaction-switch button, .option-grid button, .language-switch button, .theme-switch button { color: var(--dim); }
 .filter-tabs button.active, .segmented button.active, .transaction-switch button.active, .option-grid button.active, .language-switch button.active, .theme-switch button.active {
-  background: var(--ink); color: #fff; box-shadow: none;
+  background: var(--accent); color: #fff; box-shadow: none;
 }
 .stepper button.active { background: var(--ink); color: #fff; box-shadow: none; }
 .stepper button.active span { border-color: rgba(255,255,255,.55); }
@@ -3781,10 +3781,10 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 :root[data-accent="teal"][data-theme="dark"] { --accent: #57c878 !important; --chart-accent: #57c878 !important; --space-accent: #57c878 !important; }
 
 /* ===== Text Sizes (zoom-based scaling) ===== */
-:root[data-text-size="small"] body { zoom: 0.9; }
-:root[data-text-size="medium"] body { zoom: 1; }
-:root[data-text-size="large"] body { zoom: 1.1; }
-:root[data-text-size="xlarge"] body { zoom: 1.2; }
+:root[data-text-size="small"] { zoom: 0.9; }
+:root[data-text-size="medium"] { zoom: 1; }
+:root[data-text-size="large"] { zoom: 1.12; }
+:root[data-text-size="xlarge"] { zoom: 1.25; }
 
 /* ===== Brand Loading Screen ===== */
 .brand-loading {
