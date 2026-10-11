@@ -8,10 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import proWelcome from "./assets/onboarding-pro/welcome.png";
-import proDashboard from "./assets/onboarding-pro/dashboard.png";
-import proInvoice from "./assets/onboarding-pro/invoice.png";
-import proAssistant from "./assets/onboarding-pro/assistant.png";
+import exact1 from "./assets/onboarding-exact/s1.jpg";
+import exact2 from "./assets/onboarding-exact/s2.jpg";
+import exact3 from "./assets/onboarding-exact/s3.jpg";
+import exact4 from "./assets/onboarding-exact/s4.jpg";
 
 
 
@@ -2109,10 +2109,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  { id: "s1", type: "welcome", screenshot: proWelcome },
-  { id: "s2", type: "dashboard", screenshot: proDashboard },
-  { id: "s3", type: "invoice", screenshot: proInvoice },
-  { id: "s4", type: "assistant", screenshot: proAssistant },
+  { id: "s1", type: "welcome", screenshot: exact1 },
+  { id: "s2", type: "dashboard", screenshot: exact2 },
+  { id: "s3", type: "invoice", screenshot: exact3 },
+  { id: "s4", type: "assistant", screenshot: exact4 },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
