@@ -4133,9 +4133,10 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .ob-final-wrap { position: relative; width: 100%; max-width: 480px; margin: 0 auto; min-height: 100vh; background: #f8fdfb; }
 .ob-final-img { width: 100%; height: auto; display: block; }
 .ob-final-skip { position: absolute; top: 16px; right: 20px; background: transparent; border: none; color: #0a3d3a; font-size: 14px; font-weight: 600; cursor: pointer; z-index: 10; }
-.ob-final-btn { position: absolute; border: none; cursor: pointer; font-weight: 700; z-index: 10; }
-.ob-final-getstarted { bottom: 120px; left: 24px; right: 24px; background: #0a3d3a; color: #fff; padding: 16px; border-radius: 50px; font-size: 16px; }
-.ob-final-haveaccount { bottom: 56px; left: 24px; right: 24px; background: transparent; color: #0a3d3a; padding: 14px; border-radius: 50px; font-size: 14px; border: 1.5px solid #0a3d3a; }
-.ob-final-arrow { bottom: 60px; right: 24px; width: 56px; height: 56px; background: #0a3d3a; color: #fff; border-radius: 50%; font-size: 20px; }
-.ob-final-getstarted-s4 { bottom: 60px; right: 24px; background: #0a3d3a; color: #fff; padding: 14px 28px; border-radius: 50px; font-size: 15px; }
+.ob-final-btn { position: absolute; border: none; cursor: pointer; z-index: 10; background: transparent; color: transparent; }
+.ob-final-getstarted { bottom: 100px; left: 5%; right: 5%; height: 60px; }
+.ob-final-haveaccount { bottom: 30px; left: 5%; right: 5%; height: 55px; }
+.ob-final-arrow { bottom: 20px; right: 5%; width: 80px; height: 80px; }
+.ob-final-getstarted-s4 { bottom: 15px; right: 5%; width: 200px; height: 60px; }
+.ob-final-skip { position: absolute; top: 8px; right: 5%; width: 60px; height: 40px; background: transparent; border: none; color: transparent; cursor: pointer; z-index: 10; }
 

@@ -2167,13 +2167,13 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
     <SafeAreaTopScrim backgroundColor="#ffffff" />
     <div className="ob-final-wrap">
       <img key={slide} className="ob-final-img welcome-slide-enter" src={current?.image} alt="Daybill" />
-      <button className="ob-final-skip" type="button" onClick={onLogin}>Skip</button>
+      <button className="ob-final-skip" type="button" onClick={onLogin}aria-label="Skip"></button>
       {slide === 0 && <>
-        <button className="ob-final-btn ob-final-getstarted" type="button" onClick={goNext}>Get Started →</button>
-        <button className="ob-final-btn ob-final-haveaccount" type="button" onClick={onLogin}>I already have an account</button>
+        <button className="ob-final-btn ob-final-getstarted" type="button" onClick={goNext}aria-label="Get Started"></button>
+        <button className="ob-final-btn ob-final-haveaccount" type="button" onClick={onLogin}aria-label="I already have an account"></button>
       </>}
-      {(slide === 1 || slide === 2) && <button className="ob-final-btn ob-final-arrow" type="button" onClick={goNext}>→</button>}
-      {slide === 3 && <button className="ob-final-btn ob-final-getstarted-s4" type="button" onClick={goNext}>Get Started →</button>}
+      {(slide === 1 || slide === 2) && <button className="ob-final-btn ob-final-arrow" type="button" onClick={goNext}aria-label="Next"></button>}
+      {slide === 3 && <button className="ob-final-btn ob-final-getstarted-s4" type="button" onClick={goNext}aria-label="Get Started"></button>}
     </div>
   </main>;
 }
