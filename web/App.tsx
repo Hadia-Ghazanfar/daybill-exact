@@ -8,10 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import obHer1 from "./assets/onboarding-her/slide1.png";
-import obHer2 from "./assets/onboarding-her/slide2.png";
-import obHer3 from "./assets/onboarding-her/slide3.png";
-import obHer4 from "./assets/onboarding-her/slide4.png";
+
+
+
+
 
 import welcomeSlideSharing from "./assets/approved/welcome-slide-sharing.png";
 import desktopShopkeeper from "./assets/approved/desktop-shopkeeper-3d.png";
@@ -2101,10 +2101,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  { id: "s1", title: "Your business,", accent: "simplified.", body: "Create invoices, manage stock, track payments, and stay on top of your shop.", image: obHer1 },
-  { id: "s2", title: "Know your business", accent: "at a glance.", body: "Track sales, stock, and outstanding payments from one simple dashboard.", image: obHer2 },
-  { id: "s3", title: "Professional bills,", accent: "in seconds.", body: "Create, download, print, and share invoices with your customers.", image: obHer3 },
-  { id: "s4", title: "Your shop assistant,", accent: "always ready.", body: "Ask about stock levels, revenue, invoices, and customer dues.", image: obHer4 },
+  { id: "s1", mockup: "welcome", title: "Your business,", accent: "simplified.", body: "Create invoices, manage stock, track payments, and stay on top of your shop." },
+  { id: "s2", mockup: "dashboard", title: "Know your business", accent: "at a glance.", body: "Track sales, stock, and outstanding payments from one simple dashboard." },
+  { id: "s3", mockup: "invoice", title: "Professional bills,", accent: "in seconds.", body: "Create, download, print, and share invoices with your customers." },
+  { id: "s4", mockup: "assistant", title: "Your shop assistant,", accent: "always ready.", body: "Ask about stock levels, revenue, invoices, and customer dues." },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
@@ -2163,10 +2163,8 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
     <SafeAreaTopScrim backgroundColor="#ffffff" />
     <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip</button></header>
     <section className="welcome-content her-ob">
-      <div className="welcome-art her-ob-art"><img key={slide} className="welcome-slide-enter her-ob-img" src={current?.image} alt="Daybill" /></div>
+      <div className="welcome-art her-ob-art"><div key={slide} className="welcome-slide-enter"><OnboardingMockup type={current?.mockup ?? "welcome"} /></div></div>
       <div className="welcome-copy">
-        <h1 key={`t-${slide}`} className="welcome-slide-enter her-ob-title">{current?.title} <span>{current?.accent}</span></h1>
-        <p key={`b-${slide}`} className="welcome-tagline welcome-slide-enter">{current?.body}</p>
         <div className="welcome-dots" aria-label={`Page ${slide + 1} of ${onboardingSlides.length}`}>{onboardingSlides.map((item, index) => <button key={item.id} type="button" aria-label={`Go to page ${index + 1}`} className={index === slide ? "active" : ""} onClick={() => setSlide(index)} />)}</div>
       </div>
       <div className="welcome-actions">{slide === 0 ? <><button className="welcome-access her-ob-btn" type="button" onClick={goNext}>Get Started →</button><button className="welcome-signup her-ob-btn2" type="button" onClick={onLogin}>I already have an account</button></> : isLast ? <button className="welcome-access her-ob-btn" type="button" onClick={goNext}>Get Started →</button> : <button className="her-ob-arrow" type="button" onClick={goNext}>→</button>}</div>

@@ -4089,3 +4089,43 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .her-ob-btn2 { background: transparent !important; border: 1.5px solid #0a3d3a !important; color: #0a3d3a !important; border-radius: 50px !important; }
 .her-ob-arrow { width: 56px; height: 56px; border-radius: 50%; background: #0a3d3a; color: #fff; border: none; font-size: 22px; margin-left: auto; }
 
+/* Onboarding mockups */
+.ob-mock { background: #fff; border-radius: 24px; padding: 20px; box-shadow: 0 8px 32px rgba(10,61,58,0.12); max-width: 320px; margin: 0 auto; position: relative; }
+.ob-welcome { background: linear-gradient(135deg, #f0faf7 0%, #e8f5f0 100%); min-height: 280px; display: flex; align-items: center; justify-content: center; }
+.ob-invoice-card { background: #fff; border-radius: 16px; padding: 20px; transform: rotate(-8deg); box-shadow: 0 12px 32px rgba(10,61,58,0.15); width: 180px; position: relative; }
+.ob-inv-header { font-weight: 800; font-size: 14px; color: #0a3d3a; letter-spacing: 1px; margin-bottom: 12px; }
+.ob-inv-line { height: 8px; background: #e8f5f0; border-radius: 4px; margin: 8px 0; }
+.ob-inv-line.short { width: 60%; }
+.ob-inv-check { position: absolute; right: -12px; top: 50%; width: 36px; height: 36px; background: #0a8a6e; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
+.ob-inv-amount { margin-top: 12px; font-weight: 700; color: #0a3d3a; font-size: 14px; }
+.ob-float { position: absolute; width: 44px; height: 44px; background: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.1); font-size: 20px; }
+.ob-f1 { top: 20px; left: 16px; }
+.ob-f2 { top: 40px; right: 16px; }
+.ob-f3 { bottom: 30px; right: 30px; }
+.ob-dash-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 700; color: #0a3d3a; }
+.ob-dash-icons { font-size: 14px; }
+.ob-dash-hero { background: linear-gradient(135deg, #0a3d3a 0%, #0a5a54 100%); border-radius: 16px; padding: 16px; color: #fff; margin-bottom: 12px; }
+.ob-dash-rec { font-size: 12px; opacity: 0.9; margin-bottom: 4px; }
+.ob-dash-rec span { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: 6px; }
+.ob-dash-big { font-size: 24px; font-weight: 800; margin: 4px 0; }
+.ob-dash-sub { font-size: 11px; opacity: 0.8; }
+.ob-dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ob-dash-card { background: #f8fdfb; border-radius: 12px; padding: 12px; }
+.ob-dc-amt { font-weight: 800; font-size: 14px; color: #0a3d3a; }
+.ob-dc-lbl { font-size: 11px; color: #666; margin-top: 2px; }
+.ob-inv-shop { font-weight: 800; font-size: 16px; color: #0a3d3a; margin-bottom: 2px; }
+.ob-inv-meta { font-size: 11px; color: #666; text-align: right; margin-bottom: 12px; }
+.ob-inv-bill { font-size: 12px; color: #333; margin-bottom: 12px; line-height: 1.5; }
+.ob-inv-item { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-top: 1px solid #eee; }
+.ob-inv-total { display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-top: 2px solid #0a3d3a; margin-top: 8px; }
+.ob-inv-actions { display: flex; justify-content: space-around; margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee; }
+.ob-inv-act { text-align: center; font-size: 11px; color: #0a3d3a; }
+.ob-chat-head { display: flex; align-items: center; gap: 10px; background: #0a3d3a; color: #fff; margin: -20px -20px 16px; padding: 16px 20px; border-radius: 24px 24px 0 0; }
+.ob-chat-av { width: 36px; height: 36px; background: #0a8a6e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.ob-chat-on { font-size: 11px; opacity: 0.8; }
+.ob-chat-msg { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 13px; margin: 8px 0; line-height: 1.4; }
+.ob-chat-msg.bot { background: #f0f7f5; color: #333; border-bottom-left-radius: 4px; }
+.ob-chat-msg.user { background: #0a3d3a; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
+.ob-chat-input { background: #f8fdfb; border-radius: 24px; padding: 12px 16px; font-size: 13px; color: #999; display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.ob-chat-input span { color: #0a8a6e; font-size: 16px; }
+
