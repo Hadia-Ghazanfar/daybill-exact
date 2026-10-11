@@ -2073,17 +2073,20 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
     if (start === null || end === undefined || Math.abs(end - start) < 36) return;
     setSlide((current) => end < start ? (current + 1) % onboardingSlides.length : (current - 1 + onboardingSlides.length) % onboardingSlides.length);
   };
+  const isLast = slide === onboardingSlides.length - 1;
+  const goNext = () => { if (isLast) { onLogin(); } else { setSlide(slide + 1); } };
+  const current = onboardingSlides[slide];
   return <main className="welcome-page" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
     <SafeAreaTopScrim backgroundColor="#ffffff" />
-    <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /></header>
+    <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip &gt;</button></header>
     <section className="welcome-content">
-      <div className="welcome-art"><img className={`welcome-shopkeeper-image welcome-slide-image slide-${slide + 1}`} src={onboardingSlides[slide]?.image ?? welcomeShopkeeper} alt={onboardingSlides[slide]?.imageAlt ?? "Daybill welcome illustration"} /></div>
+      <div className="welcome-art"><img key={slide} className={`welcome-shopkeeper-image welcome-slide-image slide-${slide + 1} welcome-slide-enter`} src={current?.image ?? welcomeShopkeeper} alt={current?.imageAlt ?? "Daybill welcome illustration"} /></div>
       <div className="welcome-copy">
-        <h1>Welcome to Daybill!</h1>
-        <p className="welcome-tagline">Roz ka karobar, ab asaan — your daily trade, simplified</p>
+        <h1 key={`t-${slide}`} className="welcome-slide-enter">{current?.title}</h1>
+        <p key={`b-${slide}`} className="welcome-tagline welcome-slide-enter">{current?.body}</p>
         <div className="welcome-dots" aria-label={`Page ${slide + 1} of ${onboardingSlides.length}`}>{onboardingSlides.map((item, index) => <button key={item.title} type="button" aria-label={`Go to page ${index + 1}`} className={index === slide ? "active" : ""} onClick={() => setSlide(index)} />)}</div>
       </div>
-      <div className="welcome-actions"><button className="welcome-access" type="button" onClick={onLogin}>Access Your Account</button><button className="welcome-signup" type="button" onClick={onSignup}>Don’t have an account? <span>Signup</span></button></div>
+      <div className="welcome-actions"><button className="welcome-access" type="button" onClick={goNext}>{isLast ? "Get Started" : "Continue"}</button>{!isLast && <button className="welcome-signup" type="button" onClick={onSignup}>Don’t have an account? <span>Signup</span></button>}</div>
     </section>
   </main>;
 }

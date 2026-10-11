@@ -3838,3 +3838,9 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   animation: auth-fade-up 0.3s ease-out both;
   padding-top: 4px;
 }
+
+/* ===== Onboarding: skip + slide animations ===== */
+.welcome-head { display: flex; align-items: center; justify-content: space-between; }
+.welcome-skip { background: transparent; border: 0; color: var(--dim); font-weight: 700; font-size: 14px; cursor: pointer; padding: 8px; }
+@keyframes welcome-pop-in { from { opacity: 0; transform: scale(0.92) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.welcome-slide-enter { animation: welcome-pop-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
