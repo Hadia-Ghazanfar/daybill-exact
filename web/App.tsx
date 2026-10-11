@@ -8,10 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import exact1 from "./assets/onboarding-exact/ob-welcome-notext.jpg";
-import exact2 from "./assets/onboarding-exact/ob-dashboard-notext.jpg";
-import exact3 from "./assets/onboarding-exact/ob-invoice-notext.jpg";
-import exact4 from "./assets/onboarding-exact/ob-assistant-notext.jpg";
+import finalWelcome from "./assets/onboarding-exact/final-welcome.jpg";
+import finalDashboard from "./assets/onboarding-exact/final-dashboard.jpg";
+import finalInvoice from "./assets/onboarding-exact/final-invoice.jpg";
+import finalAssistant from "./assets/onboarding-exact/final-assistant.jpg";
 
 
 
@@ -2108,10 +2108,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  { id: "s1", type: "welcome", screenshot: exact1 },
-  { id: "s2", type: "dashboard", screenshot: exact2 },
-  { id: "s3", type: "invoice", screenshot: exact3 },
-  { id: "s4", type: "assistant", screenshot: exact4 },
+  { id: "s1", type: "welcome", screenshot: finalWelcome },
+  { id: "s2", type: "dashboard", screenshot: finalDashboard },
+  { id: "s3", type: "invoice", screenshot: finalInvoice },
+  { id: "s4", type: "assistant", screenshot: finalAssistant },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
@@ -2166,45 +2166,12 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
   const isLast = slide === onboardingSlides.length - 1;
   const goNext = () => { if (isLast) { onLogin(); } else { setSlide(slide + 1); } };
   const current = onboardingSlides[slide];
-  return <main className="welcome-page" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
-    <SafeAreaTopScrim backgroundColor="#ffffff" />
-    <div className="ob-page">
-      <button className="ob-skip" type="button" onClick={onLogin}>Skip</button>
-      
-      {current?.type === "welcome" && <>
-        <div className="ob-logo"><img src={daybillLogoDark} alt="Daybill" /></div>
-        <div className="ob-ss-wrap ob-pro-wrap"><img className="ob-ss" src={current?.screenshot} alt="Welcome" /></div>
-        <h1 className="ob-headline">Your business,<br/><span>simplified.</span></h1>
-        <p className="ob-sub">Create invoices, manage stock, track payments, and stay on top of your shop.</p>
-        <div className="ob-dots"><span className="active"></span><span></span><span></span><span></span></div>
-        <button className="ob-btn-primary" type="button" onClick={goNext}>Get Started <span>→</span></button>
-        <button className="ob-btn-secondary" type="button" onClick={onLogin}>I already have an account</button>
-      </>}
-      
-      {current?.type === "dashboard" && <>
-        <div className="ob-ss-wrap"><img className="ob-ss" src={current?.screenshot} alt="Dashboard preview" /></div>
-        <h1 className="ob-headline">Know your business<br/><span>at a glance.</span></h1>
-        <p className="ob-sub">Track sales, stock, and outstanding payments from one simple dashboard.</p>
-        <div className="ob-dots"><span></span><span className="active"></span><span></span><span></span></div>
-        <button className="ob-btn-arrow" type="button" onClick={goNext} aria-label="Next">→</button>
-      </>}
-      
-      {current?.type === "invoice" && <>
-        <div className="ob-ss-wrap"><img className="ob-ss" src={current?.screenshot} alt="Invoice preview" /></div>
-        <h1 className="ob-headline">Professional bills,<br/><span>in seconds.</span></h1>
-        <p className="ob-sub">Create, download, print, and share invoices with your customers.</p>
-        <div className="ob-dots"><span></span><span></span><span className="active"></span><span></span></div>
-        <button className="ob-btn-arrow" type="button" onClick={goNext} aria-label="Next">→</button>
-      </>}
-      
-      {current?.type === "assistant" && <>
-        <div className="ob-ss-wrap"><img className="ob-ss" src={current?.screenshot} alt="Assistant preview" /></div>
-        <h1 className="ob-headline">Your shop assistant,<br/><span>always ready.</span></h1>
-        <p className="ob-sub">Ask about stock levels, revenue, invoices, and customer dues.</p>
-        <div className="ob-dots"><span></span><span></span><span></span><span className="active"></span></div>
-        <button className="ob-btn-primary" type="button" onClick={goNext}>Get Started <span>→</span></button>
-      </>}
-    </div>
+  return <main className="welcome-fullscreen" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
+    <img className="wf-img" src={current?.screenshot} alt="Onboarding" />
+    <button className="wf-skip" type="button" onClick={onLogin} aria-label="Skip" />
+    {isLast
+      ? <button className="wf-getstarted" type="button" onClick={goNext} aria-label="Get Started" />
+      : <button className="wf-next" type="button" onClick={goNext} aria-label="Next" />}
   </main>;
 }
 

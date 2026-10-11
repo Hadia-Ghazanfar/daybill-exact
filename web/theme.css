@@ -4181,3 +4181,10 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .not-found-breadcrumbs .crumb-link:hover { text-decoration: underline; }
 .not-found-breadcrumbs .crumb-sep { color: #666; }
 .not-found-breadcrumbs .crumb-current { color: #333; font-weight: 500; }
+
+/* Fullscreen onboarding with invisible overlay buttons */
+.welcome-fullscreen { position: fixed; inset: 0; z-index: 100; background: #f7fbf9; overflow: hidden; }
+.welcome-fullscreen .wf-img { width: 100%; height: 100%; object-fit: contain; object-position: top center; display: block; }
+.welcome-fullscreen .wf-skip { position: absolute; top: 12px; right: 16px; width: 60px; height: 40px; background: transparent; border: none; cursor: pointer; }
+.welcome-fullscreen .wf-next { position: absolute; bottom: 8%; right: 8%; width: 80px; height: 80px; background: transparent; border: none; border-radius: 50%; cursor: pointer; }
+.welcome-fullscreen .wf-getstarted { position: absolute; bottom: 6%; left: 8%; right: 8%; height: 64px; background: transparent; border: none; border-radius: 32px; cursor: pointer; }
