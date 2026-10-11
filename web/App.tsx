@@ -8,10 +8,7 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import obSlide1 from "./assets/onboarding-her/slide1.png";
-import obSlide2 from "./assets/onboarding-her/slide2.png";
-import obSlide3 from "./assets/onboarding-her/slide3.png";
-import obSlide4 from "./assets/onboarding-her/slide4.png";
+
 import welcomeSlideSharing from "./assets/approved/welcome-slide-sharing.png";
 import desktopShopkeeper from "./assets/approved/desktop-shopkeeper-3d.png";
 import lostMonster from "./assets/approved/404-monster.png";
@@ -2101,32 +2098,22 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 
 const onboardingSlides = [
   {
-    id: "intro",
-    headline: "Your business,",
-    headlineAccent: "simplified.",
-    body: "Create invoices, manage stock, track payments, and stay on top of your shop.",
-    image: obSlide1,
+    title: "Create Invoices Faster and Easier",
+    body: "Build polished sales and supplier invoices in a few simple steps.",
+    image: welcomeShopkeeper,
+    imageAlt: "Shopkeeper holding an invoice at the counter",
   },
   {
-    id: "dashboard",
-    headline: "Know your business",
-    headlineAccent: "at a glance.",
-    body: "Track sales, stock, and outstanding payments from one simple dashboard.",
-    image: obSlide2,
+    title: "Simple Digital Billing",
+    body: "Keep invoices and daily calculations clear and organized.",
+    image: welcomeSlideBilling,
+    imageAlt: "Invoice papers with a calculator and payment coins",
   },
   {
-    id: "invoice",
-    headline: "Professional bills,",
-    headlineAccent: "in seconds.",
-    body: "Create, download, print, and share invoices with your customers.",
-    image: obSlide3,
-  },
-  {
-    id: "assistant",
-    headline: "Your shop assistant,",
-    headlineAccent: "always ready.",
-    body: "Ask about stock levels, revenue, invoices, and customer dues.",
-    image: obSlide4,
+    title: "Share Clearly and Grow",
+    body: "Send clean invoice images and keep customer conversations moving.",
+    image: welcomeSlideSharing,
+    imageAlt: "Phone sharing a digital invoice with business growth symbols",
   },
 ] as const;
 
@@ -2184,24 +2171,15 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
   const current = onboardingSlides[slide];
   return <main className="welcome-page" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
     <SafeAreaTopScrim backgroundColor="#ffffff" />
-    <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip</button></header>
-    <section className="welcome-content ob2">
-      <div className="welcome-art ob2-art"><img key={slide} className="welcome-slide-enter ob2-her-image" src={current?.image} alt="Daybill onboarding" /></div>
-      <div className="welcome-copy ob2-copy">
-        <h1 key={`t-${slide}`} className="welcome-slide-enter">{current?.headline} <span className="accent">{current?.headlineAccent}</span></h1>
+    <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip &gt;</button></header>
+    <section className="welcome-content">
+      <div className="welcome-art"><img key={slide} className={`welcome-shopkeeper-image welcome-slide-image slide-${slide + 1} welcome-slide-enter`} src={current?.image ?? welcomeShopkeeper} alt={current?.imageAlt ?? "Daybill welcome illustration"} /></div>
+      <div className="welcome-copy">
+        <h1 key={`t-${slide}`} className="welcome-slide-enter">{current?.title}</h1>
         <p key={`b-${slide}`} className="welcome-tagline welcome-slide-enter">{current?.body}</p>
-        <div className="welcome-dots ob2-dots" aria-label={`Page ${slide + 1} of ${onboardingSlides.length}`}>{onboardingSlides.map((item, index) => <button key={item.id} type="button" aria-label={`Go to page ${index + 1}`} className={index === slide ? "active" : ""} onClick={() => setSlide(index)} />)}</div>
+        <div className="welcome-dots" aria-label={`Page ${slide + 1} of ${onboardingSlides.length}`}>{onboardingSlides.map((item, index) => <button key={item.title} type="button" aria-label={`Go to page ${index + 1}`} className={index === slide ? "active" : ""} onClick={() => setSlide(index)} />)}</div>
       </div>
-      <div className="welcome-actions ob2-actions">
-        {slide === 0 ? <>
-          <button className="welcome-access ob2-primary" type="button" onClick={goNext}>Get Started <span>→</span></button>
-          <button className="welcome-signup ob2-secondary" type="button" onClick={onLogin}>I already have an account</button>
-        </> : isLast ? <>
-          <button className="welcome-access ob2-primary" type="button" onClick={goNext}>Get Started <span>→</span></button>
-        </> : <>
-          <button className="ob2-arrow" type="button" onClick={goNext} aria-label="Next">→</button>
-        </>}
-      </div>
+      <div className="welcome-actions"><button className="welcome-access" type="button" onClick={goNext}>{isLast ? "Get Started" : "Continue"}</button>{!isLast && <button className="welcome-signup" type="button" onClick={onSignup}>Don’t have an account? <span>Signup</span></button>}</div>
     </section>
   </main>;
 }
