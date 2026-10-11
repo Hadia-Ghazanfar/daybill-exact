@@ -3846,3 +3846,20 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .welcome-skip { background: transparent; border: 0; color: var(--dim); font-weight: 700; font-size: 14px; cursor: pointer; padding: 8px; }
 @keyframes welcome-pop-in { from { opacity: 0; transform: scale(0.92) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .welcome-slide-enter { animation: welcome-pop-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ===== Brand screens always use light theme (ignore user's dark mode) ===== */
+.brand-loading,
+.login-layout {
+  color-scheme: light !important;
+  --bg: #ffffff !important;
+  --surface: #ffffff !important;
+  --surface-2: #f1f5f4 !important;
+  --text: #111111 !important;
+  --dim: #5b6b66 !important;
+  --border: #e2e8e6 !important;
+  --ink: #111111 !important;
+  --accent: #168a45 !important;
+  --chart-accent: #168a45 !important;
+  background: #ffffff !important;
+  color: #111111 !important;
+}
