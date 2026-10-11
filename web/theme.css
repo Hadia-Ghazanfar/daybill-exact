@@ -1651,7 +1651,7 @@ body{background:var(--bg);color:var(--text)}
 .primary{background:var(--accent);color:#062c21}.secondary{background:var(--surface);color:var(--text)}
 .filter-tabs,.segmented,.transaction-switch,.option-grid,.language-switch,.theme-switch{background:var(--surface-2)}
 .filter-tabs button,.segmented button,.transaction-switch button,.option-grid button,.language-switch button,.theme-switch button{color:var(--dim)}
-.filter-tabs button.active,.segmented button.active,.transaction-switch button.active,.option-grid button.active,.language-switch button.active,.theme-switch button.active{background:var(--ink);color:#fff;box-shadow:none}
+.filter-tabs button.active,.segmented button.active,.transaction-switch button.active,.option-grid button.active,.language-switch button.active,.theme-switch button.active{background:var(--accent);color:#fff;box-shadow:none}
 .stepper button.active{background:var(--ink);color:#fff;box-shadow:none}.stepper button.active span{border-color:rgba(255,255,255,.55)}
 .overview-view{display:block;max-width:1060px}
 .received-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.72fr);gap:8px;min-height:190px;padding:24px;border-radius:22px;background:#0a403d;color:#fff;box-shadow:0 18px 38px rgba(10,64,61,.18)}
