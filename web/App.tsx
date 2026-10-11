@@ -8,7 +8,7 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import exact1 from "./assets/onboarding-exact/s1-cropped.jpg";
+import exact1 from "./assets/onboarding-exact/welcome-full.jpg";
 import exact2 from "./assets/onboarding-exact/s2-cropped.jpg";
 import exact3 from "./assets/onboarding-exact/s3-cropped.jpg";
 import exact4 from "./assets/onboarding-exact/s4-cropped.jpg";
@@ -23,7 +23,7 @@ import exact4 from "./assets/onboarding-exact/s4-cropped.jpg";
 
 import welcomeSlideSharing from "./assets/approved/welcome-slide-sharing.png";
 import desktopShopkeeper from "./assets/approved/desktop-shopkeeper-3d.png";
-import lostMonster from "./assets/approved/404-monster.png";
+import notFoundFull from "./assets/404-full.jpg";
 import QRCode from "qrcode";
 import { jsPDF } from "jspdf";
 import avatar1 from "./assets/avatars/avatar-1.png";
@@ -2210,12 +2210,9 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
 }
 
 function NotFoundPage({ loggedIn, onHome }: { loggedIn: boolean; onHome: () => void }) {
-  return <main className="not-found-page">
-    <SafeAreaTopScrim backgroundColor="#bdeee4" />
-    <span className="cloud cloud-one" /><span className="cloud cloud-two" /><span className="cloud cloud-three" />
-    <div className="not-found-number" aria-hidden="true">404</div>
-    <div className="not-found-monster"><img className="lost-monster-image" src={lostMonster} alt="A surprised fluffy teal monster" /></div>
-    <section className="not-found-copy"><h1>Oops, I think we’re lost</h1><p>Let’s get you back somewhere familiar…</p><button type="button" onClick={onHome}>Back to home</button><small>{loggedIn ? "Dashboard" : "Login"}</small></section>
+  return <main className="not-found-fullscreen" onClick={onHome} style={{cursor: 'pointer'}}>
+    <img className="not-found-full-img" src={notFoundFull} alt="404 - Page not found" />
+    <button className="not-found-home-btn" onClick={(e) => { e.stopPropagation(); onHome(); }} aria-label="Back to home" />
   </main>;
 }
 
