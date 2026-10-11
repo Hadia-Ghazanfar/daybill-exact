@@ -939,10 +939,19 @@ function ThemeProvider({ children }: { children: ReactNode }) {
   const [textSize, setTextSize] = useState<TextSize>(() => getStored(TEXTSIZE_KEY, "medium"));
   useLayoutEffect(() => {
     const root = document.documentElement;
-    root.dataset.theme = theme;
-    root.dataset.accent = accent;
-    root.dataset.textSize = textSize;
-    root.style.colorScheme = theme;
+    // Force light theme on login/loading screens (no active session)
+    // User's dark mode only applies inside the logged-in app
+    let hasSession = false;
+    try {
+      hasSession = !!(localStorage.getItem(SESSION_STORAGE_KEY) || sessionStorage.getItem(SESSION_STORAGE_KEY));
+    } catch { /* ignore */ }
+    const effectiveTheme = hasSession ? theme : "light";
+    const effectiveAccent = hasSession ? accent : "teal";
+    const effectiveTextSize = hasSession ? textSize : "medium";
+    root.dataset.theme = effectiveTheme;
+    root.dataset.accent = effectiveAccent;
+    root.dataset.textSize = effectiveTextSize;
+    root.style.colorScheme = effectiveTheme;
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
       localStorage.setItem(ACCENT_KEY, accent);
