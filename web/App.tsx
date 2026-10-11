@@ -3001,7 +3001,7 @@ function TermsModal({ onClose }: { onClose: () => void }) {
 
 function ProfileView({ settings, account, onEdit, onLogout }: { settings: Workspace["settings"]; account: Workspace["account"]; onEdit: () => void; onLogout: () => void }) {
   const { language, setLanguage } = useLanguage();
-  const { theme, setTheme, accent, setAccent, textSize, setTextSize } = useTheme();
+  const { theme, setTheme, accent, setAccent } = useTheme();
   const [showFeedback, setShowFeedback] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -3014,10 +3014,7 @@ function ProfileView({ settings, account, onEdit, onLogout }: { settings: Worksp
     { id: "orange", color: "#E8A87C", label: "Orange" },
     { id: "yellow", color: "#DDBB6A", label: "Yellow" },
   ];
-  const textSizes: { id: "medium" | "large"; label: string }[] = [
-    { id: "medium", label: "Medium" },
-    { id: "large", label: "Large" },
-  ];
+
   return <section className="profile-view">
     <div className="profile-hero">{settings.logo_url ? <img src={settings.logo_url} alt={`${settings.business_name || "Shop"} logo`} /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="Shop avatar" className="shopkeeper-avatar" /> : <ContactAvatar name={account.shopkeeper_name || settings.business_name || "Shop owner"} contactKey={`profile-${account.phone || account.shopkeeper_name}`} className="shopkeeper-avatar" />}<div><p className="eyebrow">{ui(language, "SHOP PROFILE")}</p><h1>{settings.business_name || ui(language, "Your shop")}</h1><p>{settings.address || ui(language, "No address added")}</p></div></div>
     <section className="account-card" aria-label="Signed in account"><div><span>{account.session_kind === "admin" ? ui(language, "Administrator session") : ui(language, "Signed in as")}</span><strong>{account.shopkeeper_name}</strong><small>{account.session_kind === "admin" ? account.admin_email : formatPhoneDisplay(account.phone)}</small></div><button className="secondary compact" type="button" onClick={onLogout}>{ui(language, "Logout / Switch account")}</button></section>
@@ -3028,7 +3025,7 @@ function ProfileView({ settings, account, onEdit, onLogout }: { settings: Worksp
       {appearanceOpen ? <div className="appearance-body">
       <div className="appearance-row"><span className="appearance-label">Dark mode</span><button type="button" role="switch" aria-checked={theme === "dark"} className={`appearance-toggle ${theme === "dark" ? "on" : ""}`} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle dark mode"><span className="toggle-knob" /></button></div>
       <div className="appearance-row column"><span className="appearance-label">Theme color <em>{accents.find(a => a.id === accent)?.label}</em></span><div className="accent-picker" role="group" aria-label="Theme color">{accents.map(a => <button key={a.id} type="button" className={`accent-dot ${accent === a.id ? "active" : ""}`} style={{ background: a.color }} onClick={() => setAccent(a.id)} aria-label={a.label} aria-pressed={accent === a.id}>{accent === a.id ? "✓" : ""}</button>)}</div></div>
-      <div className="appearance-row column"><span className="appearance-label">Text size <em>{textSizes.find(t => t.id === textSize)?.label}</em></span><div className="textsize-picker" role="group" aria-label="Text size">{textSizes.map(t => <button key={t.id} type="button" className={`textsize-btn ${textSize === t.id ? "active" : ""}`} onClick={() => setTextSize(t.id)} aria-pressed={textSize === t.id}>Aa</button>)}</div></div>
+
       </div> : null}
     </section>
     <section className="feedback-entry" aria-labelledby="feedback-entry-title"><span className="feedback-entry-icon"><Icon name="invoice" /></span><div><strong id="feedback-entry-title">{ui(language, "Feedback")}</strong><small>{ui(language, "Help us improve Daybill")}</small></div><button className="secondary compact" type="button" onClick={() => setShowFeedback(true)}>{ui(language, "Share feedback")}</button></section>
