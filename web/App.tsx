@@ -946,37 +946,47 @@ function getScopedKey(base: string, accountId: string | null): string {
 
 function ThemeProvider({ children }: { children: ReactNode }) {
   const [accountId, setAccountId] = useState<string | null>(() => getAccountId());
-  const [theme, setTheme] = useState<Theme>(initialTheme);
-  const [accent, setAccent] = useState<AccentColor>("teal");
-  const [textSize, setTextSize] = useState<TextSize>("medium");
-
-  // Load account-specific settings when account changes (defaults: teal/light/medium for new accounts)
-  useLayoutEffect(() => {
+  const [theme, setTheme] = useState<Theme>(() => {
     const id = getAccountId();
-    if (id !== accountId) {
-      setAccountId(id);
-      return;
-    }
-    if (id) {
-      setTheme(getStored(getScopedKey(THEME_STORAGE_KEY, id), initialTheme));
-      setAccent(getStored(getScopedKey(ACCENT_KEY, id), "teal"));
-      setTextSize(getStored(getScopedKey(TEXTSIZE_KEY, id), "medium"));
+    return id ? getStored(getScopedKey(THEME_STORAGE_KEY, id), initialTheme) : "light";
+  });
+  const [accent, setAccent] = useState<AccentColor>(() => {
+    const id = getAccountId();
+    return id ? getStored(getScopedKey(ACCENT_KEY, id), "teal") : "teal";
+  });
+  const [textSize, setTextSize] = useState<TextSize>(() => {
+    const id = getAccountId();
+    return id ? getStored(getScopedKey(TEXTSIZE_KEY, id), "medium") : "medium";
+  });
+
+  // Sync account ID with session (login/logout)
+  useEffect(() => {
+    const check = () => {
+      const id = getAccountId();
+      setAccountId(prev => prev !== id ? id : prev);
+    };
+    check();
+    const interval = setInterval(check, 500);
+    window.addEventListener("storage", check);
+    window.addEventListener("focus", check);
+    return () => { clearInterval(interval); window.removeEventListener("storage", check); window.removeEventListener("focus", check); };
+  }, []);
+
+  // When account changes, load that account's settings (or defaults for new/logout)
+  useEffect(() => {
+    if (accountId) {
+      const t = getStored(getScopedKey(THEME_STORAGE_KEY, accountId), null as Theme | null);
+      const a = getStored(getScopedKey(ACCENT_KEY, accountId), null as AccentColor | null);
+      const s = getStored(getScopedKey(TEXTSIZE_KEY, accountId), null as TextSize | null);
+      if (t) setTheme(t);
+      if (a) setAccent(a);
+      if (s) setTextSize(s);
+      // New account (no saved settings): defaults are already teal/light/medium
     } else {
       setTheme("light");
       setAccent("teal");
       setTextSize("medium");
     }
-  }, [accountId]);
-
-  // Poll for account changes (login/logout/switch)
-  useEffect(() => {
-    const check = () => {
-      const id = getAccountId();
-      if (id !== accountId) setAccountId(id);
-    };
-    const interval = setInterval(check, 1000);
-    window.addEventListener("storage", check);
-    return () => { clearInterval(interval); window.removeEventListener("storage", check); };
   }, [accountId]);
 
   useLayoutEffect(() => {
