@@ -8,10 +8,10 @@ import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import obWelcome from "./assets/onboarding-final/s1.jpg";
-import obDashboard from "./assets/onboarding-real/dashboard.png";
-import obInvoice from "./assets/onboarding-real/invoice.png";
-import obChatbot from "./assets/onboarding-real/chatbot.png";
+
+
+
+
 
 
 
@@ -2105,10 +2105,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  { id: "s1", image: obWelcome, hasButtons: true },
-  { id: "s2", image: obDashboard, hasButtons: false },
-  { id: "s3", image: obInvoice, hasButtons: false },
-  { id: "s4", image: obChatbot, hasButtons: true },
+  { id: "s1", type: "welcome" },
+  { id: "s2", type: "dashboard" },
+  { id: "s3", type: "invoice" },
+  { id: "s4", type: "assistant" },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
@@ -2165,15 +2165,75 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
   const current = onboardingSlides[slide];
   return <main className="welcome-page" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
     <SafeAreaTopScrim backgroundColor="#ffffff" />
-    <div className="ob-final-wrap">
-      <img key={slide} className="ob-final-img welcome-slide-enter" src={current?.image} alt="Daybill" />
-      <button className="ob-final-skip" type="button" onClick={onLogin}aria-label="Skip"></button>
-      {slide === 0 && <>
-        <button className="ob-final-btn ob-final-getstarted" type="button" onClick={goNext}aria-label="Get Started"></button>
-        <button className="ob-final-btn ob-final-haveaccount" type="button" onClick={onLogin}aria-label="I already have an account"></button>
+    <div className="ob-page">
+      <button className="ob-skip" type="button" onClick={onLogin}>Skip</button>
+      
+      {current?.type === "welcome" && <>
+        <div className="ob-logo"><img src={daybillLogoDark} alt="Daybill" /></div>
+        <div className="ob-visual">
+          <div className="ob-inv-illus">
+            <div className="ob-inv-paper">
+              <div className="ob-inv-title">INVOICE</div>
+              <div className="ob-inv-lines"><i></i><i></i><i></i></div>
+              <div className="ob-inv-check">✓</div>
+              <div className="ob-inv-amt">PKR 3,200</div>
+            </div>
+            <div className="ob-float-icon ob-fi1">☰</div>
+            <div className="ob-float-icon ob-fi2">◈</div>
+            <div className="ob-float-icon ob-fi3">◉</div>
+          </div>
+        </div>
+        <h1 className="ob-headline">Your business,<br/><span>simplified.</span></h1>
+        <p className="ob-sub">Create invoices, manage stock, track payments, and stay on top of your shop.</p>
+        <div className="ob-dots"><span className="active"></span><span></span><span></span><span></span></div>
+        <button className="ob-btn-primary" type="button" onClick={goNext}>Get Started <span>→</span></button>
+        <button className="ob-btn-secondary" type="button" onClick={onLogin}>I already have an account</button>
       </>}
-      {(slide === 1 || slide === 2) && <button className="ob-final-btn ob-final-arrow" type="button" onClick={goNext}aria-label="Next"></button>}
-      {slide === 3 && <button className="ob-final-btn ob-final-getstarted-s4" type="button" onClick={goNext}aria-label="Get Started"></button>}
+      
+      {current?.type === "dashboard" && <>
+        <div className="ob-phone">
+          <div className="ob-phone-head"><span>● Overview</span></div>
+          <div className="ob-phone-hero"><div className="ob-ph-label">Received</div><div className="ob-ph-amt">PKR 11,008</div></div>
+          <div className="ob-phone-grid">
+            <div className="ob-pg-card"><b>PKR 11,008</b><span>Revenue</span></div>
+            <div className="ob-pg-card"><b>PKR 40,000</b><span>Cost</span></div>
+            <div className="ob-pg-card"><b>-PKR 28,992</b><span>Profit</span></div>
+            <div className="ob-pg-card"><b>PKR 0</b><span>Pending dues</span></div>
+          </div>
+        </div>
+        <h1 className="ob-headline">Know your business<br/><span>at a glance.</span></h1>
+        <p className="ob-sub">Track sales, stock, and outstanding payments from one simple dashboard.</p>
+        <div className="ob-dots"><span></span><span className="active"></span><span></span><span></span></div>
+        <button className="ob-btn-arrow" type="button" onClick={goNext} aria-label="Next">→</button>
+      </>}
+      
+      {current?.type === "invoice" && <>
+        <div className="ob-inv-card">
+          <div className="ob-ic-shop">General store</div>
+          <div className="ob-ic-meta">INVOICE INV-0002</div>
+          <div className="ob-ic-bill">BILL TO<br/><b>Customer</b><br/>03XX-XXXXXXX</div>
+          <div className="ob-ic-row"><span>C type Cable × 4</span><b>PKR 3,200</b></div>
+          <div className="ob-ic-total"><span>Total</span><b>PKR 3,168</b></div>
+          <div className="ob-ic-actions"><span>◉<br/>WhatsApp</span><span>↓<br/>PDF</span><span>⎙<br/>Print</span></div>
+        </div>
+        <h1 className="ob-headline">Professional bills,<br/><span>in seconds.</span></h1>
+        <p className="ob-sub">Create, download, print, and share invoices with your customers.</p>
+        <div className="ob-dots"><span></span><span></span><span className="active"></span><span></span></div>
+        <button className="ob-btn-arrow" type="button" onClick={goNext} aria-label="Next">→</button>
+      </>}
+      
+      {current?.type === "assistant" && <>
+        <div className="ob-chat">
+          <div className="ob-chat-head"><span>◉</span><div><b>Daybill Assistant</b><small>● Online</small></div></div>
+          <div className="ob-msg bot">Hi! I'm the Daybill assistant. Ask me about your shop's numbers.</div>
+          <div className="ob-msg user">Total revenue this month?</div>
+          <div className="ob-msg bot">Revenue: PKR 11,008 ✓</div>
+        </div>
+        <h1 className="ob-headline">Your shop assistant,<br/><span>always ready.</span></h1>
+        <p className="ob-sub">Ask about stock levels, revenue, invoices, and customer dues.</p>
+        <div className="ob-dots"><span></span><span></span><span></span><span className="active"></span></div>
+        <button className="ob-btn-primary" type="button" onClick={goNext}>Get Started <span>→</span></button>
+      </>}
     </div>
   </main>;
 }
