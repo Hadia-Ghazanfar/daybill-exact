@@ -135,22 +135,18 @@ type LanguageContextValue = { language: Language; setLanguage: (language: Langua
 const LanguageContext = createContext<LanguageContextValue>({ language: "en", setLanguage: () => undefined });
 type AccentColor = "teal" | "violet" | "blue" | "pink" | "orange";
 type TextSize = "small" | "medium" | "large" | "xlarge";
-type UiStyle = "rounded" | "soft" | "crisp";
 type ThemeContextValue = {
   theme: Theme; setTheme: (theme: Theme) => void;
   accent: AccentColor; setAccent: (a: AccentColor) => void;
   textSize: TextSize; setTextSize: (s: TextSize) => void;
-  uiStyle: UiStyle; setUiStyle: (s: UiStyle) => void;
 };
 const ThemeContext = createContext<ThemeContextValue>({
   theme: "light", setTheme: () => undefined,
   accent: "teal", setAccent: () => undefined,
   textSize: "medium", setTextSize: () => undefined,
-  uiStyle: "rounded", setUiStyle: () => undefined,
 });
 const ACCENT_KEY = "daybill-accent-v1";
 const TEXTSIZE_KEY = "daybill-textsize-v1";
-const UISTYLE_KEY = "daybill-uistyle-v1";
 
 const urduUi: Record<string, string> = {
   "Daybill": "ڈے بل",
@@ -941,24 +937,21 @@ function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [accent, setAccent] = useState<AccentColor>(() => getStored(ACCENT_KEY, "teal"));
   const [textSize, setTextSize] = useState<TextSize>(() => getStored(TEXTSIZE_KEY, "medium"));
-  const [uiStyle, setUiStyle] = useState<UiStyle>(() => getStored(UISTYLE_KEY, "rounded"));
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = theme;
     root.dataset.accent = accent;
     root.dataset.textSize = textSize;
-    root.dataset.uiStyle = uiStyle;
     root.style.colorScheme = theme;
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
       localStorage.setItem(ACCENT_KEY, accent);
       localStorage.setItem(TEXTSIZE_KEY, textSize);
-      localStorage.setItem(UISTYLE_KEY, uiStyle);
     } catch {
       // The selected theme still applies for the current session.
     }
-  }, [theme, accent, textSize, uiStyle]);
-  return <ThemeContext.Provider value={{ theme, setTheme, accent, setAccent, textSize, setTextSize, uiStyle, setUiStyle }}>{children}</ThemeContext.Provider>;
+  }, [theme, accent, textSize]);
+  return <ThemeContext.Provider value={{ theme, setTheme, accent, setAccent, textSize, setTextSize }}>{children}</ThemeContext.Provider>;
 }
 
 function useLanguage() {
@@ -2817,8 +2810,9 @@ function FeedbackSheet({ onClose }: { onClose: () => void }) {
 
 function ProfileView({ settings, account, onEdit, onLogout }: { settings: Workspace["settings"]; account: Workspace["account"]; onEdit: () => void; onLogout: () => void }) {
   const { language, setLanguage } = useLanguage();
-  const { theme, setTheme, accent, setAccent, textSize, setTextSize, uiStyle, setUiStyle } = useTheme();
+  const { theme, setTheme, accent, setAccent, textSize, setTextSize } = useTheme();
   const [showFeedback, setShowFeedback] = useState(false);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
   const accents: { id: "teal" | "violet" | "blue" | "pink" | "orange"; color: string; label: string }[] = [
     { id: "teal", color: "#17765A", label: "Teal" },
     { id: "violet", color: "#8B5CF6", label: "Violet" },
@@ -2832,22 +2826,18 @@ function ProfileView({ settings, account, onEdit, onLogout }: { settings: Worksp
     { id: "large", label: "Large" },
     { id: "xlarge", label: "Extra large" },
   ];
-  const uiStyles: { id: "rounded" | "soft" | "crisp"; label: string }[] = [
-    { id: "rounded", label: "Rounded" },
-    { id: "soft", label: "Soft" },
-    { id: "crisp", label: "Crisp" },
-  ];
   return <section className="profile-view">
     <div className="profile-hero">{settings.logo_url ? <img src={settings.logo_url} alt={`${settings.business_name || "Shop"} logo`} /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="Shop avatar" className="shopkeeper-avatar" /> : <ContactAvatar name={account.shopkeeper_name || settings.business_name || "Shop owner"} contactKey={`profile-${account.phone || account.shopkeeper_name}`} className="shopkeeper-avatar" />}<div><p className="eyebrow">{ui(language, "SHOP PROFILE")}</p><h1>{settings.business_name || ui(language, "Your shop")}</h1><p>{settings.address || ui(language, "No address added")}</p></div></div>
     <section className="account-card" aria-label="Signed in account"><div><span>{account.session_kind === "admin" ? ui(language, "Administrator session") : ui(language, "Signed in as")}</span><strong>{account.shopkeeper_name}</strong><small>{account.session_kind === "admin" ? account.admin_email : formatPhoneDisplay(account.phone)}</small></div><button className="secondary compact" type="button" onClick={onLogout}>{ui(language, "Logout / Switch account")}</button></section>
     <div className="profile-details"><article><span>{ui(language, "Phone / WhatsApp")}</span><strong>{settings.phone ? formatPhoneDisplay(settings.phone) : "Not added"}</strong></article><article><span>{ui(language, "Currency")}</span><strong>{settings.currency}</strong></article><article><span>{ui(language, "Invoice accent")}</span><strong className="accent-detail"><i style={{ background: settings.accent_color }} />{settings.accent_color.toUpperCase()}</strong></article></div>
     <section className="language-card" aria-labelledby="language-title"><div><span id="language-title">{ui(language, "Language")}</span><small>{language === "ur" ? "ایپ اردو میں دکھائی جا رہی ہے" : "Choose the app language"}</small></div><div className="language-switch" role="group" aria-label="Language"><button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button><button type="button" className={language === "ur" ? "active" : ""} aria-pressed={language === "ur"} onClick={() => setLanguage("ur")}>اردو</button></div></section>
     <section className="appearance-card" aria-labelledby="appearance-title">
-      <div className="appearance-head"><span id="appearance-title">{ui(language, "Appearance")}</span><small>Customize your app look</small></div>
+      <button type="button" className="appearance-header" onClick={() => setAppearanceOpen(o => !o)} aria-expanded={appearanceOpen}><div className="appearance-head"><span id="appearance-title">{ui(language, "Appearance")}</span><small>Customize your app look</small></div><span className={`appearance-chevron ${appearanceOpen ? "open" : ""}`}>›</span></button>
+      {appearanceOpen ? <div className="appearance-body">
       <div className="appearance-row"><span className="appearance-label">Dark mode</span><button type="button" role="switch" aria-checked={theme === "dark"} className={`appearance-toggle ${theme === "dark" ? "on" : ""}`} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle dark mode"><span className="toggle-knob" /></button></div>
       <div className="appearance-row column"><span className="appearance-label">Theme color <em>{accents.find(a => a.id === accent)?.label}</em></span><div className="accent-picker" role="group" aria-label="Theme color">{accents.map(a => <button key={a.id} type="button" className={`accent-dot ${accent === a.id ? "active" : ""}`} style={{ background: a.color }} onClick={() => setAccent(a.id)} aria-label={a.label} aria-pressed={accent === a.id}>{accent === a.id ? "✓" : ""}</button>)}</div></div>
       <div className="appearance-row column"><span className="appearance-label">Text size <em>{textSizes.find(t => t.id === textSize)?.label}</em></span><div className="textsize-picker" role="group" aria-label="Text size">{textSizes.map(t => <button key={t.id} type="button" className={`textsize-btn ${textSize === t.id ? "active" : ""}`} onClick={() => setTextSize(t.id)} aria-pressed={textSize === t.id}>Aa</button>)}</div></div>
-      <div className="appearance-row column"><span className="appearance-label">UI style <em>{uiStyles.find(u => u.id === uiStyle)?.label}</em></span><div className="uistyle-picker" role="group" aria-label="UI style">{uiStyles.map(u => <button key={u.id} type="button" className={`uistyle-btn ${uiStyle === u.id ? "active" : ""}`} onClick={() => setUiStyle(u.id)} aria-pressed={uiStyle === u.id}>{u.label}</button>)}</div></div>
+      </div> : null}
     </section>
     <section className="feedback-entry" aria-labelledby="feedback-entry-title"><span className="feedback-entry-icon"><Icon name="invoice" /></span><div><strong id="feedback-entry-title">{ui(language, "Feedback")}</strong><small>{ui(language, "Help us improve Daybill")}</small></div><button className="secondary compact" type="button" onClick={() => setShowFeedback(true)}>{ui(language, "Share feedback")}</button></section>
     <section className="urdu-guide" aria-labelledby="urdu-guide-title" dir="rtl"><p className="eyebrow">مدد</p><h2 id="urdu-guide-title">استعمال کا آسان طریقہ</h2><ol><li><strong>ایک بار کی ترتیب:</strong> دکان کا نام، فون، پتہ، کرنسی اور لوگو پروفائل میں محفوظ کریں۔</li><li><strong>رسید بنائیں:</strong> گاہک منتخب کریں، تاریخ اور واجب الادا تاریخ لگائیں، پھر اشیاء اور تعداد شامل کر کے رسید محفوظ کریں۔</li><li><strong>واٹس ایپ پر شیئر کریں:</strong> محفوظ رسید کھولیں اور رسید کی تصویر شیئر کرنے والا بٹن دبائیں۔</li><li><strong>اسٹاک دیکھیں:</strong> اسٹاک ٹیب میں ہر آئٹم کی موجودہ تعداد، لاگت اور فروخت کی قیمت دیکھیں؛ فروخت پر تعداد خود کم ہو گی۔</li><li><strong>بقایا جات سنبھالیں:</strong> ہوم یا بلز میں میعاد گزرنے والی رسیدیں دیکھیں اور واٹس ایپ یاد دہانی کا بٹن دبائیں۔</li></ol></section>
