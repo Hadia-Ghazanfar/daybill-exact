@@ -822,7 +822,10 @@ export const Actions = {
         ? Math.round(subtotal * args.discount_value / 10_000)
         : args.discount_type === "fixed" ? args.discount_value : 0;
       const discountAmount = Math.min(subtotal, rawDiscount);
-      const total = subtotal - discountAmount;
+      if (args.tax_percent > 10_000) throw new Error("Tax cannot be more than 100%");
+      const taxableBase = subtotal - discountAmount;
+      const taxAmount = Math.round(taxableBase * args.tax_percent / 10_000);
+      const total = taxableBase + taxAmount;
       const tempNumber = `PENDING-${crypto.randomUUID()}`;
       const insertedRows = await db.insert(schema.invoices).values({
         accountId: account.id,
@@ -838,6 +841,9 @@ export const Actions = {
         discountType: args.discount_type,
         discountValue: args.discount_type === "none" ? 0 : args.discount_value,
         discountAmount,
+        taxPercent: args.tax_percent,
+        taxAmount,
+        template: args.template,
         notes: args.notes,
         currency: settings.currency,
         subtotal,
@@ -903,6 +909,7 @@ export const Actions = {
         notes: args.notes,
         currency: settings.currency,
         total,
+        template: args.template,
       }).returning({ id: schema.purchaseInvoices.id });
       const inserted = insertedRows[0];
       if (!inserted) throw new Error("Could not create purchase invoice");
@@ -1058,6 +1065,9 @@ export const Actions = {
           discount_type: invoice.discountType,
           discount_value: invoice.discountValue,
           discount_amount: invoice.discountAmount,
+          tax_percent: invoice.taxPercent,
+          tax_amount: invoice.taxAmount,
+          template: invoice.template,
           notes: invoice.notes,
           subtotal: invoice.subtotal,
           total: invoice.total,

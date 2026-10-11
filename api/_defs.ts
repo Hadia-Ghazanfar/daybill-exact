@@ -395,6 +395,8 @@ export const actionDefs = {
       payment_method: z.enum(["card", "cash", "transfer", "credit"]),
       discount_type: z.enum(["none", "percentage", "fixed"]),
       discount_value: z.number().int().nonnegative().max(100_000_000_000),
+      tax_percent: z.number().int().nonnegative().max(10_000).default(0),
+      template: z.enum(["classic", "modern", "minimal", "bold"]).default("classic"),
       notes: z.string().trim().max(500),
       items: z.array(z.object({
         product_id: z.number().int().positive(),
@@ -414,6 +416,7 @@ export const actionDefs = {
       payment_status: z.enum(["pending", "paid"]),
       supplier_reference: z.string().trim().max(120),
       notes: z.string().trim().max(500),
+      template: z.enum(["classic", "modern", "minimal", "bold"]).default("classic"),
       items: z.array(z.object({
         product_id: z.number().int().positive(),
         quantity: z.number().int().positive().max(100_000),
