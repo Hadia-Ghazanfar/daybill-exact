@@ -2367,7 +2367,7 @@ function AppContent() {
   };
 
   if (unknownRoute) return <NotFoundPage loggedIn={Boolean(session ?? readAccountSession())} onHome={goHome} />;
-  if (phase === "splash") return <section className="launch-screen splash-animated"><SafeAreaTopScrim backgroundColor="#0B3B39" /><div className="splash-content"><img className="launch-logo splash-logo" src={daybillLogoWhite} alt="Daybill" /><p className="splash-tagline">Roz ka karobar, ab asaan</p><p className="splash-subtag">Your daily trade, simplified</p></div><span className="launch-line splash-loader" /></section>;
+  if (phase === "splash") return <section className="launch-screen splash-animated"><SafeAreaTopScrim backgroundColor="#0B3B39" /><div className="splash-orb orb-1" /><div className="splash-orb orb-2" /><div className="splash-orb orb-3" /><div className="splash-content"><div className="splash-art"><img src={welcomeShopkeeper} alt="Shopkeeper" /></div><img className="launch-logo splash-logo" src={daybillLogoWhite} alt="Daybill" /><p className="splash-tagline">Roz ka karobar, ab asaan</p><p className="splash-subtag">Your daily trade, simplified</p></div><div className="splash-dots"><span className="dot active" /><span className="dot" /><span className="dot" /></div></section>;
   if (phase === "welcome") return <WelcomeScreen onLogin={() => { setAuthInitialMode("user-login"); setPhase("auth"); }} onSignup={() => { setAuthInitialMode("create"); setPhase("auth"); }} />;
   if (phase === "auth" || !session) return <AccountAuth key={authInitialMode} initialMode={authInitialMode} onAuthenticated={authenticated} />;
   setApiSession(session);
