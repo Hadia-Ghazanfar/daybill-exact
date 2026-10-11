@@ -2155,6 +2155,9 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   const { language, setLanguage } = useLanguage();
   const [mode, setMode] = useState<"user-login" | "create" | "admin" | "forgot-pin">(initialMode);
   const [remember, setRemember] = useState(true);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [name, setName] = useState("");
   const [shopName, setShopName] = useState("");
   const [shopAddress, setShopAddress] = useState("");
@@ -2316,6 +2319,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             {adminSetupRequired && adminConfirmation.length >= 10 && adminPassword !== adminConfirmation ? <p className="auth-error" role="alert">Passwords do not match.</p> : null}
             {error ? <p className="auth-error" role="alert">{error instanceof Error ? error.message : "Could not continue. Try again."}</p> : null}
             <label className="remember-row"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} /><span>Remember me</span></label>
+            {isCreating ? <label className="remember-row age-check"><input type="checkbox" checked={ageConfirmed} onChange={(event) => setAgeConfirmed(event.target.checked)} /><span>I confirm I am 18 years or older</span></label> : null}
             <button className="primary wide login-submit" type="submit" disabled={!adminFormValid || adminLogin.isPending}>{adminLogin.isPending ? "Please wait…" : adminSetupRequired ? "Set password & sign in" : "Admin Login"}</button>
             <p className="auth-footnote">There is one administrator account. New administrator accounts cannot be created here.</p>
           </form> : <form className="login-form" onSubmit={(event) => {
@@ -2351,10 +2355,13 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
               </>}
               {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
             </div> : null}
-            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
+            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation || !ageConfirmed)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
             {!isCreating ? <button className="auth-switch" type="button" onClick={() => changeMode("forgot-pin")}>Forgot PIN?</button> : null}
             <button className="auth-switch" type="button" onClick={() => changeMode(isCreating ? "user-login" : "create")}>{isCreating ? "Already have a user account? Log in" : "New here? Create user account"}</button>
+            <p className="auth-legal">By continuing you agree to our <button type="button" className="link-inline" onClick={() => setShowPrivacy(true)}>Privacy Policy</button> and <button type="button" className="link-inline" onClick={() => setShowTerms(true)}>Terms of Service</button>.</p>
           </form>}
+          {showPrivacy ? <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} /> : null}
+          {showTerms ? <TermsModal onClose={() => setShowTerms(false)} /> : null}
         </div>
       </section>
     </div>
@@ -2872,11 +2879,54 @@ function FeedbackSheet({ onClose }: { onClose: () => void }) {
   </section></div>;
 }
 
+
+function PrivacyPolicyModal({ onClose }: { onClose: () => void }) {
+  return <div className="modal-overlay" onClick={onClose}><div className="modal-sheet legal-sheet" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-head"><h2>Privacy Policy</h2><button className="icon-button" onClick={onClose} aria-label="Close">×</button></div>
+    <div className="legal-body">
+      <p><strong>Last updated:</strong> October 2026</p>
+      <h3>What we collect</h3>
+      <p>Daybill collects: your phone number, shop name, address, and business details you enter; invoice, product, customer and supplier records you create; and your app preferences (theme, language).</p>
+      <h3>Why we collect it</h3>
+      <p>To operate your invoicing account, sync your data across your devices, and improve the app. We do not sell your data.</p>
+      <h3>Data storage</h3>
+      <p>Your data is stored securely on our servers. Only your account can access your records.</p>
+      <h3>Your rights</h3>
+      <p>You may request a copy or deletion of your data by contacting us through the in-app Feedback option.</p>
+      <h3>Children</h3>
+      <p>Daybill is for business use by adults 18 and older.</p>
+    </div>
+  </div></div>;
+}
+
+function TermsModal({ onClose }: { onClose: () => void }) {
+  return <div className="modal-overlay" onClick={onClose}><div className="modal-sheet legal-sheet" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-head"><h2>Terms of Service</h2><button className="icon-button" onClick={onClose} aria-label="Close">×</button></div>
+    <div className="legal-body">
+      <p><strong>Last updated:</strong> October 2026</p>
+      <h3>1. The service</h3>
+      <p>Daybill provides digital invoicing, inventory and billing tools for small businesses.</p>
+      <h3>2. Your account</h3>
+      <p>You must be 18 or older to create an account. Keep your password private; you are responsible for activity under your account.</p>
+      <h3>3. Your data</h3>
+      <p>You own your business data. You are responsible for its accuracy, including invoice amounts and tax compliance.</p>
+      <h3>4. Acceptable use</h3>
+      <p>Do not misuse the service, attempt to access other accounts, or use Daybill for unlawful purposes.</p>
+      <h3>5. Availability</h3>
+      <p>We aim for reliable service but do not guarantee uninterrupted access. We may update features over time.</p>
+      <h3>6. Changes</h3>
+      <p>We may update these terms; continued use after changes means you accept them.</p>
+    </div>
+  </div></div>;
+}
+
 function ProfileView({ settings, account, onEdit, onLogout }: { settings: Workspace["settings"]; account: Workspace["account"]; onEdit: () => void; onLogout: () => void }) {
   const { language, setLanguage } = useLanguage();
   const { theme, setTheme, accent, setAccent, textSize, setTextSize } = useTheme();
   const [showFeedback, setShowFeedback] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const accents: { id: "teal" | "violet" | "blue" | "pink" | "orange" | "yellow"; color: string; label: string }[] = [
     { id: "teal", color: "#17765A", label: "Teal" },
     { id: "violet", color: "#9D8DF1", label: "Violet" },
@@ -2906,8 +2956,11 @@ function ProfileView({ settings, account, onEdit, onLogout }: { settings: Worksp
     </section>
     <section className="feedback-entry" aria-labelledby="feedback-entry-title"><span className="feedback-entry-icon"><Icon name="invoice" /></span><div><strong id="feedback-entry-title">{ui(language, "Feedback")}</strong><small>{ui(language, "Help us improve Daybill")}</small></div><button className="secondary compact" type="button" onClick={() => setShowFeedback(true)}>{ui(language, "Share feedback")}</button></section>
     <section className="urdu-guide" aria-labelledby="urdu-guide-title" dir="rtl"><p className="eyebrow">مدد</p><h2 id="urdu-guide-title">استعمال کا آسان طریقہ</h2><ol><li><strong>ایک بار کی ترتیب:</strong> دکان کا نام، فون، پتہ، کرنسی اور لوگو پروفائل میں محفوظ کریں۔</li><li><strong>رسید بنائیں:</strong> گاہک منتخب کریں، تاریخ اور واجب الادا تاریخ لگائیں، پھر اشیاء اور تعداد شامل کر کے رسید محفوظ کریں۔</li><li><strong>واٹس ایپ پر شیئر کریں:</strong> محفوظ رسید کھولیں اور رسید کی تصویر شیئر کرنے والا بٹن دبائیں۔</li><li><strong>اسٹاک دیکھیں:</strong> اسٹاک ٹیب میں ہر آئٹم کی موجودہ تعداد، لاگت اور فروخت کی قیمت دیکھیں؛ فروخت پر تعداد خود کم ہو گی۔</li><li><strong>بقایا جات سنبھالیں:</strong> ہوم یا بلز میں میعاد گزرنے والی رسیدیں دیکھیں اور واٹس ایپ یاد دہانی کا بٹن دبائیں۔</li></ol></section>
+    <section className="legal-links" aria-label="Legal"><button type="button" className="text-button" onClick={() => setShowPrivacy(true)}>Privacy Policy</button><span>·</span><button type="button" className="text-button" onClick={() => setShowTerms(true)}>Terms of Service</button></section>
     <button className="primary profile-edit" onClick={onEdit}><Icon name="pencil" />{ui(language, "Edit shop details")}</button>
     {showFeedback ? <FeedbackSheet onClose={() => setShowFeedback(false)} /> : null}
+    {showPrivacy ? <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} /> : null}
+    {showTerms ? <TermsModal onClose={() => setShowTerms(false)} /> : null}
   </section>;
 }
 
