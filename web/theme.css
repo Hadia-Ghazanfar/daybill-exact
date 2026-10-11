@@ -4192,18 +4192,31 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 /* Invoice templates */
 .paper-totals .tax-line, .paper-totals .tax-line b { color: var(--invoice-accent); }
 
-/* Modern template - dark header style */
-.invoice-paper.template-modern .paper-header { background: var(--invoice-accent); color: white; border-radius: 12px 12px 0 0; padding: 20px; margin: -20px -20px 20px -20px; }
-.invoice-paper.template-modern .paper-header h2 { color: white; }
+/* Modern template - dark header style (like FreeBillKit reference 1) */
+.invoice-paper.template-modern .paper-header { background: var(--invoice-accent); color: white; border-radius: 12px 12px 0 0; padding: 24px 20px; margin: -20px -20px 20px -20px; }
+.invoice-paper.template-modern .paper-header h2 { color: white; font-size: 28px; letter-spacing: 1px; }
 .invoice-paper.template-modern .paper-header p { color: rgba(255,255,255,0.85); }
+.invoice-paper.template-modern .paper-header .shop-name { color: white; }
+.invoice-paper.template-modern .items-table thead th { background: var(--invoice-accent); color: white; }
+.invoice-paper.template-modern .paper-total { background: var(--invoice-accent); color: white; border-radius: 8px; padding: 12px; margin-top: 8px; }
+.invoice-paper.template-modern .paper-total span, .invoice-paper.template-modern .paper-total strong { color: white; }
 
-/* Minimal template - clean with accent line */
-.invoice-paper.template-minimal { border-top: 4px solid var(--invoice-accent); }
-.invoice-paper.template-minimal .paper-header h2 { color: var(--invoice-accent); }
+/* Minimal template - clean with accent line (like FreeBillKit reference 4) */
+.invoice-paper.template-minimal { border-top: 5px solid var(--invoice-accent); }
+.invoice-paper.template-minimal .paper-header h2 { color: var(--invoice-accent); font-size: 26px; }
+.invoice-paper.template-minimal .items-table { border: none; }
+.invoice-paper.template-minimal .items-table thead th { background: none; color: var(--invoice-accent); border-bottom: 2px solid var(--invoice-accent); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+.invoice-paper.template-minimal .items-table td { border-bottom: 1px solid #f0f0f0; }
+.invoice-paper.template-minimal .paper-total strong { color: var(--invoice-accent); font-size: 20px; }
 
-/* Bold template - boxed style */
-.invoice-paper.template-bold { border: 2px solid var(--invoice-accent); border-radius: 8px; }
-.invoice-paper.template-bold .paper-header { border-bottom: 2px solid var(--invoice-accent); padding-bottom: 16px; margin-bottom: 16px; }
+/* Bold template - boxed style (like FreeBillKit reference 2) */
+.invoice-paper.template-bold { border: 2px solid #1a1a1a; border-radius: 4px; }
+.invoice-paper.template-bold .paper-header { border-bottom: 2px solid #1a1a1a; padding-bottom: 16px; margin-bottom: 16px; }
+.invoice-paper.template-bold .paper-header h2 { color: var(--invoice-accent); font-weight: 800; }
+.invoice-paper.template-bold .items-table { border: 2px solid #1a1a1a; }
+.invoice-paper.template-bold .items-table thead th { background: #f5f5f5; color: #1a1a1a; border: 1px solid #1a1a1a; }
+.invoice-paper.template-bold .items-table td { border: 1px solid #ddd; }
+.invoice-paper.template-bold .paper-total { border: 2px solid #1a1a1a; padding: 10px; margin-top: 8px; }
 
 /* Template selector */
 .template-options { grid-template-columns: repeat(4, 1fr); }
