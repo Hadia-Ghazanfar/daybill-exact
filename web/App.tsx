@@ -6,7 +6,7 @@ import { api, setApiSession, type AccountSession, type ApiResponse } from "./api
 import daybillLogoDark from "./assets/daybill-logo-dark.png";
 import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
-import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-cropped.png";
+import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-full.jpg";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
 import finalWelcome from "./assets/onboarding-exact/final-welcome.jpg";
 import finalDashboard from "./assets/onboarding-exact/final-dashboard.jpg";
