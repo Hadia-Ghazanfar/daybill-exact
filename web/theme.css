@@ -3926,3 +3926,24 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .age-check { margin-top: 8px; }
 .age-check span { font-size: 13px; }
 
+/* Desktop sidebar - definitive (overrides any conflicting rules) */
+@media (min-width: 760px) {
+  .bottom-nav:not(.admin-nav) {
+    top: 104px !important;
+    right: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 240px !important;
+    background: #0a403d !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    grid-template-columns: 1fr !important;
+    padding: 16px 14px !important;
+  }
+  .app-shell {
+    padding-left: 240px !important;
+  }
+}
+
