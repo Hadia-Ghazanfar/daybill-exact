@@ -3744,17 +3744,15 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .accent-dot.active { border-color: var(--text); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--text); transform: scale(1.05); }
 
 /* Text size picker */
-.textsize-picker { display: flex; gap: 10px; }
+.textsize-picker { display: flex; gap: 10px; max-width: 320px; }
 .textsize-btn {
   flex: 1; padding: 14px 8px; border-radius: 12px;
   border: 2px solid var(--border); background: var(--card);
   color: var(--text); cursor: pointer; font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease; min-width: 0;
 }
-.textsize-btn:nth-child(1) { font-size: 14px; }
-.textsize-btn:nth-child(2) { font-size: 17px; }
-.textsize-btn:nth-child(3) { font-size: 21px; }
-.textsize-btn:nth-child(4) { font-size: 25px; }
+.textsize-btn:nth-child(1) { font-size: 15px; }
+.textsize-btn:nth-child(2) { font-size: 19px; }
 .textsize-btn.active { border-color: var(--accent, #17765A); background: color-mix(in srgb, var(--accent, #17765A) 12%, var(--card)); font-weight: 700; }
 
 /* UI style picker */
