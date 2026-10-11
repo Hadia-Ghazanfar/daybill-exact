@@ -2097,24 +2097,43 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 
 const onboardingSlides = [
   {
-    title: "Create Invoices Faster and Easier",
-    body: "Build polished sales and supplier invoices in a few simple steps.",
-    image: welcomeShopkeeper,
-    imageAlt: "Shopkeeper holding an invoice at the counter",
+    title: "Smarter Billing For Your Shop",
+    body: "Create, track and manage invoices with a modern billing experience.",
+    theme: "dark-green",
+    mockup: "invoice",
   },
   {
-    title: "Simple Digital Billing",
-    body: "Keep invoices and daily calculations clear and organized.",
-    image: welcomeSlideBilling,
-    imageAlt: "Invoice papers with a calculator and payment coins",
+    title: "Know Your Numbers",
+    body: "Revenue, dues and profit — live on your dashboard at a glance.",
+    theme: "white",
+    mockup: "dashboard",
   },
   {
-    title: "Share Clearly and Grow",
-    body: "Send clean invoice images and keep customer conversations moving.",
-    image: welcomeSlideSharing,
-    imageAlt: "Phone sharing a digital invoice with business growth symbols",
+    title: "Get Paid Over WhatsApp",
+    body: "Send beautiful invoice images in one tap. Money lands faster.",
+    theme: "lime",
+    mockup: "whatsapp",
   },
 ] as const;
+
+function OnboardingMockup({ type }: { type: string }) {
+  if (type === "invoice") return <div className="ob-phone"><div className="ob-screen">
+    <div className="ob-inv-head"><span>TODAY'S SALES</span><strong>Rs 24,500</strong><em>+18%</em></div>
+    <div className="ob-row"><span>INV-001 · Ahmed</span><b className="paid">Paid</b></div>
+    <div className="ob-row"><span>INV-002 · Sara</span><b className="due">Due</b></div>
+    <div className="ob-row"><span>INV-003 · Bilal</span><b className="paid">Paid</b></div>
+  </div></div>;
+  if (type === "dashboard") return <div className="ob-phone dark"><div className="ob-screen">
+    <div className="ob-dash-head"><span>STOCK VALUE</span><strong>Rs 1,85,000</strong></div>
+    <div className="ob-alert"><strong>Low Stock Alert</strong><span>3 items running low</span></div>
+    <div className="ob-actions"><div><i>📦</i><span>Stock</span></div><div><i>👥</i><span>Suppliers</span></div><div className="hl"><i>+</i><span>Add</span></div></div>
+  </div></div>;
+  return <div className="ob-phone"><div className="ob-screen">
+    <div className="ob-wa-head"><div className="ob-avatar">S</div><div><strong>Sara's Boutique</strong><span>WhatsApp</span></div></div>
+    <div className="ob-inv-card"><span>🧾 Invoice #015</span><strong>Rs 4,750</strong><em>Tap to view →</em></div>
+    <div className="ob-wa-paid">✓ Payment received</div>
+  </div></div>;
+}
 
 function LoginShowcase() {
   return <section className="login-showcase desktop-business-showcase" aria-label="Daybill business overview">
@@ -2145,7 +2164,7 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
     <SafeAreaTopScrim backgroundColor="#ffffff" />
     <header className="welcome-head"><img className="welcome-logo" src={daybillLogoDark} alt="Daybill" /><button className="welcome-skip" type="button" onClick={onLogin}>Skip &gt;</button></header>
     <section className="welcome-content">
-      <div className="welcome-art"><img key={slide} className={`welcome-shopkeeper-image welcome-slide-image slide-${slide + 1} welcome-slide-enter`} src={current?.image ?? welcomeShopkeeper} alt={current?.imageAlt ?? "Daybill welcome illustration"} /></div>
+      <div className={`welcome-art ob-theme-${current?.theme ?? "dark-green"}`}><div key={slide} className="welcome-slide-enter"><OnboardingMockup type={current?.mockup ?? "invoice"} /></div></div>
       <div className="welcome-copy">
         <h1 key={`t-${slide}`} className="welcome-slide-enter">{current?.title}</h1>
         <p key={`b-${slide}`} className="welcome-tagline welcome-slide-enter">{current?.body}</p>
