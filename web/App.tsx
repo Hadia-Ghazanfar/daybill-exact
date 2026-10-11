@@ -2303,7 +2303,7 @@ function AppContent() {
       setApiSession(saved);
       setSession(saved);
       setPhase(saved ? "open" : "welcome");
-    }, 450);
+    }, 2200);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -2335,7 +2335,7 @@ function AppContent() {
   };
 
   if (unknownRoute) return <NotFoundPage loggedIn={Boolean(session ?? readAccountSession())} onHome={goHome} />;
-  if (phase === "splash") return <section className="launch-screen"><SafeAreaTopScrim backgroundColor="#0B3B39" /><img className="launch-logo" src={daybillLogoWhite} alt="Daybill" /><span className="launch-line" /></section>;
+  if (phase === "splash") return <section className="launch-screen splash-animated"><SafeAreaTopScrim backgroundColor="#0B3B39" /><div className="splash-content"><img className="launch-logo splash-logo" src={daybillLogoWhite} alt="Daybill" /><p className="splash-tagline">Roz ka karobar, ab asaan</p><p className="splash-subtag">Your daily trade, simplified</p></div><span className="launch-line splash-loader" /></section>;
   if (phase === "welcome") return <WelcomeScreen onLogin={() => { setAuthInitialMode("user-login"); setPhase("auth"); }} onSignup={() => { setAuthInitialMode("create"); setPhase("auth"); }} />;
   if (phase === "auth" || !session) return <AccountAuth key={authInitialMode} initialMode={authInitialMode} onAuthenticated={authenticated} />;
   setApiSession(session);
