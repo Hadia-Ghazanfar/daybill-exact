@@ -4213,3 +4213,19 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .purchase-paper.template-modern { border-top: 4px solid var(--invoice-accent, #0b5c52); }
 .purchase-paper.template-minimal { border-top: 2px solid #e7e4dd; }
 .purchase-paper.template-bold { border: 2px solid var(--invoice-accent, #0b5c52); border-radius: 8px; }
+
+/* Modern onboarding (Option B + Mobilanc style) */
+.welcome-modern { position: fixed; inset: 0; z-index: 100; background: #f7fbf9; display: flex; flex-direction: column; align-items: center; padding: 60px 32px 32px; overflow-y: auto; }
+.wm-skip { position: absolute; top: 20px; right: 24px; background: none; border: none; font-size: 15px; color: #333; cursor: pointer; font-weight: 500; }
+.wm-image { width: 100%; max-width: 320px; height: 42%; min-height: 280px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.wm-image img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 20px; box-shadow: 0 8px 32px rgba(11, 92, 82, 0.12); }
+.wm-text { text-align: center; max-width: 320px; margin-bottom: 24px; }
+.wm-text h2 { font-size: 28px; font-weight: 800; line-height: 1.25; color: #1a1a1a; margin: 0 0 12px; letter-spacing: -0.5px; }
+.wm-text h2 .wm-accent { color: #0b7a5f; }
+.wm-text p { font-size: 14px; color: #6b7280; line-height: 1.6; margin: 0; }
+.wm-dots { display: flex; gap: 8px; align-items: center; margin-bottom: 32px; }
+.wm-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; transition: all 0.3s; }
+.wm-dot.active { width: 28px; border-radius: 4px; background: #0b5c52; }
+.wm-cta { width: 100%; max-width: 320px; padding: 16px; border-radius: 32px; background: #0b3d38; color: #fff; border: none; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
+.wm-cta:active { transform: scale(0.98); }
+@media (min-width: 768px) { .wm-image { max-width: 380px; } .wm-text, .wm-cta { max-width: 380px; } }

@@ -2119,10 +2119,10 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
 }
 
 const onboardingSlides = [
-  { id: "s1", type: "welcome", screenshot: finalWelcome },
-  { id: "s2", type: "dashboard", screenshot: finalDashboard },
-  { id: "s3", type: "invoice", screenshot: finalInvoice },
-  { id: "s4", type: "assistant", screenshot: finalAssistant },
+  { id: "s1", screenshot: finalWelcome, headline: "Your business, simplified.", accent: "simplified.", subtitle: "Create invoices, manage stock, track payments, and stay on top of your shop." },
+  { id: "s2", screenshot: finalDashboard, headline: "Know your business", accent: "at a glance.", subtitle: "Track sales, stock, and outstanding payments from one simple dashboard." },
+  { id: "s3", screenshot: finalInvoice, headline: "Professional bills,", accent: "in seconds.", subtitle: "Create, download, print, and share invoices with your customers." },
+  { id: "s4", screenshot: finalAssistant, headline: "Your shop assistant,", accent: "always ready.", subtitle: "Ask about stock levels, revenue, invoices, and customer dues." },
 ] as const;
 
 function OnboardingMockup({ type }: { type: string }) {
@@ -2175,14 +2175,17 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
     setSlide((current) => end < start ? (current + 1) % onboardingSlides.length : (current - 1 + onboardingSlides.length) % onboardingSlides.length);
   };
   const isLast = slide === onboardingSlides.length - 1;
-  const goNext = () => { if (isLast) { onLogin(); } else { setSlide(slide + 1); } };
+  const goNext = () => { if (isLast) { onSignup(); } else { setSlide(slide + 1); } };
   const current = onboardingSlides[slide];
-  return <main className="welcome-fullscreen" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
-    <img className="wf-img" src={current?.screenshot} alt="Onboarding" />
-    <button className="wf-skip" type="button" onClick={onLogin} aria-label="Skip" />
-    {isLast
-      ? <button className="wf-getstarted" type="button" onClick={goNext} aria-label="Get Started" />
-      : <button className="wf-next" type="button" onClick={goNext} aria-label="Next" />}
+  return <main className="welcome-modern" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
+    <button className="wm-skip" type="button" onClick={onLogin}>Skip</button>
+    <div className="wm-image"><img src={current?.screenshot} alt="Daybill feature preview" /></div>
+    <div className="wm-text">
+      <h2>{current?.headline.replace(current?.accent ?? "", "").trim()} <span className="wm-accent">{current?.accent}</span></h2>
+      <p>{current?.subtitle}</p>
+    </div>
+    <div className="wm-dots">{onboardingSlides.map((s, i) => <span key={s.id} className={`wm-dot${i === slide ? " active" : ""}`} />)}</div>
+    <button className="wm-cta" type="button" onClick={goNext}>{isLast ? "Get Started" : "Next"}</button>
   </main>;
 }
 
