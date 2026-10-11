@@ -2179,13 +2179,21 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
   const current = onboardingSlides[slide];
   return <main className="welcome-modern" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
     <button className="wm-skip" type="button" onClick={onLogin}>Skip</button>
-    <div className="wm-image"><img src={current?.screenshot} alt="Daybill feature preview" /></div>
-    <div className="wm-text">
-      <h2>{current?.headline.replace(current?.accent ?? "", "").trim()} <span className="wm-accent">{current?.accent}</span></h2>
-      <p>{current?.subtitle}</p>
+    <div className="wm-desktop-layout">
+      <div className="wm-content">
+        <div className="wm-brand">daybill</div>
+        <div className="wm-text">
+          <h2>{current?.headline.replace(current?.accent ?? "", "").trim()} <span className="wm-accent">{current?.accent}</span></h2>
+          <p>{current?.subtitle}</p>
+        </div>
+        <div className="wm-dots">{onboardingSlides.map((s, i) => <span key={s.id} className={`wm-dot${i === slide ? " active" : ""}`} />)}</div>
+        <div className="wm-actions">
+          <button className="wm-cta" type="button" onClick={goNext}>{isLast ? "Get Started" : "Next"}</button>
+          {!isLast ? <button className="wm-secondary" type="button" onClick={onLogin}>I already have an account</button> : null}
+        </div>
+      </div>
+      <div className="wm-image"><img src={current?.screenshot} alt="Daybill feature preview" /></div>
     </div>
-    <div className="wm-dots">{onboardingSlides.map((s, i) => <span key={s.id} className={`wm-dot${i === slide ? " active" : ""}`} />)}</div>
-    <button className="wm-cta" type="button" onClick={goNext}>{isLast ? "Get Started" : "Next"}</button>
   </main>;
 }
 
