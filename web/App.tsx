@@ -9,9 +9,9 @@ import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-full.jpg";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
 import finalWelcome from "./assets/onboarding-exact/ob-welcome-notext.jpg";
-import finalDashboard from "./assets/onboarding-exact/ob-dashboard-notext.jpg";
-import finalInvoice from "./assets/onboarding-exact/ob-invoice-notext.jpg";
-import finalAssistant from "./assets/onboarding-exact/ob-assistant-notext.jpg";
+import finalDashboard from "./assets/onboarding-exact/user-dashboard.jpg";
+import finalInvoice from "./assets/onboarding-exact/user-invoice.jpg";
+import finalAssistant from "./assets/onboarding-exact/user-assistant.jpg";
 
 
 
@@ -2180,6 +2180,7 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
   return <main className="welcome-modern" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
     <button className="wm-skip" type="button" onClick={onLogin}>Skip</button>
     <div className="wm-desktop-layout">
+      <div className="wm-image">{slide === 0 ? <div className="wm-welcome-brand"><span className="wm-welcome-logo">daybill</span><span className="wm-welcome-tag">Roz ka karobar, ab asaan</span></div> : <img src={current?.screenshot} alt="Daybill feature preview" />}</div>
       <div className="wm-content">
         <div className="wm-brand">daybill</div>
         <div className="wm-text">
@@ -2192,7 +2193,6 @@ function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: (
           {!isLast ? <button className="wm-secondary" type="button" onClick={onLogin}>I already have an account</button> : null}
         </div>
       </div>
-      <div className="wm-image"><img src={current?.screenshot} alt="Daybill feature preview" /></div>
     </div>
   </main>;
 }
