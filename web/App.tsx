@@ -2213,7 +2213,6 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   const { language, setLanguage } = useLanguage();
   const [mode, setMode] = useState<"user-login" | "create" | "admin" | "forgot-pin">(initialMode);
   const [remember, setRemember] = useState(true);
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [name, setName] = useState("");
@@ -2377,7 +2376,6 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             {adminSetupRequired && adminConfirmation.length >= 10 && adminPassword !== adminConfirmation ? <p className="auth-error" role="alert">Passwords do not match.</p> : null}
             {error ? <p className="auth-error" role="alert">{error instanceof Error ? error.message : "Could not continue. Try again."}</p> : null}
             <label className="remember-row"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} /><span>Remember me</span></label>
-            {isCreating ? <label className="remember-row age-check"><input type="checkbox" checked={ageConfirmed} onChange={(event) => setAgeConfirmed(event.target.checked)} /><span>I confirm I am 18 years or older</span></label> : null}
             <button className="primary wide login-submit" type="submit" disabled={!adminFormValid || adminLogin.isPending}>{adminLogin.isPending ? "Please wait…" : adminSetupRequired ? "Set password & sign in" : "Admin Login"}</button>
             <p className="auth-footnote">There is one administrator account. New administrator accounts cannot be created here.</p>
           </form> : <form className="login-form" onSubmit={(event) => {
@@ -2413,7 +2411,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
               </>}
               {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
             </div> : null}
-            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation || !ageConfirmed)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
+            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
             {!isCreating ? <button className="auth-switch" type="button" onClick={() => changeMode("forgot-pin")}>Forgot PIN?</button> : null}
             <button className="auth-switch" type="button" onClick={() => changeMode(isCreating ? "user-login" : "create")}>{isCreating ? "Already have a user account? Log in" : "New here? Create user account"}</button>
             <p className="auth-legal">By continuing you agree to our <button type="button" className="link-inline" onClick={() => setShowPrivacy(true)}>Privacy Policy</button> and <button type="button" className="link-inline" onClick={() => setShowTerms(true)}>Terms of Service</button>.</p>
