@@ -397,7 +397,6 @@ export const Actions = {
       const logoUrl = saved?.logoBlobKey ? await ctx.blobs.getUrl(saved.logoBlobKey) : null;
       const revenue = invoiceRows.reduce((sum, row) => sum + row.total, 0);
       const contactsById = new Map(contactRows.map((row) => [row.id, row]));
-      const cost = itemRows.reduce((sum, row) => sum + row.unitCost * row.quantity, 0);
       const costByInvoice = new Map<number, number>();
       for (const item of itemRows) costByInvoice.set(item.invoiceId, (costByInvoice.get(item.invoiceId) ?? 0) + item.unitCost * item.quantity);
       const outstanding = invoiceRows.filter((row) => row.paymentStatus === "pending").reduce((sum, row) => sum + row.total, 0);
@@ -459,7 +458,7 @@ export const Actions = {
             })),
           };
         }),
-        dashboard: { revenue, cost: cost + purchaseTotal, profit: revenue - (cost + purchaseTotal), outstanding, payables, purchases: purchaseTotal, low_stock_count: productRows.filter((row) => row.stockQuantity <= 5).length },
+        dashboard: { revenue, cost: purchaseTotal, profit: revenue - purchaseTotal, outstanding, payables, purchases: purchaseTotal, low_stock_count: productRows.filter((row) => row.stockQuantity <= 5).length },
       };
     },
   }),
