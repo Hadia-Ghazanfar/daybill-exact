@@ -1612,6 +1612,13 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
     pushTabPath(next);
   };
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setDrawerOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [drawerOpen]);
   const [createKind, setCreateKind] = useState<"sale" | "purchase">("sale");
   const [savedPurchaseId, setSavedPurchaseId] = useState<number | null>(null);
   const [step, setStep] = useState(1);
@@ -1928,7 +1935,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
     { id: "profile" as const, label: "Profile", icon: "profile" as const, group: "TOOLS" },
   ];
 
-  const goTab = (id: Tab) => { setQuickAddOpen(false); sessionStorage.removeItem(MOBILE_BILLS_RETURN_KEY); mobileDetailHistoryPushed.current = false; setSelectedContactId(null); setTab(id); setMessage(""); };
+  const goTab = (id: Tab) => { setQuickAddOpen(false); setDrawerOpen(false); sessionStorage.removeItem(MOBILE_BILLS_RETURN_KEY); mobileDetailHistoryPushed.current = false; setSelectedContactId(null); setTab(id); setMessage(""); };
   const quickCreate = (kind: "sale" | "purchase") => { setQuickAddOpen(false); setCreateKind(kind); if (kind === "purchase") setSavedPurchaseId(null); goTab("create"); };
 
   return (
@@ -1936,6 +1943,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
       <SafeAreaTopScrim backgroundColor="var(--bg)" />
       <header className="app-topbar" aria-label="Daybill header">
         <div className="topbar-brand">
+          <button className="topbar-menu-btn" type="button" aria-label="Open menu" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><span /><span /><span /></button>
           <img className="topbar-logo" src={daybillLogoWhite} alt="Daybill" />
           <div className="app-brand-copy"><span>Roz ka karobar, ab asaan</span><small>Your daily trade, simplified</small></div>
         </div>
@@ -1960,6 +1968,25 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         <button className={`rail-btn${tab === "contacts" ? " active" : ""}`} type="button" aria-label="Contacts" data-tip="Contacts" onClick={() => goTab("contacts")}><Icon name="people" /></button>
         <div className="rail-spacer" />
         <button className={`rail-avatar${tab === "profile" ? " active" : ""}`} type="button" aria-label={workspace.data.account.shopkeeper_name || settings.business_name || "Profile"} title={workspace.data.account.shopkeeper_name || settings.business_name || "Profile"} onClick={() => goTab("profile")}>{settings.logo_url ? <img src={settings.logo_url} alt="" /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="" /> : <span className="sidebar-avatar-fallback"><Icon name="profile" /></span>}</button>
+      </aside>
+      {drawerOpen ? <div className="drawer-backdrop" onClick={() => setDrawerOpen(false)} aria-hidden="true" /> : null}
+      <aside className={`mobile-drawer${drawerOpen ? " open" : ""}`} aria-label="Menu" aria-hidden={!drawerOpen}>
+        <div className="drawer-head">
+          <span className="drawer-avatar">{settings.logo_url ? <img src={settings.logo_url} alt="" /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="" /> : <span className="sidebar-avatar-fallback"><Icon name="profile" /></span>}</span>
+          <div className="drawer-head-copy"><strong>{settings.business_name || "Daybill"}</strong><small>{workspace.data.account.shopkeeper_name || "Shop owner"}</small></div>
+          <button className="drawer-close" type="button" aria-label="Close menu" onClick={() => setDrawerOpen(false)}>✕</button>
+        </div>
+        <div className="drawer-create-actions">
+          <button className="drawer-create primary" type="button" onClick={() => { setDrawerOpen(false); quickCreate("sale"); }}><Icon name="invoice" /><span>New sales invoice</span></button>
+          <button className="drawer-create" type="button" onClick={() => { setDrawerOpen(false); quickCreate("purchase"); }}><Icon name="truck" /><span>New supplier invoice</span></button>
+        </div>
+        <nav className="drawer-nav" aria-label="All modules">
+          {nav.map((item) => <button key={item.id} type="button" aria-label={item.label} aria-current={tab === item.id ? "page" : undefined} className={tab === item.id ? "active" : ""} onClick={() => goTab(item.id)}><Icon name={item.icon} /><span>{item.label}</span></button>)}
+        </nav>
+        <div className="drawer-foot">
+          <button type="button" onClick={() => { setDrawerOpen(false); setShowHelpFeedback(true); }}><Icon name="help" /><span>{ui(language, "Help")}</span></button>
+          <button type="button" onClick={onLogout}><Icon name="logout" /><span>{ui(language, "Logout")}</span></button>
+        </div>
       </aside>
       <main>
         {selectedContactId !== null ? <ContactHistoryView contact={contacts.find((item) => item.id === selectedContactId) ?? null} invoices={workspace.data.invoices} purchases={workspace.data.purchases} currency={settings.currency} onBack={() => setSelectedContactId(null)} onOpenInvoice={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} /> : tab === "dashboard" ? <DashboardView workspace={workspace.data} onCreate={() => { setCreateKind("sale"); setTab("create"); }} onCreatePurchase={() => { setCreateKind("purchase"); setSavedPurchaseId(null); setTab("create"); }} onOpenInvoice={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} onInventory={() => setTab("products")} /> : tab === "create" ? (
@@ -2876,6 +2903,13 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
   const [view, setView] = useState<"dashboard" | "profile">("dashboard");
   const [directoryView, setDirectoryView] = useState<"accounts" | "feedback">("accounts");
   const [showNotifications, setShowNotifications] = useState(false);
+  const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
+  useEffect(() => {
+    if (!adminDrawerOpen) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setAdminDrawerOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [adminDrawerOpen]);
   const dashboard = useQuery({ queryKey: ["admin-dashboard"], queryFn: () => api.getAdminDashboard({}) });
   // New account notifications: compare against last seen timestamp
   const lastSeenKey = "admin_last_seen_accounts";
@@ -2903,7 +2937,7 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
   return <div className="app-shell admin-shell">
     <SafeAreaTopScrim backgroundColor="var(--bg)" />
     <header className="app-topbar admin-topbar" aria-label="Daybill administrator header">
-      <div className="topbar-brand"><img className="topbar-logo" src={daybillLogoWhite} alt="Daybill" /><div className="app-brand-copy"><span>Administrator</span><small>Oversight panel</small></div></div>
+      <div className="topbar-brand"><button className="topbar-menu-btn" type="button" aria-label="Open menu" aria-expanded={adminDrawerOpen} onClick={() => setAdminDrawerOpen(true)}><span /><span /><span /></button><img className="topbar-logo" src={daybillLogoWhite} alt="Daybill" /><div className="app-brand-copy"><span>Administrator</span><small>Oversight panel</small></div></div>
       <nav className="pill-nav" aria-label="Primary navigation">
         <button type="button" aria-label="Home" aria-current={view === "dashboard" ? "page" : undefined} className={view === "dashboard" ? "active" : ""} onClick={() => setView("dashboard")}><Icon name="dashboard" /><span>{ui(language, "Home")}</span></button>
         <button type="button" aria-label="Profile" aria-current={view === "profile" ? "page" : undefined} className={view === "profile" ? "active" : ""} onClick={() => setView("profile")}><Icon name="profile" /><span>{ui(language, "Profile")}</span></button>
@@ -2928,6 +2962,21 @@ function AdminApp({ session, onLogout }: { session: AccountSession; onLogout: ()
       <button className={`rail-btn${view === "profile" ? " active" : ""}`} type="button" aria-label="Profile" data-tip="Profile" onClick={() => setView("profile")}><Icon name="profile" /></button>
       <div className="rail-spacer" />
       <span className="rail-avatar rail-avatar-static" title="Administrator"><span className="sidebar-avatar-fallback"><Icon name="profile" /></span></span>
+    </aside>
+    {adminDrawerOpen ? <div className="drawer-backdrop" onClick={() => setAdminDrawerOpen(false)} aria-hidden="true" /> : null}
+    <aside className={`mobile-drawer${adminDrawerOpen ? " open" : ""}`} aria-label="Menu" aria-hidden={!adminDrawerOpen}>
+      <div className="drawer-head">
+        <span className="drawer-avatar"><span className="sidebar-avatar-fallback"><Icon name="profile" /></span></span>
+        <div className="drawer-head-copy"><strong>Administrator</strong><small>Oversight panel</small></div>
+        <button className="drawer-close" type="button" aria-label="Close menu" onClick={() => setAdminDrawerOpen(false)}>✕</button>
+      </div>
+      <nav className="drawer-nav" aria-label="All modules">
+        <button type="button" aria-label="Home" aria-current={view === "dashboard" ? "page" : undefined} className={view === "dashboard" ? "active" : ""} onClick={() => { setAdminDrawerOpen(false); setView("dashboard"); }}><Icon name="dashboard" /><span>{ui(language, "Home")}</span></button>
+        <button type="button" aria-label="Profile" aria-current={view === "profile" ? "page" : undefined} className={view === "profile" ? "active" : ""} onClick={() => { setAdminDrawerOpen(false); setView("profile"); }}><Icon name="profile" /><span>{ui(language, "Profile")}</span></button>
+      </nav>
+      <div className="drawer-foot">
+        <button type="button" onClick={onLogout}><Icon name="logout" /><span>{ui(language, "Logout")}</span></button>
+      </div>
     </aside>
     <main>{view === "dashboard" ? <section className="admin-dashboard">
       <header className="admin-dashboard-heading"><div><p className="eyebrow">PLATFORM OVERVIEW</p><h1>Admin Dashboard</h1><p>Across all user accounts</p></div><div className="admin-head-actions"><button className="icon-button admin-notif-bell-mobile" onClick={() => setShowNotifications((s) => !s)} aria-label="New account notifications"><Icon name="bell" />{newAccounts.length > 0 ? <span className="notif-badge">{newAccounts.length}</span> : null}</button><span className="admin-status"><Icon name="lock" />ADMIN</span></div></header>
