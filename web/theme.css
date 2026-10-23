@@ -4527,3 +4527,11 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 @media print {
   .topbar-menu-btn, .mobile-drawer, .drawer-backdrop { display: none !important; }
 }
+
+/* New shell owns the full width: neutralize the retired sidebar's shell padding */
+@media (min-width: 760px) {
+  html body .app-shell,
+  html:not(.phone-layout) .app-shell,
+  html:not(.phone-layout) .sidebar-collapsed.app-shell,
+  html:not(.phone-layout):not(.sidebar-force-open) .app-shell { padding: 0 !important; }
+}
