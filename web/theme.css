@@ -4606,3 +4606,9 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 @media print {
   .mobile-tabbar { display: none !important; }
 }
+
+/* Mobile top bar: menu button only — logo, Help and Logout live in the drawer */
+@media (max-width: 759px) {
+  .app-topbar:not(.admin-topbar) .topbar-logo,
+  .app-topbar:not(.admin-topbar) .topbar-actions { display: none; }
+}
