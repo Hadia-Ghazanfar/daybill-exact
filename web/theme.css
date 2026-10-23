@@ -4535,3 +4535,74 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   html:not(.phone-layout) .sidebar-collapsed.app-shell,
   html:not(.phone-layout):not(.sidebar-force-open) .app-shell { padding: 0 !important; }
 }
+
+/* ===== Mobile bottom tab bar (reference-style floating menu) + dashboard entrance ===== */
+.mobile-tabbar { display: none; }
+
+@keyframes db-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.overview-view .received-card { animation: db-rise .55s ease both; }
+.overview-view .stat-tile { animation: db-rise .55s ease both; }
+.overview-view .stat-tile:nth-child(2) { animation-delay: .05s; }
+.overview-view .stat-tile:nth-child(3) { animation-delay: .1s; }
+.overview-view .stat-tile:nth-child(4) { animation-delay: .15s; }
+.overview-view .stat-tile:nth-child(5) { animation-delay: .2s; }
+.overview-view .stat-tile:nth-child(6) { animation-delay: .25s; }
+.overview-view .cash-flow-card { animation: db-rise .55s ease .2s both; }
+
+@media (max-width: 759px) {
+  .pill-nav { display: none; }
+  .app-shell > main { padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
+
+  .mobile-tabbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 2px;
+    position: fixed; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 60;
+    padding: 8px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    box-shadow: 0 16px 40px rgba(11, 59, 57, .20);
+  }
+  .tabbar-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 48px; padding: 10px 12px;
+    border: 0; border-radius: 999px;
+    background: transparent; color: var(--dim); cursor: pointer;
+    transition: background .22s ease, color .22s ease;
+  }
+  .tabbar-btn svg { width: 22px; height: 22px; flex: 0 0 auto; }
+  .tabbar-label {
+    font-size: 12.5px; font-weight: 700; white-space: nowrap;
+    max-width: 0; opacity: 0; overflow: hidden;
+    transition: max-width .22s ease, opacity .18s ease;
+  }
+  .tabbar-btn.active { background: var(--accent); color: #fff; }
+  .tabbar-btn.active .tabbar-label { max-width: 64px; opacity: 1; }
+  .tabbar-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tabbar-create {
+    display: grid; place-items: center;
+    width: 52px; height: 52px; flex: 0 0 auto;
+    transform: translateY(-14px);
+    border: 3px solid var(--bg); border-radius: 50%;
+    background: var(--accent); color: #fff; cursor: pointer;
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 45%, transparent);
+    transition: transform .18s ease, filter .18s ease;
+  }
+  .tabbar-create svg { width: 24px; height: 24px; }
+  .tabbar-create:active { transform: translateY(-14px) scale(.94); }
+  .tabbar-create:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .app-shell .chatbot-fab { bottom: calc(102px + env(safe-area-inset-bottom, 0px)); }
+  .app-shell .chatbot-panel { bottom: calc(172px + env(safe-area-inset-bottom, 0px)); max-height: calc(100vh - 230px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overview-view .received-card, .overview-view .stat-tile, .overview-view .cash-flow-card { animation: none; }
+  .tabbar-btn, .tabbar-label, .tabbar-create { transition: none; }
+}
+
+@media print {
+  .mobile-tabbar { display: none !important; }
+}
