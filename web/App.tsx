@@ -149,6 +149,28 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 const ACCENT_KEY = "daybill-accent-v1";
 const TEXTSIZE_KEY = "daybill-textsize-v1";
+const NOTIF_PREFS_KEY = "daybill-notif-prefs-v1";
+type NotifPrefKey = "low_stock" | "stock_updates" | "new_products" | "new_contacts" | "deleted_invoices";
+const NOTIF_PREF_TYPES: Record<NotifPrefKey, string[]> = {
+  low_stock: ["low_stock"],
+  stock_updates: ["stock_updated"],
+  new_products: ["product_added"],
+  new_contacts: ["customer_added", "supplier_added"],
+  deleted_invoices: ["invoice_deleted"],
+};
+function readNotifPrefs(): Record<NotifPrefKey, boolean> {
+  const defaults: Record<NotifPrefKey, boolean> = { low_stock: true, stock_updates: true, new_products: true, new_contacts: true, deleted_invoices: true };
+  try {
+    const raw = localStorage.getItem(NOTIF_PREFS_KEY);
+    if (!raw) return defaults;
+    return { ...defaults, ...JSON.parse(raw) };
+  } catch { return defaults; }
+}
+function notifTypeEnabled(type: string): boolean {
+  const prefs = readNotifPrefs();
+  const key = (Object.keys(NOTIF_PREF_TYPES) as NotifPrefKey[]).find((k) => NOTIF_PREF_TYPES[k].includes(type));
+  return key ? prefs[key] : true;
+}
 
 const urduUi: Record<string, string> = {
   "Daybill": "ڈے بل",
@@ -1615,7 +1637,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const { data: notifData } = useQuery({ queryKey: ["notifications"], queryFn: () => api.listNotifications({}), refetchInterval: 30000 });
-  const notifUnread: number = (notifData as any)?.unreadCount ?? 0;
+  const notifUnread: number = (notifData as any)?.notifications ? (notifData as any).notifications.filter((n: any) => !n.is_read && notifTypeEnabled(n.type)).length : ((notifData as any)?.unreadCount ?? 0);
   const unpaidBadge = workspace.data ? workspace.data.invoices.filter((i) => i.payment_status === "pending").length : 0;
   useEffect(() => {
     if (!drawerOpen) return;
@@ -3083,6 +3105,16 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
   const { language, setLanguage } = useLanguage();
   const { theme, setTheme, accent, setAccent } = useTheme();
   const [showFeedback, setShowFeedback] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"profile" | "notifications">("profile");
+  const [notifPrefs, setNotifPrefs] = useState<Record<NotifPrefKey, boolean>>(readNotifPrefs);
+  const toggleNotif = (key: NotifPrefKey) => { const next = { ...notifPrefs, [key]: !notifPrefs[key] }; setNotifPrefs(next); try { localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(next)); } catch {} };
+  const notifRows: { key: NotifPrefKey; label: string; note: string }[] = [
+    { key: "low_stock", label: "Low stock", note: "When a product falls to 5 or fewer in stock." },
+    { key: "stock_updates", label: "Stock updates", note: "Stock added, adjusted or restocked." },
+    { key: "new_products", label: "New products", note: "When a product is added to your stock." },
+    { key: "new_contacts", label: "New contacts", note: "When a customer or supplier is added." },
+    { key: "deleted_invoices", label: "Deleted invoices", note: "When a sales or supplier invoice is deleted." },
+  ];
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -3098,17 +3130,21 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
   return <section className="profile-view">
     <div className="settings-page desktop-only-card">
       <h1>Settings</h1>
-      <div className="settings-tabs" role="tablist" aria-label="Settings sections"><button type="button" className="active" aria-selected="true">Profile</button><button type="button" onClick={onEdit}>Store</button>{onNotifOpen ? <button type="button" onClick={onNotifOpen}>Notifications</button> : null}</div>
+      <div className="settings-tabs" role="tablist" aria-label="Settings sections"><button type="button" className={settingsTab === "profile" ? "active" : ""} aria-selected={settingsTab === "profile"} onClick={() => setSettingsTab("profile")}>Profile</button><button type="button" onClick={onEdit}>Store</button>{onNotifOpen ? <button type="button" className={settingsTab === "notifications" ? "active" : ""} aria-selected={settingsTab === "notifications"} onClick={() => setSettingsTab("notifications")}>Notifications</button> : null}</div>
+      {settingsTab === "profile" ? <>
       <section className="settings-card"><h2>Your profile</h2><p>How you appear on invoices and in your shop records.</p><div className="profile-identity">
         <div className="profile-identity-panel">{settings.logo_url ? <img src={settings.logo_url} alt={`${settings.business_name || "Shop"} logo`} /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="Shop avatar" className="shopkeeper-avatar" /> : <ContactAvatar name={account.shopkeeper_name || settings.business_name || "Shop owner"} contactKey={`profile-${account.phone || account.shopkeeper_name}`} className="shopkeeper-avatar" />}<strong>{account.shopkeeper_name || settings.business_name || "Shop owner"}</strong><small>{account.session_kind === "admin" ? "Administrator" : "Shop owner"} · {settings.business_name || "Daybill"}</small></div>
         <div className="profile-fields"><label className="settings-field"><span>Full name</span><span className="settings-field-value">{account.shopkeeper_name || "—"}</span></label><label className="settings-field"><span>Phone / WhatsApp</span><span className="settings-field-value">{account.phone ? formatPhoneDisplay(account.phone) : "—"}</span></label><label className="settings-field wide"><span>Role</span><span className="settings-field-value">{account.session_kind === "admin" ? "Administrator" : "Shop owner"}</span><small>This is your signed-in role.</small></label><button className="secondary compact" type="button" onClick={onEdit}><Icon name="pencil" />Edit shop details</button></div>
       </div></section>
       <section className="settings-card"><h2>Appearance</h2><p>Applies straight away, on this device.</p>
         <div className="settings-row"><div><strong>Theme</strong><small>Dark is easier on the eyes in the evening.</small></div><div className="theme-switch" role="group" aria-label="Theme"><button type="button" className={theme === "light" ? "active" : ""} aria-pressed={theme === "light"} onClick={() => setTheme("light")}>Light</button><button type="button" className={theme === "dark" ? "active" : ""} aria-pressed={theme === "dark"} onClick={() => setTheme("dark")}>Dark</button></div></div>
-        <div className="settings-row"><div><strong>Colour</strong><small>Black and white by default. Status colours keep their meaning in every palette.</small></div><div className="colour-pills" role="group" aria-label="Theme colour">{accents.map(a => <button key={a.id} type="button" className={`colour-pill ${accent === a.id ? "active" : ""}`} onClick={() => setAccent(a.id)} aria-pressed={accent === a.id}><i style={{ background: a.color }} />{a.label}{accent === a.id ? " ✓" : ""}</button>)}</div></div>
+        <div className="settings-row"><div><strong>Colour</strong><small>Black and white by default. Status colours keep their meaning in every palette.</small></div><div className="colour-pills" role="group" aria-label="Theme colour">{accents.map(a => <button key={a.id} type="button" className={`colour-pill ${accent === a.id ? "active" : ""}`} onClick={() => setAccent(a.id)} aria-pressed={accent === a.id}><i style={{ background: `conic-gradient(${a.color} 0 55%, #e8e4df 55% 78%, #111 78% 100%)` }} />{a.label}{accent === a.id ? " ✓" : ""}</button>)}</div></div>
         <div className="settings-row"><div><strong>Language</strong><small>Choose the app language.</small></div><div className="language-switch" role="group" aria-label="Language"><button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button><button type="button" className={language === "ur" ? "active" : ""} aria-pressed={language === "ur"} onClick={() => setLanguage("ur")}>اردو</button></div></div>
       </section>
       <section className="settings-card"><div><strong>Feedback</strong><small>Help us improve Daybill.</small></div><button className="secondary compact" type="button" onClick={() => setShowFeedback(true)}>Share feedback</button></section>
+      </> : <section className="settings-card"><h2>Notify me about</h2><p>Shown in your notification panel, on this device.</p>
+        {notifRows.map(r => <div className="settings-row" key={r.key}><div><strong>{r.label}</strong><small>{r.note}</small></div><button type="button" role="switch" aria-checked={notifPrefs[r.key]} aria-label={r.label} className={`settings-toggle ${notifPrefs[r.key] ? "on" : ""}`} onClick={() => toggleNotif(r.key)}><span /></button></div>)}
+      </section>}
     </div>
     <div className="profile-legacy"><div className="profile-hero">{settings.logo_url ? <img src={settings.logo_url} alt={`${settings.business_name || "Shop"} logo`} /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="Shop avatar" className="shopkeeper-avatar" /> : <ContactAvatar name={account.shopkeeper_name || settings.business_name || "Shop owner"} contactKey={`profile-${account.phone || account.shopkeeper_name}`} className="shopkeeper-avatar" />}<div><p className="eyebrow">{ui(language, "SHOP PROFILE")}</p><h1>{settings.business_name || ui(language, "Your shop")}</h1><p>{settings.address || ui(language, "No address added")}</p></div></div>
     <section className="account-card" aria-label="Signed in account"><div><span>{account.session_kind === "admin" ? ui(language, "Administrator session") : ui(language, "Signed in as")}</span><strong>{account.shopkeeper_name}</strong><small>{account.session_kind === "admin" ? account.admin_email : formatPhoneDisplay(account.phone)}</small></div><button className="secondary compact" type="button" onClick={onLogout}>{ui(language, "Logout / Switch account")}</button></section>
@@ -3195,7 +3231,8 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
   const notifications: AppNotification[] = (data as any)?.notifications ?? [];
-  const unreadCount: number = (data as any)?.unreadCount ?? 0;
+  const visibleNotifications = notifications.filter((n) => notifTypeEnabled(n.type));
+  const unreadCount: number = visibleNotifications.filter((n) => !n.is_read).length;
   return (
     <div className="notif-backdrop" onClick={onClose}>
       <section className="notif-panel" role="dialog" aria-modal="true" aria-label="Notifications" onClick={(e) => e.stopPropagation()}>
@@ -3206,11 +3243,11 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
             <button type="button" className="close-button" aria-label="Close notifications" onClick={onClose}>×</button>
           </div>
         </div>
-        {isPending ? <p className="notif-loading">Loading…</p> : notifications.length === 0 ? (
+        {isPending ? <p className="notif-loading">Loading…</p> : visibleNotifications.length === 0 ? (
           <div className="notif-empty"><Icon name="bell" /><p>{ui(language, "No notifications yet")}</p><small>{ui(language, "Stock alerts and activity will appear here.")}</small></div>
         ) : (
           <ul className="notif-list">
-            {notifications.map((n) => (
+            {visibleNotifications.map((n) => (
               <li key={n.id}>
                 <button type="button" className={`notif-item${n.is_read ? "" : " unread"}`} onClick={() => { if (!n.is_read) markRead.mutate(n.id); }}>
                   <span className={`notif-icon notif-${n.type}`}><Icon name={notificationIcon(n.type) as any} /></span>

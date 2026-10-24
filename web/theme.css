@@ -5019,3 +5019,14 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   html[data-theme="dark"] .colour-pill.active { border-color: #fff; }
   .settings-card:has(> button) { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 }
+
+/* Settings notification toggles (Corbel switch pattern, desktop only) */
+@media (min-width: 760px) {
+  .settings-toggle { position: relative; flex: 0 0 auto; width: 52px; height: 30px; padding: 0; border: 0; border-radius: 999px; background: #d8d5d0; cursor: pointer; transition: background 0.15s ease; }
+  .settings-toggle span { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: left 0.15s ease; }
+  .settings-toggle.on { background: #111; }
+  .settings-toggle.on span { left: 25px; }
+  html[data-theme="dark"] .settings-toggle { background: #3a3a3a; }
+  html[data-theme="dark"] .settings-toggle.on { background: #fff; }
+  html[data-theme="dark"] .settings-toggle.on span { background: #111; }
+}
