@@ -4612,3 +4612,51 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   .app-topbar:not(.admin-topbar) .topbar-logo,
   .app-topbar:not(.admin-topbar) .topbar-actions { display: none; }
 }
+
+/* ===== V16 dashboard additions: sparklines, insights cards, mobile quick actions ===== */
+.tile-spark { display: block; width: 100%; height: 30px; margin-top: 10px; }
+.tile-spark polyline { stroke-dasharray: 400; stroke-dashoffset: 400; animation: spark-draw 1.1s ease forwards; }
+@keyframes spark-draw { to { stroke-dashoffset: 0; } }
+
+.dashboard-insights { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.35fr); gap: 16px; }
+.insight-card { padding: 20px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+.donut-wrap { position: relative; width: 150px; height: 150px; margin: 6px auto 4px; }
+.donut-wrap svg { width: 100%; height: 100%; }
+.donut-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1.1; pointer-events: none; }
+.donut-center strong { font-size: 24px; letter-spacing: -.03em; }
+.donut-center small { color: var(--dim); font-size: 11px; }
+.donut-legend { display: grid; gap: 6px; margin-top: 10px; font-size: 12.5px; }
+.donut-legend span { display: flex; align-items: center; gap: 8px; }
+.donut-legend .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+.donut-legend .dot.paid { background: var(--accent); }
+.donut-legend .dot.pending { background: var(--border); }
+.weekly-bars { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 8px; }
+.weekly-bar { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
+.weekly-bar .bar-track { flex: 1 1 auto; display: flex; align-items: flex-end; width: 100%; }
+.weekly-bar i { display: block; width: 100%; max-width: 34px; margin: 0 auto; border-radius: 8px 8px 3px 3px; background: var(--accent); transform-origin: bottom; animation: bar-grow .8s ease both; }
+@keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.weekly-bar small { color: var(--dim); font-size: 10.5px; }
+
+.mobile-quick-actions { display: none; }
+
+/* Bills page: light stat cards + defined rows */
+.bills-view .bill-summary { gap: 10px; overflow: visible; background: transparent; color: var(--text); }
+.bills-view .bill-summary > div { padding: 16px 10px; border: 1px solid var(--border); border-right: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.bills-view .bill-summary span { color: var(--dim); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.bills-view .bill-summary strong { margin-top: 4px; font-size: 22px; }
+.bills-view .history-invoice-row { border-color: var(--border); }
+
+@media (max-width: 759px) {
+  .dashboard-insights { grid-template-columns: 1fr; }
+  .received-card { background: #0e1512; box-shadow: 0 18px 38px rgba(0, 0, 0, .28); }
+  .mobile-quick-actions { display: flex; gap: 10px; justify-content: space-between; }
+  .mobile-quick-actions button { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0; padding: 2px 0 0; border: 0; background: transparent; cursor: pointer; }
+  .mobile-quick-actions .qa-circle { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: #fff; box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 40%, transparent); }
+  .mobile-quick-actions .qa-circle svg { width: 22px; height: 22px; }
+  .mobile-quick-actions small { color: var(--text); font-size: 11px; font-weight: 600; white-space: nowrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-spark polyline { animation: none; stroke-dashoffset: 0; }
+  .weekly-bar i { animation: none; }
+}
