@@ -393,6 +393,11 @@ export const Actions = {
         if (!itemsByPurchase.has(item.purchaseInvoiceId)) itemsByPurchase.set(item.purchaseInvoiceId, []);
         itemsByPurchase.get(item.purchaseInvoiceId)!.push(item);
       }
+      const itemsByInvoice = new Map<number, typeof itemRows>();
+      for (const item of itemRows) {
+        if (!itemsByInvoice.has(item.invoiceId)) itemsByInvoice.set(item.invoiceId, []);
+        itemsByInvoice.get(item.invoiceId)!.push(item);
+      }
       const saved = settingsRows[0];
       const logoUrl = saved?.logoBlobKey ? await ctx.blobs.getUrl(saved.logoBlobKey) : null;
       const revenue = invoiceRows.reduce((sum, row) => sum + row.total, 0);
@@ -442,6 +447,9 @@ export const Actions = {
             customer_address: contact?.address ?? row.customerAddress,
             issue_date: row.issueDate, due_date: row.dueDate, payment_status: row.paymentStatus, payment_method: row.paymentMethod,
             discount_amount: row.discountAmount, total: row.total, cost_total: costByInvoice.get(row.id) ?? 0, currency: row.currency,
+            items: (itemsByInvoice.get(row.id) ?? []).map((it) => ({
+              id: it.id, description: it.description, unit: it.unit, quantity: it.quantity, unit_price: it.unitPrice, line_total: it.lineTotal,
+            })),
           };
         }),
         categories: categoryRows.map((row) => ({ id: row.id, name: row.name })),
@@ -1162,6 +1170,7 @@ export const Actions = {
           customer_name: row.customerName, customer_phone: row.customerPhone, customer_address: row.customerAddress,
           issue_date: row.issueDate, due_date: row.dueDate, payment_status: row.paymentStatus, payment_method: row.paymentMethod,
           discount_amount: row.discountAmount, total: row.total, cost_total: 0, currency: row.currency,
+          items: [],
           delete_reason: row.deleteReason ?? "", deleted_at: row.deletedAt ? row.deletedAt.toISOString() : null,
         })),
         purchases: purchaseRows.map((row) => ({
