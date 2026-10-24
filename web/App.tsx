@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentPropsWithoutRef, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { ThinkingOrb } from "thinking-orbs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { fileToBase64, SafeAreaTopScrim } from "./sdk-shim";
@@ -135,7 +136,7 @@ function saveAccountSession(session: AccountSession, remember = true) {
 
 type LanguageContextValue = { language: Language; setLanguage: (language: Language) => void };
 const LanguageContext = createContext<LanguageContextValue>({ language: "en", setLanguage: () => undefined });
-type AccentColor = "teal" | "violet" | "blue" | "pink" | "orange" | "yellow";
+type AccentColor = "mono" | "pastel" | "ocean" | "sage";
 type TextSize = "medium" | "large";
 type ThemeContextValue = {
   theme: Theme; setTheme: (theme: Theme) => void;
@@ -144,10 +145,14 @@ type ThemeContextValue = {
 };
 const ThemeContext = createContext<ThemeContextValue>({
   theme: "light", setTheme: () => undefined,
-  accent: "teal", setAccent: () => undefined,
+  accent: "mono", setAccent: () => undefined,
   textSize: "medium", setTextSize: () => undefined,
 });
 const ACCENT_KEY = "daybill-accent-v1";
+const PALETTE_ACCENTS: readonly AccentColor[] = ["mono", "pastel", "ocean", "sage"];
+function normalizeAccent(v: unknown): AccentColor {
+  return (PALETTE_ACCENTS as readonly string[]).includes(String(v)) ? (v as AccentColor) : "mono";
+}
 const TEXTSIZE_KEY = "daybill-textsize-v1";
 const NOTIF_PREFS_KEY = "daybill-notif-prefs-v1";
 type NotifPrefKey = "low_stock" | "stock_updates" | "new_products" | "new_contacts" | "deleted_invoices";
@@ -976,7 +981,7 @@ function ThemeProvider({ children }: { children: ReactNode }) {
   });
   const [accent, setAccent] = useState<AccentColor>(() => {
     const id = getAccountId();
-    return id ? getStored(getScopedKey(ACCENT_KEY, id), "teal") : "teal";
+    return id ? normalizeAccent(getStored(getScopedKey(ACCENT_KEY, id), "mono")) : "mono";
   });
   const [textSize, setTextSize] = useState<TextSize>(() => {
     const id = getAccountId();
@@ -1003,12 +1008,12 @@ function ThemeProvider({ children }: { children: ReactNode }) {
       const a = getStored(getScopedKey(ACCENT_KEY, accountId), null as AccentColor | null);
       const s = getStored(getScopedKey(TEXTSIZE_KEY, accountId), null as TextSize | null);
       if (t) setTheme(t);
-      if (a) setAccent(a);
+      if (a) setAccent(normalizeAccent(a));
       if (s) setTextSize(s);
-      // New account (no saved settings): defaults are already teal/light/medium
+      // New account (no saved settings): defaults are already mono/light/medium
     } else {
       setTheme("light");
-      setAccent("teal");
+      setAccent("mono");
       setTextSize("medium");
     }
   }, [accountId]);
@@ -1018,7 +1023,7 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     const hasSession = !!accountId;
     const effectiveTheme = hasSession ? theme : "light";
-    const effectiveAccent = hasSession ? accent : "teal";
+    const effectiveAccent = hasSession ? accent : "mono";
     const effectiveTextSize = hasSession ? textSize : "medium";
     root.dataset.theme = effectiveTheme;
     root.dataset.accent = effectiveAccent;
@@ -1122,6 +1127,672 @@ function Icon({ name }: { name: "dashboard" | "plus" | "box" | "people" | "invoi
   };
   return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
+/* ==========================================================================
+   Ported components (adapted to Daybill's stack — no new dependencies)
+   --------------------------------------------------------------------------
+   The supplied HoldToConfirmButton and ReceiptPrinter sources use Tailwind
+   utility classes with Radix color tokens (red-9, grayscale-*) that do not
+   exist in this project, plus motion/react and @phosphor-icons/react, which
+   are not installed. Their LOGIC is ported verbatim below; only the styling
+   layer changes to Daybill's own theme.css classes, the motion transitions
+   become equivalent CSS animations, and the icons become inline SVGs.
+   The cn helper and reduced-motion hook are implemented locally because the
+   "@/helpers/classname-helper" alias does not exist in this project.
+   ========================================================================== */
+
+function cn(...parts: Array<string | false | null | undefined>): string {
+  return parts.filter(Boolean).join(" ");
+}
+
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(() => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
+}
+
+function CheckSvg({ size = 15 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>;
+}
+
+function SpinnerSvg({ size = 18, spin = true }: { size?: number; spin?: boolean }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className={spin ? "rp-spin" : undefined}><path d="M21 12a9 9 0 1 1-6.2-8.56" /></svg>;
+}
+
+function CheckCircleSvg({ size = 18 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1.2 14.2-4-4 1.4-1.4 2.6 2.6 5.8-5.8 1.4 1.4-7.2 7.2Z" /></svg>;
+}
+
+/* ------------------------- HoldToConfirmButton ------------------------- */
+
+type HoldToConfirmButtonProps = Omit<
+  ComponentPropsWithoutRef<"button">,
+  "children" | "onClick"
+> & {
+  children?: ReactNode;
+  confirmedContent?: ReactNode;
+  duration?: number;
+  onConfirm: (input: ConfirmationInput) => void;
+  resetAfter?: number;
+};
+
+type HoldStatus = "confirmed" | "holding" | "idle";
+export type ConfirmationInput = "keyboard" | "pointer";
+
+export function HoldToConfirmButton({
+  children = "Hold to confirm",
+  className,
+  confirmedContent,
+  disabled,
+  duration = 1600,
+  onConfirm,
+  resetAfter = 1800,
+  ...buttonProps
+}: HoldToConfirmButtonProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const confirmTimerRef = useRef<number | null>(null);
+  const resetTimerRef = useRef<number | null>(null);
+  const activePointerIdRef = useRef<number | null>(null);
+  const inputModeRef = useRef<ConfirmationInput>("pointer");
+  const isHoldingRef = useRef(false);
+  const [inputMode, setInputMode] = useState<ConfirmationInput | null>(null);
+  const [status, setStatus] = useState<HoldStatus>("idle");
+  const shouldReduceMotion = useReducedMotion();
+
+  const clearConfirmTimer = useCallback(() => {
+    if (confirmTimerRef.current === null) {
+      return;
+    }
+    window.clearTimeout(confirmTimerRef.current);
+    confirmTimerRef.current = null;
+  }, []);
+
+  const completeHold = useCallback(() => {
+    if (!isHoldingRef.current) {
+      return;
+    }
+    isHoldingRef.current = false;
+    activePointerIdRef.current = null;
+    clearConfirmTimer();
+    setStatus("confirmed");
+    onConfirm(inputModeRef.current);
+    if (resetAfter > 0) {
+      resetTimerRef.current = window.setTimeout(() => {
+        setStatus("idle");
+        resetTimerRef.current = null;
+      }, resetAfter);
+    }
+  }, [clearConfirmTimer, onConfirm, resetAfter]);
+
+  const cancelHold = useCallback(() => {
+    if (!isHoldingRef.current) {
+      return;
+    }
+    isHoldingRef.current = false;
+    activePointerIdRef.current = null;
+    clearConfirmTimer();
+    setStatus("idle");
+  }, [clearConfirmTimer]);
+
+  const startHold = useCallback(
+    (input: ConfirmationInput) => {
+      if (disabled || status === "confirmed" || isHoldingRef.current) {
+        return;
+      }
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+        resetTimerRef.current = null;
+      }
+      inputModeRef.current = input;
+      setInputMode(input);
+      isHoldingRef.current = true;
+      setStatus("holding");
+      confirmTimerRef.current = window.setTimeout(completeHold, duration);
+    },
+    [completeHold, disabled, duration, status],
+  );
+
+  useEffect(() => {
+    return () => {
+      clearConfirmTimer();
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+      }
+    };
+  }, [clearConfirmTimer]);
+
+  useEffect(() => {
+    if (disabled) {
+      cancelHold();
+    }
+  }, [cancelHold, disabled]);
+
+  function releasePointerCapture(pointerId: number) {
+    const button = buttonRef.current;
+    if (button?.hasPointerCapture(pointerId)) {
+      button.releasePointerCapture(pointerId);
+    }
+  }
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (!event.isPrimary || event.button !== 0 || disabled) {
+      return;
+    }
+    activePointerIdRef.current = event.pointerId;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    startHold("pointer");
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (
+      !isHoldingRef.current ||
+      activePointerIdRef.current !== event.pointerId
+    ) {
+      return;
+    }
+    const rect = event.currentTarget.getBoundingClientRect();
+    const boundaryPadding = 8;
+    const isOutside =
+      event.clientX < rect.left - boundaryPadding ||
+      event.clientX > rect.right + boundaryPadding ||
+      event.clientY < rect.top - boundaryPadding ||
+      event.clientY > rect.bottom + boundaryPadding;
+    if (isOutside) {
+      cancelHold();
+      releasePointerCapture(event.pointerId);
+    }
+  }
+
+  function handlePointerEnd(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (activePointerIdRef.current !== event.pointerId) {
+      return;
+    }
+    cancelHold();
+    releasePointerCapture(event.pointerId);
+  }
+
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
+    if (event.repeat || (event.key !== "Enter" && event.key !== " ")) {
+      return;
+    }
+    event.preventDefault();
+    startHold("keyboard");
+  }
+
+  function handleKeyUp(event: ReactKeyboardEvent<HTMLButtonElement>) {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+    event.preventDefault();
+    cancelHold();
+  }
+
+  const isConfirmed = status === "confirmed";
+  const isHolding = status === "holding";
+  const overlayStyle = {
+    clipPath: isHolding ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+    transitionDuration:
+      shouldReduceMotion || inputMode === "keyboard"
+        ? "0ms"
+        : isHolding
+          ? `${duration}ms`
+          : "180ms",
+    transitionProperty: "clip-path",
+    transitionTimingFunction: isHolding
+      ? "linear"
+      : "cubic-bezier(0.23, 1, 0.32, 1)",
+  };
+
+  return (
+    <button
+      {...buttonProps}
+      aria-busy={isHolding}
+      className={cn("htc-button", isConfirmed && "htc-confirmed", className)}
+      data-input={inputMode}
+      disabled={disabled}
+      onBlur={cancelHold}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+      onLostPointerCapture={cancelHold}
+      onPointerCancel={handlePointerEnd}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerEnd}
+      ref={buttonRef}
+      type="button"
+    >
+      {isConfirmed ? (
+        <span className="htc-label">
+          {confirmedContent ?? (
+            <>
+              <CheckSvg />
+              Confirmed
+            </>
+          )}
+        </span>
+      ) : (
+        <>
+          <span className="htc-label">{children}</span>
+          <span aria-hidden="true" className="htc-overlay" style={overlayStyle}>
+            {children}
+          </span>
+        </>
+      )}
+    </button>
+  );
+}
+
+/* ---------------------------- ReceiptPrinter ---------------------------- */
+
+export type ReceiptPrinterStage = "processing" | "printing" | "complete";
+export type ReceiptFeedMotion = "smooth" | "stepped";
+
+export type ReceiptPrinterRootProps = Omit<
+  ComponentPropsWithoutRef<"section">,
+  "children"
+> & {
+  /** Disables all stage transitions when false. */
+  animate?: boolean;
+  children: ReactNode;
+  /** Controls whether the paper feeds continuously or one line at a time. */
+  feedMotion?: ReceiptFeedMotion;
+  /** Current state of the printer. */
+  stage: ReceiptPrinterStage;
+};
+
+export type ReceiptPrinterMachineProps = ComponentPropsWithoutRef<"div">;
+export type ReceiptPrinterHeaderProps = ComponentPropsWithoutRef<"div">;
+export type ReceiptPrinterScreenProps = ComponentPropsWithoutRef<"div">;
+export type ReceiptPrinterOutputProps = ComponentPropsWithoutRef<"div">;
+export type ReceiptPrinterPaperProps = ComponentPropsWithoutRef<"article">;
+
+export type ReceiptPrinterStatusProps = Omit<
+  ComponentPropsWithoutRef<"div">,
+  "children"
+> & {
+  /** Custom status content. Defaults to a label derived from the current stage. */
+  children?: ReactNode;
+};
+
+type ReceiptPrinterContextValue = {
+  animate: boolean;
+  feedMotion: ReceiptFeedMotion;
+  shouldMove: boolean;
+  stage: ReceiptPrinterStage;
+};
+
+const ReceiptPrinterContext = createContext<ReceiptPrinterContextValue | null>(
+  null,
+);
+
+const receiptToothCount = 40;
+const receiptToothDepth = 4;
+const receiptToothPoints = Array.from(
+  { length: receiptToothCount * 2 },
+  (_, index) => {
+    const x = 100 - ((index + 1) * 100) / (receiptToothCount * 2);
+    const y = index % 2 === 0 ? "100%" : `calc(100% - ${receiptToothDepth}px)`;
+    return `${x}% ${y}`;
+  },
+).join(", ");
+const receiptClipPath = `polygon(0 0, 100% 0, 100% calc(100% - ${receiptToothDepth}px), ${receiptToothPoints})`;
+
+const statusLabels: Record<ReceiptPrinterStage, ReactNode> = {
+  processing: "Processing your order",
+  printing: "Printing your receipt",
+  complete: "Order complete",
+};
+
+function useReceiptPrinter(component: string) {
+  const context = useContext(ReceiptPrinterContext);
+  if (!context) {
+    throw new Error(`${component} must be used inside ReceiptPrinter.Root.`);
+  }
+  return context;
+}
+
+function ReceiptPrinterRoot({
+  "aria-label": ariaLabel = "Receipt printer",
+  animate = true,
+  children,
+  className,
+  feedMotion = "stepped",
+  stage,
+  ...props
+}: ReceiptPrinterRootProps) {
+  const shouldReduceMotion = useReducedMotion();
+  const context = {
+    animate,
+    feedMotion,
+    shouldMove: animate && !shouldReduceMotion,
+    stage,
+  };
+  return (
+    <ReceiptPrinterContext.Provider value={context}>
+      <section
+        aria-label={ariaLabel}
+        className={cn("rp-root", className)}
+        data-stage={stage}
+        {...props}
+      >
+        {children}
+      </section>
+    </ReceiptPrinterContext.Provider>
+  );
+}
+
+function ReceiptPrinterMachine({
+  children,
+  className,
+  ...props
+}: ReceiptPrinterMachineProps) {
+  return (
+    <div className={cn("rp-machine", className)} {...props}>
+      {children}
+      <div aria-hidden="true" className="rp-machine-slot" />
+    </div>
+  );
+}
+
+function ReceiptPrinterHeader({
+  children,
+  className,
+  ...props
+}: ReceiptPrinterHeaderProps) {
+  return (
+    <div className={cn("rp-header", className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+function ReceiptPrinterScreen({
+  children,
+  className,
+  ...props
+}: ReceiptPrinterScreenProps) {
+  return (
+    <div className={cn("rp-screen", className)} {...props}>
+      <div className="rp-screen-inner">{children}</div>
+    </div>
+  );
+}
+
+function StatusIndicator({
+  animate,
+  move,
+  stage,
+}: {
+  animate: boolean;
+  move: boolean;
+  stage: ReceiptPrinterStage;
+}) {
+  const isComplete = stage === "complete";
+  return (
+    <span aria-hidden="true" className="rp-status-indicator">
+      <span
+        key={isComplete ? "complete" : "working"}
+        className={cn("rp-status-icon", animate && move && "rp-status-swap", isComplete && "rp-status-done")}
+      >
+        {isComplete ? <CheckCircleSvg /> : <SpinnerSvg spin={animate} />}
+      </span>
+    </span>
+  );
+}
+
+function ReceiptPrinterStatus({
+  children,
+  className,
+  ...props
+}: ReceiptPrinterStatusProps) {
+  const { animate, shouldMove, stage } = useReceiptPrinter(
+    "ReceiptPrinter.Status",
+  );
+  return (
+    <div className={cn("rp-status", className)} {...props}>
+      <StatusIndicator animate={animate} move={shouldMove} stage={stage} />
+      <div aria-live="polite" className="rp-status-live" role="status">
+        <div
+          key={stage}
+          className={cn("rp-status-label", animate && shouldMove && "rp-status-slide")}
+        >
+          {children ?? statusLabels[stage]}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReceiptPrinterPaper({
+  children,
+  className,
+  style,
+  ...props
+}: ReceiptPrinterPaperProps) {
+  return (
+    <article
+      className={cn("rp-paper", className)}
+      style={{ clipPath: receiptClipPath, ...style }}
+      {...props}
+    >
+      {children}
+    </article>
+  );
+}
+
+function ReceiptPrinterOutput({
+  children,
+  className,
+  ...props
+}: ReceiptPrinterOutputProps) {
+  const { animate, feedMotion, shouldMove, stage } = useReceiptPrinter(
+    "ReceiptPrinter.Output",
+  );
+  const isReceiptVisible = stage !== "processing";
+  const feedClass =
+    stage === "printing" && shouldMove
+      ? feedMotion === "stepped"
+        ? "rp-feed-stepped"
+        : "rp-feed-smooth"
+      : isReceiptVisible
+        ? "rp-feed-done"
+        : "rp-feed-hidden";
+  return (
+    <div className={cn("rp-output", className)} {...props}>
+      {isReceiptVisible ? (
+        <div aria-hidden="true" className="rp-output-shadow" />
+      ) : null}
+      <div
+        aria-hidden={stage !== "complete"}
+        className={cn("rp-feed", feedClass, !animate && "rp-feed-noanim")}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export const ReceiptPrinter = {
+  Header: ReceiptPrinterHeader,
+  Machine: ReceiptPrinterMachine,
+  Output: ReceiptPrinterOutput,
+  Paper: ReceiptPrinterPaper,
+  Root: ReceiptPrinterRoot,
+  Screen: ReceiptPrinterScreen,
+  Status: ReceiptPrinterStatus,
+};
+
+/* ------------------------- Archive confirm dialog ------------------------ */
+
+function ArchiveConfirmDialog({ title, lines, confirmLabel, onConfirm, onClose }: {
+  title: string;
+  lines: string[];
+  confirmLabel: string;
+  onConfirm: () => Promise<void>;
+  onClose: () => void;
+}) {
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const run = async () => {
+    if (working) return;
+    setWorking(true);
+    setError(null);
+    try {
+      await onConfirm();
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not complete this action");
+    } finally {
+      setWorking(false);
+    }
+  };
+  return (
+    <div className="bulk-modal-backdrop" onClick={onClose}>
+      <div className="bulk-modal trash-delete-dialog" onClick={(e) => e.stopPropagation()} role="alertdialog" aria-label={title}>
+        <header className="bulk-modal-head">
+          <div><p className="eyebrow">CONFIRM</p><h2>{title}</h2></div>
+          <button type="button" className="bulk-modal-close" onClick={onClose} aria-label="Close">✕</button>
+        </header>
+        <div className="trash-delete-body">
+          {lines.map((line, i) => <p key={i}>{line}</p>)}
+          {error ? <p className="bulk-error" role="alert">{error}</p> : null}
+          <div className="trash-delete-actions">
+            <button type="button" className="secondary" onClick={onClose}>Cancel</button>
+            <HoldToConfirmButton disabled={working} onConfirm={() => void run()}>{working ? "Working…" : confirmLabel}</HoldToConfirmButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------- Receipt print modal -------------------------- */
+
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+type ReceiptInvoice = {
+  invoice_number: string; issue_date: string; customer_name: string; customer_phone?: string | null;
+  items: { id: number; description: string; quantity: number; unit_price: number; line_total: number }[];
+  subtotal: number; discount_amount: number; tax_amount: number; tax_percent: number;
+  total: number; currency: string; payment_status: string;
+};
+
+function ReceiptPaperContent({ invoice, settings }: { invoice: ReceiptInvoice; settings: Workspace["settings"] }) {
+  return (
+    <>
+      <div className="rp-paper-head">
+        <strong>{settings.business_name || "Daybill"}</strong>
+        {settings.phone ? <span>{formatPhoneDisplay(settings.phone)}</span> : null}
+        {settings.address ? <span>{settings.address}</span> : null}
+      </div>
+      <div className="rp-paper-meta"><span>{invoice.invoice_number}</span><span>{invoice.issue_date}</span></div>
+      <div className="rp-paper-customer">
+        <span>Bill to</span>
+        <strong>{invoice.customer_name}</strong>
+        {invoice.customer_phone ? <span>{formatPhoneDisplay(invoice.customer_phone)}</span> : null}
+      </div>
+      <div className="rp-paper-items">
+        {invoice.items.map((item) => (
+          <div className="rp-paper-line" key={item.id}>
+            <span className="rp-paper-desc">{item.description}</span>
+            <span>{item.quantity} × {money(item.unit_price, invoice.currency)}</span>
+            <b>{money(item.line_total, invoice.currency)}</b>
+          </div>
+        ))}
+      </div>
+      <div className="rp-paper-totals">
+        <p><span>Subtotal</span><b>{money(invoice.subtotal, invoice.currency)}</b></p>
+        {invoice.discount_amount > 0 ? <p><span>Discount</span><b>−{money(invoice.discount_amount, invoice.currency)}</b></p> : null}
+        {invoice.tax_amount > 0 ? <p><span>Tax ({invoice.tax_percent / 100}%)</span><b>+{money(invoice.tax_amount, invoice.currency)}</b></p> : null}
+        <p className="rp-paper-total"><span>Total</span><strong>{money(invoice.total, invoice.currency)}</strong></p>
+      </div>
+      <div className="rp-paper-status">{invoice.payment_status === "paid" ? "PAID" : "PENDING"}</div>
+      <p className="rp-paper-thanks">Thank you for your business</p>
+    </>
+  );
+}
+
+function receiptPrintHtml(invoice: ReceiptInvoice, settings: Workspace["settings"]): string {
+  const rows = invoice.items.map((item) => `<tr><td>${escapeHtml(item.description)}</td><td>${item.quantity} × ${escapeHtml(money(item.unit_price, invoice.currency))}</td><td style="text-align:right">${escapeHtml(money(item.line_total, invoice.currency))}</td></tr>`).join("");
+  const discountRow = invoice.discount_amount > 0 ? `<tr><td colspan="2">Discount</td><td style="text-align:right">−${escapeHtml(money(invoice.discount_amount, invoice.currency))}</td></tr>` : "";
+  const taxRow = invoice.tax_amount > 0 ? `<tr><td colspan="2">Tax (${invoice.tax_percent / 100}%)</td><td style="text-align:right">+${escapeHtml(money(invoice.tax_amount, invoice.currency))}</td></tr>` : "";
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(invoice.invoice_number)}</title><style>body{font-family:ui-monospace,Menlo,monospace;color:#111;max-width:320px;margin:24px auto;padding:0 16px}h1{font-size:18px;text-align:center;margin:0 0 4px}.meta,.cust{text-align:center;font-size:12px;color:#555;margin-bottom:12px}table{width:100%;border-collapse:collapse;font-size:13px}td{padding:4px 0;border-bottom:1px dashed #ccc}.totals td{border-bottom:none;font-weight:700}.total{font-size:16px}.status{text-align:center;font-weight:700;margin-top:16px}.thanks{text-align:center;font-size:12px;color:#555}</style></head><body><h1>${escapeHtml(settings.business_name || "Daybill")}</h1><div class="meta">${escapeHtml(invoice.invoice_number)} · ${escapeHtml(invoice.issue_date)}</div><div class="cust">Bill to ${escapeHtml(invoice.customer_name)}</div><table>${rows}</table><table class="totals"><tr><td>Subtotal</td><td style="text-align:right">${escapeHtml(money(invoice.subtotal, invoice.currency))}</td></tr>${discountRow}${taxRow}<tr class="total"><td>Total</td><td style="text-align:right">${escapeHtml(money(invoice.total, invoice.currency))}</td></tr></table><div class="status">${invoice.payment_status === "paid" ? "PAID" : "PENDING"}</div><p class="thanks">Thank you for your business</p><script>window.onload = function () { window.print(); };<\/script></body></html>`;
+}
+
+function ReceiptPrintModal({ invoice, settings, onClose }: { invoice: ReceiptInvoice; settings: Workspace["settings"]; onClose: () => void }) {
+  const shouldReduceMotion = useReducedMotion();
+  const [stage, setStage] = useState<ReceiptPrinterStage>("processing");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!invoice) {
+      setError("Receipt data is missing — the invoice could not be loaded.");
+      return;
+    }
+    const toPrinting = window.setTimeout(() => setStage("printing"), shouldReduceMotion ? 0 : 900);
+    const toComplete = window.setTimeout(() => setStage("complete"), shouldReduceMotion ? 0 : 2650);
+    return () => { window.clearTimeout(toPrinting); window.clearTimeout(toComplete); };
+  }, [invoice, shouldReduceMotion]);
+
+  const printReceipt = () => {
+    const win = window.open("", "_blank", "width=420,height=640");
+    if (!win) {
+      setError("Popup blocked — allow popups for this site to print the receipt.");
+      return;
+    }
+    win.document.write(receiptPrintHtml(invoice, settings));
+    win.document.close();
+    win.focus();
+  };
+
+  const statusText = stage === "processing" ? "Preparing your receipt" : stage === "printing" ? "Printing your receipt" : "Receipt ready";
+  return (
+    <div className="bulk-modal-backdrop" onClick={onClose}>
+      <div className="bulk-modal receipt-print-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={`Print receipt ${invoice.invoice_number}`}>
+        <header className="bulk-modal-head">
+          <div><p className="eyebrow">RECEIPT</p><h2>{invoice.invoice_number}</h2></div>
+          <button type="button" className="bulk-modal-close" onClick={onClose} aria-label="Close">✕</button>
+        </header>
+        <div className="receipt-print-body">
+          {stage === "processing" ? (
+            <div className="rp-processing-orb"><ThinkingOrb state="working" size={64} paused={shouldReduceMotion} aria-label="Preparing receipt" /></div>
+          ) : null}
+          <ReceiptPrinter.Root stage={stage} feedMotion="stepped">
+            <ReceiptPrinter.Machine>
+              <ReceiptPrinter.Header>
+                <span className="rp-brand">Daybill</span>
+                <span className="rp-header-num">{invoice.invoice_number}</span>
+              </ReceiptPrinter.Header>
+              <ReceiptPrinter.Screen>
+                <ReceiptPrinter.Status>{statusText}</ReceiptPrinter.Status>
+              </ReceiptPrinter.Screen>
+            </ReceiptPrinter.Machine>
+            <ReceiptPrinter.Output>
+              <ReceiptPrinter.Paper>
+                <ReceiptPaperContent invoice={invoice} settings={settings} />
+              </ReceiptPrinter.Paper>
+            </ReceiptPrinter.Output>
+          </ReceiptPrinter.Root>
+          {error ? <p className="bulk-error" role="alert">{error}</p> : null}
+          {stage === "complete" && !error ? (
+            <div className="receipt-print-actions">
+              <button type="button" className="primary" onClick={printReceipt}>Print receipt</button>
+              <button type="button" className="secondary" onClick={onClose}>Done</button>
+            </div>
+          ) : null}
+          {stage !== "complete" ? <p className="rp-wait-note" role="status">Please wait while your receipt is prepared…</p> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 type ContactAvatarProps = {
   name: string;
@@ -1663,6 +2334,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const [lineKey, setLineKey] = useState(2);
   const [savedInvoiceId, setSavedInvoiceId] = useState<number | null>(null);
   const [showInvoiceDelete, setShowInvoiceDelete] = useState(false);
+  const [showReceiptPrint, setShowReceiptPrint] = useState(false);
   const [showPurchaseDelete, setShowPurchaseDelete] = useState(false);
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
@@ -2053,6 +2725,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
                         <div className="share-actions">
                           <button className="whatsapp-share-button" disabled={isPreparingImage || !whatsappDigits(displayInvoice.customer_phone)} onClick={() => void openDirectWhatsAppChat()}><Icon name="whatsapp" /><span>{isPreparingImage ? "Preparing image…" : "Share on WhatsApp"}</span><Icon name="arrow" /></button>
                           <button className="secondary" disabled={isPreparingImage} onClick={() => void shareInvoiceImage()}>{isPreparingImage ? "Preparing…" : "Share image to another app"}</button>
+                          <button className="secondary" onClick={() => setShowReceiptPrint(true)}>Print receipt</button>
                         </div>
                         {message ? <p className="toast" role="status">{message}</p> : null}
                         <button className="text-button" onClick={resetDraft}>Create another invoice</button>
@@ -2126,6 +2799,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
 
       <ChatBot workspace={workspace} />
       {showInvoiceDelete && savedInvoiceId ? <TrashDeleteDialog kind="sales" id={savedInvoiceId} label={displayInvoice?.invoice_number ?? "Invoice"} onClose={() => setShowInvoiceDelete(false)} onDeleted={() => { setShowInvoiceDelete(false); resetDraft(); }} /> : null}
+      {showReceiptPrint && savedInvoiceId && displayInvoice ? <ReceiptPrintModal invoice={displayInvoice} settings={settings} onClose={() => setShowReceiptPrint(false)} /> : null}
       {showPurchaseDelete && savedPurchaseId ? <TrashDeleteDialog kind="purchases" id={savedPurchaseId} label="Purchase" onClose={() => setShowPurchaseDelete(false)} onDeleted={() => { setShowPurchaseDelete(false); setSavedPurchaseId(null); setStep(1); }} /> : null}
       {showHelpFeedback ? <FeedbackSheet onClose={() => setShowHelpFeedback(false)} /> : null}
       {showSettings ? <SettingsSheet settings={settings} onClose={() => setShowSettings(false)} /> : null}
@@ -2142,6 +2816,7 @@ function ChatBot({ workspace }: { workspace: { data: { invoices: any[]; contacts
   ]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const reducedMotion = useReducedMotion();
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -2182,7 +2857,7 @@ function ChatBot({ workspace }: { workspace: { data: { invoices: any[]; contacts
       </div>
       <div className="chatbot-messages" ref={listRef}>
         {messages.map((m, i) => <div key={i} className={`chatbot-msg ${m.from}`}>{m.from === "bot" ? <img src={mascotAvatar} alt="" className="chatbot-msg-avatar" /> : null}<div className="chatbot-bubble">{m.text}</div></div>)}
-        {typing ? <div className="chatbot-msg bot"><img src={mascotAvatar} alt="" className="chatbot-msg-avatar" /><div className="chatbot-bubble typing"><span /><span /><span /></div></div> : null}
+        {typing ? <div className="chatbot-msg bot"><img src={mascotAvatar} alt="" className="chatbot-msg-avatar" /><div className="chatbot-bubble typing"><ThinkingOrb state="searching" size={20} paused={reducedMotion} aria-label="Assistant is thinking" /></div></div> : null}
       </div>
       <div className="chatbot-chips">
         {QUICK_CHIPS.map((c, i) => <button key={i} onClick={() => send(language === "ur" ? c.ur : c.en)}>{language === "ur" ? c.ur : c.en}</button>)}
@@ -2561,7 +3236,7 @@ function AppContent() {
       localStorage.removeItem(TEXTSIZE_KEY);
       const root = document.documentElement;
       root.dataset.theme = "light";
-      root.dataset.accent = "teal";
+      root.dataset.accent = "mono";
       root.dataset.textSize = "medium";
       root.style.colorScheme = "light";
     } catch { /* ignore */ }
@@ -3118,13 +3793,11 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const accents: { id: "teal" | "violet" | "blue" | "pink" | "orange" | "yellow"; color: string; label: string }[] = [
-    { id: "teal", color: "#17765A", label: "Teal" },
-    { id: "violet", color: "#9D8DF1", label: "Violet" },
-    { id: "blue", color: "#7AA8D7", label: "Blue" },
-    { id: "pink", color: "#E79FB8", label: "Pink" },
-    { id: "orange", color: "#E8A87C", label: "Orange" },
-    { id: "yellow", color: "#DDBB6A", label: "Yellow" },
+  const accents: { id: AccentColor; color: string; label: string; swatch: string }[] = [
+    { id: "mono", color: "#111111", label: "Mono", swatch: "conic-gradient(#111111 0 45%, #f5f5f5 45% 75%, #9a9a9a 75% 100%)" },
+    { id: "pastel", color: "#d08aa5", label: "Pastel", swatch: "conic-gradient(#f2b7c6 0 25%, #a9c6e4 25% 50%, #f2e3ac 50% 75%, #b7dfc6 75% 100%)" },
+    { id: "ocean", color: "#2f6da3", label: "Ocean", swatch: "conic-gradient(#1f3a5f 0 35%, #3f7ab8 35% 65%, #8fc1dd 65% 100%)" },
+    { id: "sage", color: "#4f7a5a", label: "Sage", swatch: "conic-gradient(#3d5a45 0 35%, #8aa88f 35% 65%, #e8e0b8 65% 100%)" },
   ];
 
   return <section className="profile-view">
@@ -3138,7 +3811,7 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
       </div></section>
       <section className="settings-card"><h2>Appearance</h2><p>Applies straight away, on this device.</p>
         <div className="settings-row"><div><strong>Theme</strong><small>Dark is easier on the eyes in the evening.</small></div><div className="theme-switch" role="group" aria-label="Theme"><button type="button" className={theme === "light" ? "active" : ""} aria-pressed={theme === "light"} onClick={() => setTheme("light")}>Light</button><button type="button" className={theme === "dark" ? "active" : ""} aria-pressed={theme === "dark"} onClick={() => setTheme("dark")}>Dark</button></div></div>
-        <div className="settings-row"><div><strong>Colour</strong><small>Black and white by default. Status colours keep their meaning in every palette.</small></div><div className="colour-pills" role="group" aria-label="Theme colour">{accents.map(a => <button key={a.id} type="button" className={`colour-pill ${accent === a.id ? "active" : ""}`} onClick={() => setAccent(a.id)} aria-pressed={accent === a.id}><i style={{ background: `conic-gradient(${a.color} 0 55%, #e8e4df 55% 78%, #111 78% 100%)` }} />{a.label}{accent === a.id ? " ✓" : ""}</button>)}</div></div>
+        <div className="settings-row"><div><strong>Colour</strong><small>Black and white by default. Status colours keep their meaning in every palette.</small></div><div className="colour-pills" role="group" aria-label="Theme colour">{accents.map(a => <button key={a.id} type="button" className={`colour-pill ${accent === a.id ? "active" : ""}`} onClick={() => setAccent(a.id)} aria-pressed={accent === a.id}><i style={{ background: a.swatch }} />{a.label}{accent === a.id ? " ✓" : ""}</button>)}</div></div>
         <div className="settings-row"><div><strong>Language</strong><small>Choose the app language.</small></div><div className="language-switch" role="group" aria-label="Language"><button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button><button type="button" className={language === "ur" ? "active" : ""} aria-pressed={language === "ur"} onClick={() => setLanguage("ur")}>اردو</button></div></div>
       </section>
       <section className="settings-card"><div><strong>Feedback</strong><small>Help us improve Daybill.</small></div><button className="secondary compact" type="button" onClick={() => setShowFeedback(true)}>Share feedback</button></section>
@@ -3325,6 +3998,7 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
   const [chartRange, setChartRange] = useState<ChartRange>("1m");
+  const [showExport, setShowExport] = useState(false);
   const [heroRange, setHeroRange] = useState<"1W" | "1M" | "1Y" | "All">("1W");
   const today = localDate();
   const overdue = workspace.invoices.filter((invoice) => invoice.payment_status === "pending" && invoice.due_date && invoice.due_date < today);
@@ -3495,7 +4169,8 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const donutSelSafe = donutSegs.length > 0 ? Math.min(donutSel, donutSegs.length - 1) : 0;
 
   return <section className="dashboard-view overview-view">
-    <div className="corbel-head desktop-only-card"><div><h1>Dashboard</h1><p>{new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(new Date(`${today}T12:00:00`))}, month to date</p></div></div>
+    <div className="corbel-head desktop-only-card"><div><h1>Dashboard</h1><p>{new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(new Date(`${today}T12:00:00`))}, month to date</p></div><button type="button" className="corbel-export-btn" onClick={() => setShowExport(true)}>↓ Export</button></div>
+    {showExport ? <BulkDownloadModal invoices={workspace.invoices} purchases={[]} kind="sales" settings={workspace.settings} onClose={() => setShowExport(false)} /> : null}
     <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="theme-toggle-header" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="notification-button" aria-label={`${notifUnread} unread notifications`} onClick={onNotifOpen}><Icon name="bell" />{notifUnread > 0 ? <span className="notif-badge">{notifUnread > 99 ? "99+" : notifUnread}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
     <section className="received-card" aria-label="Received total">
       <div className="received-welcome"><span className="rw-avatar">{(workspace.settings.business_name || "D").trim().charAt(0).toUpperCase()}</span><span className="rw-copy"><small>Welcome back</small><strong>{workspace.settings.business_name || "Daybill"}</strong></span><span className="rw-actions"><button className="rw-icon-btn" type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="rw-icon-btn" type="button" aria-label={`${notifUnread} unread notifications`} onClick={onNotifOpen}><Icon name="bell" />{notifUnread > 0 ? <span className="rw-badge">{notifUnread > 99 ? "99+" : notifUnread}</span> : null}</button></span></div>
@@ -3819,6 +4494,7 @@ function ProductsView({ products, contacts, invoices, currency, categories, onDo
   const suppliers = contacts.filter((contact) => contact.kind === "supplier");
   const [editing, setEditing] = useState<Product | null>(null);
   const [viewing, setViewing] = useState<Product | null>(null);
+  const [pendingArchive, setPendingArchive] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("__all");
@@ -3920,7 +4596,7 @@ function ProductsView({ products, contacts, invoices, currency, categories, onDo
       <div className="form-row-2"><label className="field"><span>{ui(language, "Selling price")}</span><input required inputMode="decimal" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></label><label className="field"><span>{ui(language, "Cost price")}</span><input inputMode="decimal" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} /></label></div>
       <div className="form-row-2"><label className="field"><span>{ui(language, "Stock count")}</span><input inputMode="numeric" value={form.stock} disabled title={ui(language, "Use Adjust Stock to change stock")} style={{ background: "var(--bg)", cursor: "not-allowed" }} /></label><label className="field"><span>{ui(language, "Supplier")}</span><select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })}><option value="">{ui(language, "No supplier")}</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label></div>
       {save.error ? <p className="error">{String(save.error)}</p> : null}<button className="primary wide" disabled={save.isPending}>{save.isPending ? ui(language, "Saving…") : ui(language, "Save product")}</button></form> : null}
-    {sortedVisible.length ? (stockView === "grid" ? <div className="product-grid">{sortedVisible.map((product) => { const mp = marginPct(product); const st = product.stock_quantity <= 0 ? "out" : product.stock_quantity <= 5 ? "low" : "ok"; return <article key={product.id} className="product-grid-card" onClick={() => setViewing(product)}><div className="product-grid-top"><span className="product-tile">{initials(product.name)}</span>{st !== "ok" ? <span className={`product-status-pill ${st}`}>{st === "low" ? "Low stock" : "Out of stock"}</span> : null}</div><strong>{product.name}</strong><small>{product.shelf_code || `#${product.id}`}{product.category ? ` · ${product.category}` : ""}</small><div className="product-grid-price"><strong>{money(product.unit_price, currency)}</strong>{mp !== null ? <span>{mp}% margin</span> : null}</div><div className="product-grid-stock"><span>{product.stock_quantity} in stock</span></div><span className="stock-bar"><i className={st} style={{ width: `${Math.round(product.stock_quantity / maxStock * 100)}%` }} /></span></article>; })}</div> : <div className="product-table-wrap"><table className="product-table"><thead><tr><th>{ui(language, "Image")}</th><th>ID</th><th>{ui(language, "Name")}</th><th>{ui(language, "Brand")}</th><th className="num">Price</th><th className="num">Cost</th><th className="num">Margin</th><th>{ui(language, "Count")}</th><th>{ui(language, "Type")}</th><th>{ui(language, "Shelf code")}</th><th>{ui(language, "Supplier")}</th><th>{ui(language, "Last updated")}</th><th></th></tr></thead><tbody>{sortedVisible.map((product) => <tr key={product.id} className="product-row product-clickable" onClick={() => setViewing(product)}><td className="cell-edit-left"><button aria-label={ui(language, "Edit")} onClick={(e) => { e.stopPropagation(); startEdit(product); }}><Icon name="pencil" /></button></td><td className="cell-image">{product.image_url ? <img className="product-thumb" src={product.image_url} alt="" /> : <span className="product-thumb empty"><Icon name="box" /></span>}</td><td className="mono cell-id">#{product.id}</td><td className="cell-main"><div className="cell-top"><strong>{product.name}</strong>{product.is_featured ? <span className="featured-star" title={ui(language, "Featured product")}>★</span> : null}<span className="mobile-only-meta"><span className={"stock-badge" + (product.stock_quantity <= 5 ? " low" : "")}>{product.stock_quantity} {ui(language, "in stock")}</span></span></div><div className="cell-meta mobile-only-meta"><span className="price">{money(product.unit_price, currency)}</span>{product.category ? <span className="cell-category"> · {product.category}</span> : null}{product.sizes ? <span> · {product.sizes}</span> : null}</div></td><td className="cell-brand">{product.brand || <span className="dim">—</span>}</td><td className="num">{money(product.unit_price, currency)}</td><td className="num">{money(product.unit_cost, currency)}</td><td className="num">{marginPct(product) === null ? <span className="dim">—</span> : `${marginPct(product)}%`}</td><td className="cell-count"><span className={product.stock_quantity <= 5 ? "low-stock" : ""}>{product.stock_quantity}</span><span className="stock-bar"><i className={product.stock_quantity <= 0 ? "out" : product.stock_quantity <= 5 ? "low" : "ok"} style={{ width: `${Math.round(product.stock_quantity / maxStock * 100)}%` }} /></span></td><td className="cell-type">{product.product_type || <span className="dim">—</span>}</td><td className="mono cell-shelf">{product.shelf_code || <span className="dim">—</span>}</td><td className="cell-supplier">{supplierName(product.supplier_id)}</td><td className="cell-updated">{product.updated_at ? new Date(product.updated_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : <span className="dim">—</span>}</td><td className="row-actions"><button className="btn-edit" aria-label={ui(language, "Edit")} onClick={(e) => { e.stopPropagation(); startEdit(product); }}><Icon name="pencil" /></button><button className="btn-delete" aria-label={ui(language, "Delete")} onClick={(e) => { e.stopPropagation(); archive.mutate(product.id); }}><Icon name="trash" /></button></td></tr>)}</tbody></table></div>) : !showForm ? <Empty title={ui(language, "No products here")} body={ui(language, "Add products to fill invoices automatically.")} /> : null}
+    {sortedVisible.length ? (stockView === "grid" ? <div className="product-grid">{sortedVisible.map((product) => { const mp = marginPct(product); const st = product.stock_quantity <= 0 ? "out" : product.stock_quantity <= 5 ? "low" : "ok"; return <article key={product.id} className="product-grid-card" onClick={() => setViewing(product)}><div className="product-grid-top"><span className="product-tile">{initials(product.name)}</span>{st !== "ok" ? <span className={`product-status-pill ${st}`}>{st === "low" ? "Low stock" : "Out of stock"}</span> : null}</div><strong>{product.name}</strong><small>{product.shelf_code || `#${product.id}`}{product.category ? ` · ${product.category}` : ""}</small><div className="product-grid-price"><strong>{money(product.unit_price, currency)}</strong>{mp !== null ? <span>{mp}% margin</span> : null}</div><div className="product-grid-stock"><span>{product.stock_quantity} in stock</span></div><span className="stock-bar"><i className={st} style={{ width: `${Math.round(product.stock_quantity / maxStock * 100)}%` }} /></span></article>; })}</div> : <div className="product-table-wrap"><table className="product-table"><thead><tr><th>{ui(language, "Image")}</th><th>ID</th><th>{ui(language, "Name")}</th><th>{ui(language, "Brand")}</th><th className="num">Price</th><th className="num">Cost</th><th className="num">Margin</th><th>{ui(language, "Count")}</th><th>{ui(language, "Type")}</th><th>{ui(language, "Shelf code")}</th><th>{ui(language, "Supplier")}</th><th>{ui(language, "Last updated")}</th><th></th></tr></thead><tbody>{sortedVisible.map((product) => <tr key={product.id} className="product-row product-clickable" onClick={() => setViewing(product)}><td className="cell-edit-left"><button aria-label={ui(language, "Edit")} onClick={(e) => { e.stopPropagation(); startEdit(product); }}><Icon name="pencil" /></button></td><td className="cell-image">{product.image_url ? <img className="product-thumb" src={product.image_url} alt="" /> : <span className="product-thumb empty"><Icon name="box" /></span>}</td><td className="mono cell-id">#{product.id}</td><td className="cell-main"><div className="cell-top"><strong>{product.name}</strong>{product.is_featured ? <span className="featured-star" title={ui(language, "Featured product")}>★</span> : null}<span className="mobile-only-meta"><span className={"stock-badge" + (product.stock_quantity <= 5 ? " low" : "")}>{product.stock_quantity} {ui(language, "in stock")}</span></span></div><div className="cell-meta mobile-only-meta"><span className="price">{money(product.unit_price, currency)}</span>{product.category ? <span className="cell-category"> · {product.category}</span> : null}{product.sizes ? <span> · {product.sizes}</span> : null}</div></td><td className="cell-brand">{product.brand || <span className="dim">—</span>}</td><td className="num">{money(product.unit_price, currency)}</td><td className="num">{money(product.unit_cost, currency)}</td><td className="num">{marginPct(product) === null ? <span className="dim">—</span> : `${marginPct(product)}%`}</td><td className="cell-count"><span className={product.stock_quantity <= 5 ? "low-stock" : ""}>{product.stock_quantity}</span><span className="stock-bar"><i className={product.stock_quantity <= 0 ? "out" : product.stock_quantity <= 5 ? "low" : "ok"} style={{ width: `${Math.round(product.stock_quantity / maxStock * 100)}%` }} /></span></td><td className="cell-type">{product.product_type || <span className="dim">—</span>}</td><td className="mono cell-shelf">{product.shelf_code || <span className="dim">—</span>}</td><td className="cell-supplier">{supplierName(product.supplier_id)}</td><td className="cell-updated">{product.updated_at ? new Date(product.updated_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : <span className="dim">—</span>}</td><td className="row-actions"><button className="btn-edit" aria-label={ui(language, "Edit")} onClick={(e) => { e.stopPropagation(); startEdit(product); }}><Icon name="pencil" /></button><button className="btn-delete" aria-label={ui(language, "Delete")} onClick={(e) => { e.stopPropagation(); setPendingArchive(product); }}><Icon name="trash" /></button></td></tr>)}</tbody></table></div>) : !showForm ? <Empty title={ui(language, "No products here")} body={ui(language, "Add products to fill invoices automatically.")} /> : null}
     {topItems.length ? <section className="top-items-card desktop-only-card"><div className="top-items-head"><div><h2>Top sold items</h2><p>Grouped by item description from sales invoices · share of the top item by units sold</p></div></div><div className="top-items-list">{topItems.map((item, i) => <div className="top-items-row" key={item.name}><span className="top-rank">{i + 1}</span><span className="top-name">{item.name}</span><span className="top-units">{item.units} sold</span><span className="top-revenue">{money(item.revenue, currency)}</span><span className="top-share"><i style={{ width: `${Math.round(item.units / topItems[0].units * 100)}%` }} /></span></div>)}</div></section> : null}
     <button className="return-link" onClick={onDone}>← {ui(language, "Back to invoice")}</button>
     {viewing ? <div className="sheet-backdrop" onClick={() => setViewing(null)}><div className="sheet product-detail-sheet" onClick={(e) => e.stopPropagation()}>
@@ -3941,6 +4617,7 @@ function ProductsView({ products, contacts, invoices, currency, categories, onDo
         <button className="primary wide" onClick={() => { setViewing(null); startEdit(viewing); }}>Edit Product</button>
       </div>
     </div></div> : null}
+    {pendingArchive ? <ArchiveConfirmDialog title={`Archive ${pendingArchive.name}?`} lines={[`${pendingArchive.name} will be hidden from your product list.`, `Stock on hand: ${pendingArchive.stock_quantity} · Price: ${money(pendingArchive.unit_price, currency)}`, "You can add it again later as a new product."]} confirmLabel="Hold to archive" onConfirm={async () => { await archive.mutateAsync(pendingArchive.id); }} onClose={() => setPendingArchive(null)} /> : null}
   </section>;
 }
 
@@ -3955,6 +4632,7 @@ function ContactsView({ contacts, invoices, onDone, onOpenContact }: { contacts:
   const [form, setForm] = useState<{ name: string; phone: string; address: string; kind: "customer" | "supplier" }>({ name: "", phone: "", address: "", kind: "customer" });
   const save = useMutation({ mutationFn: () => api.saveContact({ id: editing?.id, ...form }), onSuccess: async () => { await Promise.all([queryClient.invalidateQueries({ queryKey: ["workspace"] }), queryClient.invalidateQueries({ queryKey: ["invoice"] })]); setShowForm(false); setEditing(null); setForm({ name: "", phone: "", address: "", kind: "customer" }); } });
   const archive = useMutation({ mutationFn: (id: number) => api.archiveContact({ id }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workspace"] }) });
+  const [pendingArchive, setPendingArchive] = useState<Contact | null>(null);
   const withDues = useMemo(() => new Set(invoices.filter((inv) => inv.payment_status === "pending").map((inv) => inv.customer_id)), [invoices]);
   const contactCounts = { all: contacts.length, customer: contacts.filter((c) => c.kind === "customer").length, supplier: contacts.filter((c) => c.kind === "supplier").length, dues: contacts.filter((c) => c.kind === "customer" && withDues.has(c.id)).length };
   const visible = (() => {
@@ -3970,8 +4648,9 @@ function ContactsView({ contacts, invoices, onDone, onOpenContact }: { contacts:
     <div className="corbel-kpis desktop-only-card"><article className="corbel-kpi dark"><div className="corbel-kpi-head"><span>Total contacts</span></div><strong>{contactCounts.all}</strong><small>{contactCounts.customer} customers · {contactCounts.supplier} suppliers</small></article><article className="corbel-kpi"><div className="corbel-kpi-head"><span>Customers</span></div><strong>{contactCounts.customer}</strong><small>{contactCounts.dues} with outstanding dues</small></article><article className="corbel-kpi"><div className="corbel-kpi-head"><span>Suppliers</span></div><strong>{contactCounts.supplier}</strong><small>For purchase invoices</small></article><article className="corbel-kpi"><div className="corbel-kpi-head"><span>With outstanding dues</span></div><strong>{contactCounts.dues}</strong><small>Customers holding a pending invoice</small></article></div>
     <div className="corbel-search-row desktop-only-card"><label className="corbel-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Name, phone or address" aria-label="Search contacts" /></label><label className="corbel-sort">Sort<select value={sort} onChange={(e) => setSort(e.target.value as "name-asc" | "name-desc")}><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option></select></label></div>
     <div className="filter-tabs"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>{ui(language, "All")}<span className="tab-count">{contactCounts.all}</span></button><button className={filter === "customer" ? "active" : ""} onClick={() => setFilter("customer")}>{ui(language, "Customers")}<span className="tab-count">{contactCounts.customer}</span></button><button className={filter === "supplier" ? "active" : ""} onClick={() => setFilter("supplier")}>{ui(language, "Suppliers")}<span className="tab-count">{contactCounts.supplier}</span></button></div>
-    {visible.length ? <div className="record-list">{visible.map((contact) => <article className="record contact-record" key={contact.id}><button type="button" className="contact-record-main" onClick={() => onOpenContact(contact.id)} aria-label={`View ${contact.name} history`}><ContactAvatar name={contact.name} kind={contact.kind} contactKey={String(contact.id)} /><span><strong>{contact.name}</strong><small>{contact.phone ? formatPhoneDisplay(contact.phone) : contact.kind}</small></span><span className="chevron">›</span></button><button aria-label={`Edit ${contact.name}`} onClick={() => startEdit(contact)}><Icon name="pencil" /></button><button aria-label={`Archive ${contact.name}`} onClick={() => archive.mutate(contact.id)}><Icon name="trash" /></button></article>)}</div> : !showForm ? <Empty title="No contacts here" body="Add a customer for invoicing or a supplier for your records." /> : null}
+    {visible.length ? <div className="record-list">{visible.map((contact) => <article className="record contact-record" key={contact.id}><button type="button" className="contact-record-main" onClick={() => onOpenContact(contact.id)} aria-label={`View ${contact.name} history`}><ContactAvatar name={contact.name} kind={contact.kind} contactKey={String(contact.id)} /><span><strong>{contact.name}</strong><small>{contact.phone ? formatPhoneDisplay(contact.phone) : contact.kind}</small></span><span className="chevron">›</span></button><button aria-label={`Edit ${contact.name}`} onClick={() => startEdit(contact)}><Icon name="pencil" /></button><button aria-label={`Archive ${contact.name}`} onClick={() => setPendingArchive(contact)}><Icon name="trash" /></button></article>)}</div> : !showForm ? <Empty title="No contacts here" body="Add a customer for invoicing or a supplier for your records." /> : null}
     <button className="return-link" onClick={onDone}>← {ui(language, "Back to invoice")}</button>
+    {pendingArchive ? <ArchiveConfirmDialog title={`Archive ${pendingArchive.name}?`} lines={[`${pendingArchive.name} (${pendingArchive.kind}) will be hidden from your contacts.`, pendingArchive.phone ? `Phone: ${formatPhoneDisplay(pendingArchive.phone)}` : "No phone saved.", "Invoices already made for this contact are not affected."]} confirmLabel="Hold to archive" onConfirm={async () => { await archive.mutateAsync(pendingArchive.id); }} onClose={() => setPendingArchive(null)} /> : null}
   </section>;
 }
 
@@ -4333,7 +5012,7 @@ function TrashDeleteDialog({ kind, id, label, onClose, onDeleted }: {
           {error ? <p className="bulk-error" role="alert">{error}</p> : null}
           <div className="trash-delete-actions">
             <button type="button" className="secondary" onClick={onClose}>Cancel</button>
-            <button type="button" className="danger" disabled={pin.length !== 4 || reason.trim().length < 3 || working} onClick={handleTrash}>{working ? "Moving…" : "Move to trash"}</button>
+            <HoldToConfirmButton disabled={pin.length !== 4 || reason.trim().length < 3 || working} onConfirm={() => void handleTrash()} confirmedContent="Moved to trash">{working ? "Moving…" : "Hold to move to trash"}</HoldToConfirmButton>
           </div>
         </div>
       </div>
@@ -4489,7 +5168,7 @@ function TrashModal({ onClose }: { onClose: () => void }) {
                   <p>{confirmDelete.label} will be permanently deleted. This cannot be undone.</p>
                   <div className="trash-confirm-actions">
                     <button type="button" className="secondary" onClick={() => setConfirmDelete(null)}>Cancel</button>
-                    <button type="button" className="danger" disabled={!!working} onClick={handleDeleteForever}>{working ? "Deleting…" : "Delete forever"}</button>
+                    <HoldToConfirmButton disabled={!!working} onConfirm={() => void handleDeleteForever()} confirmedContent="Deleted">Hold to delete forever</HoldToConfirmButton>
                   </div>
                 </div>
               </div>
