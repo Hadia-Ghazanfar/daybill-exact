@@ -1939,7 +1939,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const quickCreate = (kind: "sale" | "purchase") => { setQuickAddOpen(false); setCreateKind(kind); if (kind === "purchase") setSavedPurchaseId(null); goTab("create"); };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${tab === "dashboard" && selectedContactId === null ? " overview-dark" : ""}`}>
       <SafeAreaTopScrim backgroundColor="var(--bg)" />
       <header className="app-topbar" aria-label="Daybill header">
         <div className="topbar-brand">
@@ -3247,6 +3247,7 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
   const [chartRange, setChartRange] = useState<ChartRange>("1m");
+  const [heroRange, setHeroRange] = useState<"1W" | "1M" | "1Y" | "All">("1W");
   const [showNotifications, setShowNotifications] = useState(false);
   const { data: notifData } = useQuery({ queryKey: ["notifications"], queryFn: () => api.listNotifications({}), refetchInterval: 30000 });
   const unreadCount: number = (notifData as any)?.unreadCount ?? 0;
@@ -3270,6 +3271,25 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
     for (const invoice of workspace.invoices) { const day = byDate.get(invoice.issue_date); if (day) day.sales += invoice.total / 100; }
     return days;
   }, [workspace.invoices]);
+  const heroSeries = useMemo(() => {
+    const end = new Date(`${today}T12:00:00`);
+    const earliest = workspace.invoices.reduce<string | null>((value, invoice) => value === null || invoice.issue_date < value ? invoice.issue_date : value, null);
+    const lifetimeDays = earliest ? Math.max(1, Math.ceil((end.getTime() - new Date(`${earliest}T12:00:00`).getTime()) / 86_400_000) + 1) : 1;
+    const totalDays = heroRange === "All" ? lifetimeDays : heroRange === "1Y" ? 365 : heroRange === "1M" ? 30 : 7;
+    const bucketCount = heroRange === "1W" ? 7 : heroRange === "1M" ? 15 : 12;
+    const start = new Date(end);
+    start.setDate(end.getDate() - (totalDays - 1));
+    const span = totalDays / bucketCount;
+    const buckets = Array.from({ length: bucketCount }, () => ({ sales: 0 }));
+    for (const invoice of workspace.invoices) {
+      const invoiceDate = new Date(`${invoice.issue_date}T12:00:00`);
+      const elapsed = Math.floor((invoiceDate.getTime() - start.getTime()) / 86_400_000);
+      if (elapsed < 0 || elapsed >= totalDays) continue;
+      const bucket = buckets[Math.min(bucketCount - 1, Math.floor(elapsed / span))];
+      if (bucket) bucket.sales += invoice.total / 100;
+    }
+    return buckets;
+  }, [heroRange, today, workspace.invoices]);
   const cashFlowSeries = useMemo(() => {
     const selected = CHART_RANGES.find((range) => range.id === chartRange) ?? CHART_RANGES[1];
     const end = new Date(`${today}T12:00:00`);
@@ -3324,8 +3344,9 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
     <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="theme-toggle-header" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="notification-button" aria-label={`${unreadCount} unread notifications`} onClick={() => setShowNotifications(true)}><Icon name="bell" />{unreadCount > 0 ? <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
     {showNotifications ? <NotificationPanel onClose={() => setShowNotifications(false)} /> : null}
     <section className="received-card" aria-label="Received total">
-      <div className="received-copy"><span>Received <i className={`trend-badge ${trendPercent < 0 ? "down" : ""}`}>{trendPercent >= 0 ? "+" : ""}{trendPercent}%</i></span><strong><AnimatedMoney value={paidRevenue} currency={workspace.settings.currency} /></strong><small>{ui(language, "Payments collected from paid invoices")}</small></div>
-      <div className="received-chart" role="img" aria-label="Daily invoice sales for the last seven days"><ResponsiveContainer width="100%" height="100%"><AreaChart data={salesSeries} margin={{ top: 10, right: 4, left: 4, bottom: 0 }}><defs><linearGradient id="overviewFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffffff" stopOpacity={0.45} /><stop offset="100%" stopColor="#ffffff" stopOpacity={0.02} /></linearGradient></defs><Area type="monotone" dataKey="sales" stroke="#ffffff" strokeWidth={2.5} fill="url(#overviewFill)" dot={false} animationDuration={1400} animationEasing="ease-out" /></AreaChart></ResponsiveContainer></div>
+      <div className="received-welcome"><span className="rw-avatar">{(workspace.settings.business_name || "D").trim().charAt(0).toUpperCase()}</span><span><small>Welcome back</small><strong>{workspace.settings.business_name || "Daybill"}</strong></span></div>
+      <div className="received-copy"><span>Received <i className={`trend-badge ${trendPercent < 0 ? "down" : ""}`}>{trendPercent >= 0 ? "+" : ""}{trendPercent}%</i></span><strong><AnimatedMoney value={paidRevenue} currency={workspace.settings.currency} /></strong><small>{ui(language, "Payments collected from paid invoices")}</small><div className="hero-ranges" role="group" aria-label="Balance chart range">{(["1W", "1M", "1Y", "All"] as const).map((range) => <button type="button" key={range} className={heroRange === range ? "active" : ""} aria-pressed={heroRange === range} onClick={() => setHeroRange(range)}>{range}</button>)}</div></div>
+      <div className="received-chart" role="img" aria-label="Invoice sales for the selected range"><ResponsiveContainer width="100%" height="100%"><AreaChart data={heroSeries} margin={{ top: 10, right: 4, left: 4, bottom: 0 }}><defs><linearGradient id="overviewFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffffff" stopOpacity={0.45} /><stop offset="100%" stopColor="#ffffff" stopOpacity={0.02} /></linearGradient></defs><Area type="monotone" dataKey="sales" stroke="#ffffff" strokeWidth={2.5} fill="url(#overviewFill)" dot={false} animationDuration={1400} animationEasing="ease-out" /></AreaChart></ResponsiveContainer></div>
     </section>
     <div className="mobile-quick-actions" aria-label="Quick actions">
       <button type="button" onClick={onCreate}><span className="qa-circle"><Icon name="invoice" /></span><small>New invoice</small></button>

@@ -4660,3 +4660,22 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   .tile-spark polyline { animation: none; stroke-dashoffset: 0; }
   .weekly-bar i { animation: none; }
 }
+
+/* ===== Demo-exact V16: hero ranges + mobile welcome row + dark desktop overview ===== */
+.received-welcome { display: none; }
+.hero-ranges { display: flex; gap: 6px; margin-top: 12px; }
+.hero-ranges button { min-height: 26px; padding: 0 11px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 999px; background: rgba(255, 255, 255, .12); color: #fff; font-size: 11px; font-weight: 700; cursor: pointer; }
+.hero-ranges button.active { background: #fff; border-color: #fff; color: #10201d; }
+
+@media (min-width: 760px) {
+  .app-shell.overview-dark { --bg: #0a0e14; --surface: #121a24; --surface-2: #1a2432; --text: #e9eef4; --dim: #8fa0b0; --border: #22303f; background: #0a0e14; color: #e9eef4; }
+  .app-shell.overview-dark .received-card { background: linear-gradient(120deg, var(--accent), color-mix(in srgb, var(--accent) 45%, #05080c)); box-shadow: 0 18px 38px rgba(0, 0, 0, .45); }
+  .app-shell.overview-dark .stat-tile, .app-shell.overview-dark .cash-flow-card { box-shadow: 0 12px 26px rgba(0, 0, 0, .35); }
+}
+
+@media (max-width: 759px) {
+  .received-welcome { display: flex; align-items: center; gap: 10px; }
+  .rw-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, .16); color: #fff; font-size: 16px; font-weight: 800; flex: 0 0 auto; }
+  .received-welcome small { display: block; color: rgba(255, 255, 255, .7); font-size: 11px; }
+  .received-welcome strong { display: block; color: #fff; font-size: 14px; }
+}
