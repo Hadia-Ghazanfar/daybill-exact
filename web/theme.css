@@ -4963,3 +4963,59 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   .products-view .product-table { min-width: 980px; }
   .products-view .product-table thead th, .products-view .product-table tbody td { padding: 10px 9px; }
 }
+
+/* Top sold items (Corbel Analytics pattern, on Stock, desktop only) */
+@media (min-width: 760px) {
+  .top-items-card { margin-top: 16px; padding: 24px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+  .top-items-head h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+  .top-items-head p { margin: 4px 0 16px; color: var(--dim); font-size: 12.5px; }
+  .top-items-list { display: grid; }
+  .top-items-row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 90px 110px 140px; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+  .top-items-row:last-child { border-bottom: 0; }
+  .top-rank { color: var(--dim); font-weight: 800; }
+  .top-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top-units { color: var(--dim); font-size: 12.5px; }
+  .top-revenue { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .top-share { display: block; height: 8px; overflow: hidden; border-radius: 999px; background: var(--surface-2); }
+  .top-share i { display: block; height: 100%; border-radius: 999px; background: #111; }
+  html[data-theme="dark"] .top-share i { background: #fff; }
+}
+
+/* Settings page (Corbel #/settings/profile pattern, desktop only) */
+@media (min-width: 760px) {
+  .profile-view .profile-legacy { display: none; }
+  .settings-page h1 { margin: 0 0 16px; font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+  .settings-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--surface-2); }
+  .settings-tabs button { padding: 9px 18px; border: 0; border-radius: 999px; background: transparent; color: var(--dim); font-size: 13.5px; font-weight: 700; cursor: pointer; }
+  .settings-tabs button.active { background: #111; color: #fff; }
+  html[data-theme="dark"] .settings-tabs button.active { background: #fff; color: #111; }
+  .settings-card { margin-top: 16px; padding: 24px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+  .settings-card h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+  .settings-card > p { margin: 4px 0 20px; color: var(--dim); font-size: 13px; }
+  .settings-card > div > strong, .settings-card > strong { font-size: 14.5px; }
+  .settings-card > div > small { display: block; margin-top: 3px; color: var(--dim); font-size: 12.5px; }
+  .profile-identity { display: flex; gap: 24px; align-items: flex-start; }
+  .profile-identity-panel { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 0 190px; padding: 22px 14px; border-radius: 16px; background: var(--surface-2); text-align: center; }
+  .profile-identity-panel img, .profile-identity-panel .shopkeeper-avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; }
+  .profile-identity-panel strong { font-size: 15px; }
+  .profile-identity-panel small { color: var(--dim); font-size: 12px; }
+  .profile-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; flex: 1 1 auto; }
+  .profile-fields .wide { grid-column: 1 / -1; }
+  .settings-field > span:first-child { display: block; margin-bottom: 6px; color: var(--dim); font-size: 12px; font-weight: 700; }
+  .settings-field-value { display: block; min-height: 44px; padding: 11px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); font-size: 14px; font-weight: 600; }
+  .settings-field small { display: block; margin-top: 5px; color: var(--dim); font-size: 12px; }
+  .profile-fields > button { grid-column: 1 / -1; justify-self: start; }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 0; border-top: 1px solid var(--border); }
+  .settings-row:first-of-type { border-top: 0; padding-top: 4px; }
+  .settings-row > div:first-child strong { display: block; font-size: 14.5px; }
+  .settings-row > div:first-child small { display: block; margin-top: 3px; color: var(--dim); font-size: 12.5px; }
+  .settings-row .theme-switch, .settings-row .language-switch { flex: 0 0 auto; }
+  .settings-row .theme-switch button.active, .settings-row .language-switch button.active { background: #111; color: #fff; }
+  html[data-theme="dark"] .settings-row .theme-switch button.active, html[data-theme="dark"] .settings-row .language-switch button.active { background: #fff; color: #111; }
+  .colour-pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .colour-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .colour-pill i { width: 16px; height: 16px; border-radius: 50%; flex: 0 0 auto; }
+  .colour-pill.active { border: 2px solid #111; }
+  html[data-theme="dark"] .colour-pill.active { border-color: #fff; }
+  .settings-card:has(> button) { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+}
