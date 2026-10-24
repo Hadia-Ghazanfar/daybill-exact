@@ -4695,3 +4695,63 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   .tabbar-create { background: #111; color: #fff; box-shadow: 0 10px 22px rgba(0, 0, 0, .35); }
   .tabbar-create:focus-visible { outline-color: #c6f24e; }
 }
+
+/* ===== Folka/Corbel desktop additions: delta pills, funnel, dues, stock stack ===== */
+.tile-delta { display: block; margin-top: 6px; color: var(--dim); font-size: 11px; }
+.delta-pill { display: inline-block; margin-right: 6px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; font-style: normal; }
+.delta-pill.up { background: #d8f3e3; color: #0a6e3f; }
+.delta-pill.down { background: #fde3e3; color: #a83232; }
+.delta-pill.flat { background: var(--surface-2); color: var(--dim); }
+
+.dashboard-extra { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
+.extra-card { padding: 20px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+.extra-total { font-size: 18px; font-weight: 800; white-space: nowrap; }
+.extra-empty { margin: 4px 0 0; color: var(--dim); font-size: 13px; }
+.see-all-link { border: 0; background: transparent; color: var(--dim); font-size: 12px; font-weight: 700; text-decoration: underline; white-space: nowrap; cursor: pointer; }
+
+.funnel-rows { display: grid; gap: 14px; margin-top: 6px; }
+.funnel-row { display: flex; align-items: center; gap: 10px; }
+.funnel-label { width: 64px; flex: 0 0 auto; font-size: 12.5px; font-weight: 700; }
+.funnel-track { flex: 1 1 auto; height: 12px; overflow: hidden; border-radius: 999px; background: var(--surface-2); }
+.funnel-fill { display: block; height: 100%; border-radius: 999px; transform-origin: left; animation: funnel-grow .9s ease both; }
+.funnel-fill.paid { background: #20bd78; }
+.funnel-fill.pending { background: #e2a93b; }
+.funnel-fill.overdue { background: var(--danger); }
+@keyframes funnel-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.funnel-row:hover .funnel-fill { filter: brightness(1.12); }
+.funnel-count { width: 28px; color: var(--dim); font-size: 12px; text-align: right; }
+.funnel-amount { min-width: 86px; font-size: 12.5px; text-align: right; }
+
+.dues-list { display: grid; }
+.dues-list button { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center; gap: 11px; width: 100%; padding: 12px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: start; cursor: pointer; }
+.dues-list button:last-child { border-bottom: 0; }
+.dues-list strong, .dues-list small { display: block; }
+.dues-list small { margin-top: 3px; color: var(--dim); font-size: 11px; }
+.dues-list b { font-size: 12px; text-align: end; }
+.dues-list b i { display: block; width: fit-content; margin: 5px 0 0 auto; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text); font-size: 10px; font-weight: 800; font-style: normal; }
+
+.stock-cat-card { margin-top: 16px; }
+.stock-stack { display: flex; height: 16px; overflow: hidden; border-radius: 999px; background: var(--surface-2); }
+.stock-seg { display: block; height: 100%; transform-origin: left; animation: funnel-grow .9s ease both; }
+.stock-seg:first-child { border-radius: 999px 0 0 999px; }
+.stock-seg:last-child { border-radius: 0 999px 999px 0; }
+.stock-legend { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; margin-top: 14px; font-size: 12.5px; }
+.stock-legend span { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.stock-legend span i { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+.stock-legend span b { margin-left: auto; font-size: 12px; white-space: nowrap; }
+
+.overview-view .dashboard-insights, .overview-view .activity-card, .overview-view .dashboard-extra, .overview-view .stock-cat-card { animation: db-rise .55s ease both; }
+.overview-view .dashboard-insights { animation-delay: .22s; }
+.overview-view .dashboard-extra { animation-delay: .28s; }
+.overview-view .stock-cat-card { animation-delay: .32s; }
+.overview-view .activity-card { animation-delay: .36s; }
+.weekly-bar:hover i { filter: brightness(1.15); }
+
+@media (max-width: 759px) {
+  .desktop-only-card, .tile-delta { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overview-view .dashboard-insights, .overview-view .activity-card, .overview-view .dashboard-extra, .overview-view .stock-cat-card { animation: none; }
+  .funnel-fill, .stock-seg { animation: none; }
+}
