@@ -4671,6 +4671,10 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 /* ===== Corbel desktop: exact layout (light greige, monochrome, pill nav, black rail) ===== */
 @media (min-width: 760px) {
   .app-shell { background: #eeeded; }
+  .app-shell:not(.admin-shell) { --bg: #eeeded; --surface: #ffffff; --surface-2: #f0ede9; --text: #111111; --dim: #6f6d6a; --border: #e8e4df; --accent: #111111; --chart-accent: #111111; --radius: 20px; font-variant-numeric: tabular-nums; }
+  .app-shell:not(.admin-shell) input[type="text"], .app-shell:not(.admin-shell) input[type="number"], .app-shell:not(.admin-shell) input[type="tel"], .app-shell:not(.admin-shell) input[type="email"], .app-shell:not(.admin-shell) input[type="search"], .app-shell:not(.admin-shell) input[type="date"], .app-shell:not(.admin-shell) select { border-radius: 999px; }
+  .app-shell:not(.admin-shell) textarea { border-radius: 20px; }
+  .app-shell:not(.admin-shell) .sheet { background: #fff; }
   .app-topbar { height: 72px; padding: 0 28px; background: #eeeded; border-bottom: 0; backdrop-filter: none; box-shadow: none; }
   .app-topbar .topbar-logo { background: #111; }
   .app-topbar .app-brand-copy span { color: #111; font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
