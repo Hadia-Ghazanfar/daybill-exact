@@ -5316,3 +5316,30 @@ html[data-theme="dark"] .ws-filters button.active { background: #fff; color: #11
 @media (min-width: 760px) {
   .app-shell:not(.admin-shell) { background: #EDEBE6; }
 }
+
+/* Analytics style fixes (Oct 24): KPI values fit 5-across cards, delta row never wraps,
+   range container reads as a container, vs-previous is a designed switch. */
+.analytics-kpis .corbel-kpi { padding: 18px; }
+.analytics-kpis .corbel-kpi > strong { font-size: clamp(20px, 1.6vw, 26px); white-space: nowrap; }
+.analytics-delta-row { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; margin-top: 6px; }
+.analytics-delta-row small { white-space: nowrap; color: var(--dim); font-size: 11.5px; }
+.analytics-kpis .corbel-kpi.dark .analytics-delta-row small { color: rgba(255,255,255,.6); }
+html[data-theme="dark"] .analytics-kpis .corbel-kpi.dark .analytics-delta-row small { color: rgba(0,0,0,.6); }
+.analytics-range { background: #E2DFD8; }
+.analytics-range button.active { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,.14); }
+.analytics-compare.vs-toggle { background: none; border: 0; padding: 0; font: inherit; }
+.vs-toggle i { display: block; width: 36px; height: 20px; border-radius: 999px; background: #d8d5cf; position: relative; transition: background .2s; flex: none; }
+.vs-toggle i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: left .2s; }
+.vs-toggle.on i { background: #111; }
+.vs-toggle.on i::after { left: 18px; }
+html[data-theme="dark"] .analytics-range { background: #1F1F1E; }
+html[data-theme="dark"] .analytics-range button.active { background: #fff; color: #111; }
+html[data-theme="dark"] .vs-toggle i { background: #3a3a38; }
+html[data-theme="dark"] .vs-toggle.on i { background: #fff; }
+html[data-theme="dark"] .vs-toggle.on i::after { background: #111; }
+/* Analytics widening (Oct 24): the 920px manage-view cap squeezed the 5 KPI cards to ~171px,
+   clipping values and wrapping delta rows. Analytics uses the full main width like Stock. */
+.manage-view.analytics-view { max-width: none; }
+.analytics-delta-row { gap: 5px; }
+.analytics-delta-row .analytics-delta { flex: none; white-space: nowrap; font-size: 11px; padding: 3px 7px; }
+.analytics-delta-row small { flex: none; font-size: 11px; }
