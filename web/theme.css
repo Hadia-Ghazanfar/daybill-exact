@@ -4679,3 +4679,19 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   .received-welcome small { display: block; color: rgba(255, 255, 255, .7); font-size: 11px; }
   .received-welcome strong { display: block; color: #fff; font-size: 14px; }
 }
+
+/* ===== Demo mobile, pasted: black header card, lime actions, lime pill + black create ===== */
+@media (max-width: 759px) {
+  .dashboard-view .overview-header { display: none; }
+  .received-welcome .rw-copy { min-width: 0; }
+  .received-welcome strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rw-actions { display: flex; gap: 8px; margin-left: auto; flex: 0 0 auto; }
+  .rw-icon-btn { position: relative; display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid rgba(255, 255, 255, .22); border-radius: 50%; background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer; }
+  .rw-icon-btn svg { width: 19px; height: 19px; }
+  .rw-badge { position: absolute; top: -4px; right: -4px; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border: 2px solid #0e1512; border-radius: 99px; background: var(--danger); color: #fff; font-size: 9px; font-weight: 850; }
+  .mobile-quick-actions .qa-circle { background: #c6f24e; color: #111; box-shadow: 0 8px 18px rgba(198, 242, 78, .35); }
+  .tabbar-btn.active { background: #c6f24e; color: #111; }
+  .tabbar-btn:focus-visible { outline-color: #c6f24e; }
+  .tabbar-create { background: #111; color: #fff; box-shadow: 0 10px 22px rgba(0, 0, 0, .35); }
+  .tabbar-create:focus-visible { outline-color: #c6f24e; }
+}
