@@ -4847,3 +4847,119 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   .overview-view .dashboard-insights, .overview-view .activity-card, .overview-view .dashboard-extra, .overview-view .stock-cat-card { animation: none; }
   .funnel-fill, .stock-seg { animation: none; }
 }
+
+/* ===== Phase 2 — Corbel design tokens, documented =====
+   Light (Corbel demo, light mode): bg #eeeded, surface #ffffff,
+   surface-2 #f0ede9, text #111111, dim #6f6d6a, border #e8e4df,
+   accent #111111, radius 20px, headings 800 weight / -0.02em tracking,
+   status: paid mint #20bd78, pending amber #e2a93b, overdue coral #e5484d.
+   Dark (Corbel demo, dark mode): bg near-black #0b0b0b, cards #1c1c1c,
+   surface-2 #262626, text #f2f2f2, dim #a8a8a8, border #2c2c2c,
+   active pill WHITE with dark text, first stat card INVERTED LIGHT,
+   toolbar stays black in both modes. */
+@media (min-width: 760px) {
+  html[data-theme="dark"] .app-shell:not(.admin-shell) { --bg: #0b0b0b; --surface: #1c1c1c; --surface-2: #262626; --text: #f2f2f2; --dim: #a8a8a8; --border: #2c2c2c; --accent: #ffffff; --chart-accent: #ffffff; }
+  html[data-theme="dark"] .app-shell { background: #0b0b0b; }
+  html[data-theme="dark"] .app-topbar { background: #0b0b0b; }
+  html[data-theme="dark"] .app-topbar .app-brand-copy span { color: #f2f2f2; }
+  html[data-theme="dark"] .app-topbar .app-brand-copy small { color: #a8a8a8; }
+  html[data-theme="dark"] .app-topbar .pill-nav button { color: #c9c9c9; }
+  html[data-theme="dark"] .app-topbar .pill-nav button.active { background: #fff; color: #111; }
+  html[data-theme="dark"] .app-topbar .pill-nav button.active .nav-badge { background: #111; color: #fff; }
+  html[data-theme="dark"] .topbar-bell { background: #1c1c1c; color: #f2f2f2; border-color: #2c2c2c; }
+  html[data-theme="dark"] .dashboard-view { --bg: #0b0b0b; --surface: #1c1c1c; --surface-2: #262626; --text: #f2f2f2; --dim: #a8a8a8; --border: #2c2c2c; }
+  html[data-theme="dark"] .corbel-head h1 { color: #f2f2f2; }
+  html[data-theme="dark"] .corbel-head p { color: #a8a8a8; }
+  html[data-theme="dark"] .corbel-kpi { background: #1c1c1c; border-color: #2c2c2c; color: #f2f2f2; }
+  html[data-theme="dark"] .corbel-kpi.dark { background: #f5f5f5; border-color: #f5f5f5; color: #111; }
+  html[data-theme="dark"] .corbel-kpi.dark .corbel-kpi-head span:first-child { color: rgba(0,0,0,.6); }
+  html[data-theme="dark"] .corbel-kpi.dark small { color: rgba(0,0,0,.65); }
+  html[data-theme="dark"] .corbel-kpi.dark .see-all-link { color: rgba(0,0,0,.65); }
+  html[data-theme="dark"] .corbel-chart, html[data-theme="dark"] .corbel-donut { background: #1c1c1c; border-color: #2c2c2c; color: #f2f2f2; }
+  html[data-theme="dark"] .corbel-seg { background: #262626; }
+  html[data-theme="dark"] .corbel-seg button { color: #c9c9c9; }
+  html[data-theme="dark"] .corbel-seg button.active { background: #fff; color: #111; }
+  html[data-theme="dark"] .corbel-year-row button { background: #1c1c1c; border-color: #2c2c2c; color: #c9c9c9; }
+  html[data-theme="dark"] .corbel-year-row button.active { background: #fff; border-color: #fff; color: #111; }
+  html[data-theme="dark"] .corbel-donut-legend button { color: #f2f2f2; }
+  html[data-theme="dark"] .corbel-donut-legend button.selected { background: #262626; }
+  html[data-theme="dark"] .app-shell:not(.admin-shell) .sheet { background: #1c1c1c; }
+  html[data-theme="dark"] .manage-view .filter-tabs button.active,
+  html[data-theme="dark"] .transaction-switch button.active,
+  html[data-theme="dark"] .stepper button.active,
+  html[data-theme="dark"] .option-grid button.active,
+  html[data-theme="dark"] .language-switch button.active,
+  html[data-theme="dark"] .theme-switch button.active,
+  html[data-theme="dark"] .segmented button.active { background: #f5f5f5; color: #111; }
+
+  /* ===== Phase 3 — shared Corbel page patterns (desktop only) ===== */
+  .manage-view .manage-head h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+  .manage-view .manage-head .eyebrow { color: var(--dim); font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+  .corbel-kpi small { margin-top: 6px; color: var(--dim); font-size: 12px; line-height: 1.45; }
+  .corbel-kpi.dark small { color: rgba(255,255,255,.7); }
+  .corbel-search-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+  .corbel-search { display: flex; align-items: center; gap: 8px; flex: 1 1 280px; min-height: 44px; padding: 0 16px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--dim); }
+  .corbel-search input { border: 0; background: transparent; box-shadow: none; }
+  .corbel-sort { display: flex; align-items: center; gap: 8px; margin-left: auto; color: var(--dim); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+  .corbel-sort select { width: auto; min-width: 150px; }
+  .corbel-count { color: var(--dim); font-size: 12.5px; font-weight: 700; }
+  .manage-view .filter-tabs { padding: 4px; border-radius: 999px; background: var(--surface-2); }
+  .manage-view .filter-tabs button { border-radius: 999px; font-weight: 700; }
+  .manage-view .filter-tabs button.active { background: #111; color: #fff; box-shadow: none; }
+  .tab-count { margin-left: 6px; padding: 2px 7px; border-radius: 999px; background: rgba(127,127,127,.18); font-size: 11px; font-weight: 800; }
+  .manage-view .filter-tabs button.active .tab-count { background: rgba(255,255,255,.25); }
+  /* Sheets become centered modals on desktop (Corbel dialog pattern) */
+  .sheet-backdrop { align-items: center; }
+  .sheet-backdrop .sheet { width: min(560px, calc(100% - 48px)); max-height: 88vh; border-radius: 20px; }
+  /* Bills: table-card rows + dot status (Corbel Orders pattern) */
+  .bills-view .structured-invoice-list .history-invoice-row { border-radius: 20px; }
+  .bills-view .mini-status { background: transparent !important; padding: 0; }
+  .bills-view .mini-status::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: middle; }
+  .bills-view .mini-status.paid { color: #0a6e3f; }
+  .bills-view .mini-status.pending { color: #b7791f; }
+  .bills-view .mini-status.overdue { color: #c0392b; }
+  /* Stock: table + grid (Corbel Products pattern) */
+  .product-table-wrap { border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+  .product-table th { color: var(--dim); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+  .product-table th.num, .product-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .stock-bar { display: block; height: 6px; margin-top: 5px; overflow: hidden; border-radius: 999px; background: var(--surface-2); }
+  .stock-bar i { display: block; height: 100%; border-radius: 999px; background: #20bd78; }
+  .stock-bar i.low { background: #e2a93b; }
+  .stock-bar i.out { background: #e5484d; }
+  .product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .product-grid-card { display: grid; gap: 6px; padding: 20px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); cursor: pointer; }
+  .product-grid-card > strong { font-size: 15px; }
+  .product-grid-card > small { color: var(--dim); font-size: 12px; }
+  .product-grid-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+  .product-tile { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--surface-2); font-size: 14px; font-weight: 800; }
+  .product-status-pill { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+  .product-status-pill.low { background: rgba(226,169,59,.16); color: #b7791f; }
+  .product-status-pill.out { background: rgba(229,72,77,.14); color: #c0392b; }
+  .product-grid-price { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
+  .product-grid-price > strong { font-size: 18px; }
+  .product-grid-price > span { color: var(--dim); font-size: 12px; }
+  .product-grid-stock { color: var(--dim); font-size: 12px; }
+  /* Contacts: table-card rows (Corbel Customers pattern) */
+  .contacts-view .record-list { display: grid; gap: 10px; border-top: 0; }
+  .contacts-view .contact-record { border: 1px solid var(--border); border-radius: 16px; background: var(--surface); padding: 6px 8px; }
+  .contacts-view .contact-record-main strong { font-size: 14.5px; }
+  /* Profile: cards + segmented theme (Corbel Settings pattern) */
+  .profile-view > h1, .profile-view .profile-hero h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+  .profile-view .account-card, .profile-view .profile-details article, .profile-view .language-card, .profile-view .appearance-card, .profile-view .feedback-entry { border: 1px solid var(--border); border-radius: 20px; background: var(--surface); box-shadow: none; }
+  .profile-view .theme-switch button.active { background: #111; color: #fff; }
+  /* Create: form controls (Corbel form pattern, document untouched) */
+  .create-view .field > span, .field > span { font-weight: 700; }
+  .create-view .section-heading h2 { font-size: 22px; letter-spacing: -0.01em; }
+  .transaction-switch button.active { background: #111; color: #fff; }
+}
+@media (max-width: 759px) {
+  .tab-count { display: none; }
+}
+
+/* Phase 5 fix: Stock table fits better — drop the duplicated left edit
+   column on desktop (row actions keep Edit/Delete) and tighten padding. */
+@media (min-width: 760px) {
+  .products-view .product-table .cell-edit-left { display: none; }
+  .products-view .product-table { min-width: 980px; }
+  .products-view .product-table thead th, .products-view .product-table tbody td { padding: 10px 9px; }
+}
