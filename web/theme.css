@@ -5157,3 +5157,162 @@ html[data-theme="dark"] .rp-paper-total { border-top-color: #f2f2f2; }
 @media (min-width: 760px) {
   .overview-view { max-width: none; }
 }
+/* ===== Corbel round 2 — nav spread, products, analytics, workspace, store, black theme =====
+   Appended last so these win at equal specificity. Desktop rules stay in
+   min-width:760px (mobile untouched). Font family is NOT changed here:
+   the demo's exact family could not be read from its page head, so sizes /
+   weights / tracking below follow the measured Corbel values on Daybill's
+   own sans stack. */
+
+/* Page crossfade for the new views (Corbel page-change feel: pill appears, page fades) */
+.analytics-view, .workspace-view { animation: db-fade-rise .5s cubic-bezier(.2,.8,.3,1) backwards; }
+
+/* Status pill for in-stock (mint, Corbel table pattern) */
+.product-status-pill.ok { background: rgba(32,189,120,.14); color: #0a6e3f; }
+.product-grid-sold { color: var(--dim); font-size: 12.5px; }
+.shop-card { display: grid; gap: 4px; padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.shop-card strong { font-size: 15px; }
+.shop-card span { color: var(--dim); font-size: 13px; }
+
+/* Product detail drawer sections (base: bottom sheet on mobile, right drawer on desktop) */
+.drawer-head-copy { flex: 1; min-width: 0; }
+.drawer-head-copy h2 { margin: 0; font-size: 20px; }
+.drawer-head-copy small { color: var(--dim); font-size: 12.5px; }
+.drawer-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+.drawer-stat-row > div { display: grid; gap: 2px; padding: 14px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.drawer-stat-row span { color: var(--dim); font-size: 12px; font-weight: 700; }
+.drawer-stat-row strong { font-size: 17px; }
+.drawer-stat-row small { color: var(--dim); font-size: 11.5px; }
+.drawer-stock { display: grid; gap: 6px; padding: 16px; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 16px; }
+.drawer-stock-head { display: flex; justify-content: space-between; align-items: center; }
+.drawer-stock-head > span:first-child { font-weight: 700; }
+.drawer-stock > strong { font-size: 20px; }
+.drawer-stock small { color: var(--dim); font-size: 12px; }
+.drawer-sales { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 16px; }
+.drawer-sales-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.drawer-sales-head > span:first-child { font-weight: 700; }
+.drawer-sales small { color: var(--dim); font-size: 12px; }
+.drawer-spark { width: 100%; height: 64px; }
+.product-detail-drawer .product-detail-grid { margin-bottom: 16px; }
+.product-detail-drawer .secondary.wide { width: 100%; margin-top: 8px; }
+
+/* Analytics */
+.analytics-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+.analytics-compare { display: flex; gap: 8px; align-items: center; color: var(--dim); font-size: 13px; font-weight: 600; cursor: pointer; }
+.analytics-delta { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; }
+.analytics-delta.up { color: #0a6e3f; background: rgba(32,189,120,.14); }
+.analytics-delta.down { color: #c0392b; background: rgba(229,72,77,.12); }
+.analytics-spark { display: flex; align-items: flex-end; gap: 2px; height: 32px; margin-top: 10px; }
+.analytics-spark i { flex: 1; background: var(--text); opacity: .18; border-radius: 2px; min-height: 2px; }
+.analytics-chart-card { padding: 24px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); margin-top: 16px; }
+.analytics-chart-head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.analytics-chart-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.analytics-chart-head strong { display: block; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-top: 4px; }
+.analytics-chart-head p { color: var(--dim); font-size: 13px; margin: 2px 0 0; }
+.analytics-legend { display: flex; gap: 12px; color: var(--dim); font-size: 12.5px; }
+.analytics-chart { height: 300px; margin-top: 12px; }
+.analytics-table-wrap { max-height: 260px; overflow-y: auto; margin-top: 16px; border-top: 1px solid var(--border); }
+.analytics-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.analytics-table th { text-align: left; color: var(--dim); font-size: 12px; font-weight: 700; padding: 8px 4px; }
+.analytics-table td { padding: 8px 4px; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.analytics-table th:not(:first-child), .analytics-table td:not(:first-child) { text-align: right; }
+.analytics-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; margin-top: 16px; }
+.analytics-card { padding: 24px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); }
+.analytics-card h2 { margin: 0 0 16px; font-size: 16px; font-weight: 600; }
+.analytics-card p { color: var(--dim); font-size: 13.5px; }
+.pay-split-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--surface-2); margin-bottom: 12px; }
+.pay-split-bar i { display: block; height: 100%; }
+.pay-row { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.pay-row span:last-child { color: var(--dim); }
+
+/* Workspace */
+.ws-board-card { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; padding: 24px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); margin-bottom: 16px; }
+.ws-board-card strong { font-size: 17px; display: block; }
+.ws-board-card small { color: var(--dim); font-size: 12.5px; }
+.ws-progress { flex: 1 1 200px; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.ws-progress i { display: block; height: 100%; background: #2F7D62; border-radius: 999px; }
+.ws-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.ws-filters button { padding: 7px 13px; border-radius: 999px; border: 0; background: var(--surface-2); color: var(--dim); font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.ws-filters button.active { background: #111; color: #fff; }
+html[data-theme="dark"] .ws-filters button.active { background: #fff; color: #111; }
+.ws-add { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.ws-add input, .ws-add select { flex: 1 1 140px; }
+.ws-board { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; align-items: start; }
+.ws-col { background: var(--surface-2); border-radius: 20px; padding: 16px; display: grid; gap: 10px; }
+.ws-col h2 { margin: 0; font-size: 14px; font-weight: 700; }
+.ws-col h2 span { color: var(--dim); font-weight: 500; }
+.ws-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; display: grid; gap: 8px; }
+.ws-tag { justify-self: start; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); font-size: 11px; font-weight: 700; }
+.ws-card strong { font-size: 14px; }
+.ws-card-foot { display: flex; align-items: center; gap: 8px; }
+.ws-avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-size: 10px; font-weight: 800; flex: 0 0 auto; }
+.ws-due { font-size: 12px; color: var(--dim); }
+.ws-due.soon { background: rgba(226,169,59,.16); color: #b7791f; padding: 3px 8px; border-radius: 999px; }
+.ws-due.late { background: rgba(229,72,77,.12); color: #c0392b; padding: 3px 8px; border-radius: 999px; }
+.ws-move { margin-left: auto; display: flex; gap: 2px; }
+.ws-move button { width: 26px; height: 26px; border-radius: 50%; border: 0; background: transparent; color: var(--dim); font-size: 16px; cursor: pointer; }
+.ws-add-inline { border: 0; background: transparent; color: var(--dim); font-size: 13px; font-weight: 700; cursor: pointer; text-align: left; padding: 4px; }
+.ws-note { color: var(--dim); font-size: 12.5px; margin-top: 12px; }
+
+@media (max-width: 1100px) {
+  .ws-board { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+@media (max-width: 759px) {
+  .ws-board { grid-template-columns: 1fr; }
+  .analytics-grid { grid-template-columns: 1fr; }
+  .analytics-chart { height: 220px; }
+}
+
+@media (min-width: 760px) {
+  /* Nav: Corbel measured sizes, white container light / #1F1F1E dark */
+  .app-shell:not(.admin-shell) .pill-nav { background: #fff; border-color: #e8e4df; padding: 4px; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .app-shell:not(.admin-shell) .pill-nav button { padding: 8px 16px; font-size: 13.5px; font-weight: 500; }
+  .app-shell:not(.admin-shell) .pill-nav button.active { font-weight: 600; }
+  html[data-theme="dark"] .app-shell:not(.admin-shell) .pill-nav { background: #1F1F1E; border-color: #2A2A28; }
+
+  /* H1: Corbel 40px / 600 / -0.03em */
+  .manage-view .manage-head h1 { font-size: 40px; font-weight: 600; letter-spacing: -0.03em; }
+  .settings-page h1 { font-size: 40px; font-weight: 600; letter-spacing: -0.03em; }
+
+  /* Light tokens, Corbel measured */
+  .app-shell:not(.admin-shell) { --bg: #EDEBE6; --surface-2: #E9E7E0; --border: #E7E4DD; --dim: #6E6D66; }
+
+  /* Dark tokens, Corbel black theme measured */
+  html[data-theme="dark"] .app-shell:not(.admin-shell) { --bg: #0E0E0E; --surface: #1A1A19; --border: #2A2A28; --dim: #A8A8A2; }
+  html[data-theme="dark"] .app-shell { background: #0E0E0E; }
+  html[data-theme="dark"] .app-topbar { background: #0E0E0E; }
+  html[data-theme="dark"] .dashboard-view { --bg: #0E0E0E; --surface: #1A1A19; --border: #2A2A28; --dim: #A8A8A2; }
+  html[data-theme="dark"] .corbel-kpi { background: #1A1A19; border-color: #2A2A28; }
+  html[data-theme="dark"] .corbel-kpi.dark { background: #F2F0EB; border-color: #F2F0EB; }
+  /* Dashboard KPI row stays pale in dark mode (Corbel dashboard-dark pattern) */
+  html[data-theme="dark"] .dashboard-view .corbel-kpi { background: #E9E9E3; border-color: #E9E9E3; color: #111; }
+  html[data-theme="dark"] .dashboard-view .corbel-kpi.dark { background: #F2F0EB; border-color: #F2F0EB; color: #111; }
+  html[data-theme="dark"] .dashboard-view .corbel-kpi small { color: rgba(0,0,0,.6); }
+  html[data-theme="dark"] .dashboard-view .corbel-kpi .corbel-kpi-head span { color: rgba(0,0,0,.6); }
+  html[data-theme="dark"] .dashboard-view .corbel-kpi .see-all-link { color: rgba(0,0,0,.65); }
+
+  /* Products: full width, no duplicated mobile controls on desktop */
+  .products-view { max-width: none !important; }
+  .products-view .product-table { min-width: 1080px; }
+  .products-view .product-toolbar { display: none; }
+  .products-view .product-filter-bar .filter-field-cat, .products-view .product-filter-bar .filter-field-stock { display: none; }
+  .products-view .product-filter-bar { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .products-view .manage-head-add { display: none; }
+  .product-grid-price > strong { font-size: 20px; font-weight: 700; }
+  .product-tile { width: 40px; height: 40px; border-radius: 10px; }
+  .product-grid-card .stock-bar, .product-table .stock-bar { height: 4px; }
+
+  /* Product detail: right drawer on desktop (Corbel pattern) */
+  @keyframes drawer-in { from { transform: translateX(48px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .sheet-backdrop .sheet.product-detail-drawer { position: fixed; top: 0; right: 0; bottom: 0; left: auto; width: min(480px, 92vw); max-width: none; height: 100dvh; max-height: none; margin: 0; border-radius: 20px 0 0 20px; animation: drawer-in .35s cubic-bezier(.2,.8,.3,1) both; overflow-y: auto; }
+
+  /* Analytics: 5 stat cards across */
+  .analytics-kpis { grid-template-columns: repeat(5, minmax(0,1fr)); }
+}
+
+/* Light shell background was a literal #eeeded on .app-shell (line 4670),
+   which a --bg token override cannot change. Corbel page bg is #EDEBE6. */
+@media (min-width: 760px) {
+  .app-shell:not(.admin-shell) { background: #EDEBE6; }
+}

@@ -42,7 +42,7 @@ type Purchase = ApiResponse<typeof api, "getPurchaseInvoice">["purchase"];
 type AdminDashboard = ApiResponse<typeof api, "getAdminDashboard">;
 type RegisteredAccount = AdminDashboard["accounts"][number];
 type UserFeedback = AdminDashboard["feedback"][number];
-type Tab = "dashboard" | "create" | "products" | "contacts" | "history" | "profile";
+type Tab = "dashboard" | "create" | "products" | "contacts" | "history" | "analytics" | "workspace" | "profile";
 
 const TAB_TO_PATH: Record<Tab, string> = {
   dashboard: "/home",
@@ -978,7 +978,7 @@ function ThemeProvider({ children }: { children: ReactNode }) {
   const [accountId, setAccountId] = useState<string | null>(() => getAccountId());
   const [theme, setTheme] = useState<Theme>(() => {
     const id = getAccountId();
-    return id ? getStored(getScopedKey(THEME_STORAGE_KEY, id), initialTheme) : "light";
+    return id ? getStored(getScopedKey(THEME_STORAGE_KEY, id), initialTheme()) : "light";
   });
   const [accent, setAccent] = useState<AccentColor>(() => {
     const id = getAccountId();
@@ -1094,9 +1094,11 @@ function openWhatsAppReminder(invoice: Pick<Workspace["invoices"][number], "cust
   return true;
 }
 
-function Icon({ name }: { name: "dashboard" | "plus" | "box" | "people" | "invoice" | "history" | "settings" | "trash" | "pencil" | "whatsapp" | "arrow" | "copy" | "profile" | "truck" | "lock" | "bell" | "revenue" | "cost" | "profit" | "wallet" | "collapse" | "expand" | "eye" | "eye-off" }) {
+function Icon({ name }: { name: "dashboard" | "plus" | "box" | "people" | "invoice" | "history" | "settings" | "trash" | "pencil" | "whatsapp" | "arrow" | "copy" | "profile" | "truck" | "lock" | "bell" | "revenue" | "cost" | "profit" | "wallet" | "collapse" | "expand" | "eye" | "eye-off" | "kanban" | "chart" }) {
   const paths: Record<typeof name, React.ReactNode> = {
     dashboard: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="4" rx="1" /><rect x="14" y="11" width="7" height="10" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /></>,
+    kanban: <><rect x="3" y="4" width="5.5" height="16" rx="1.5" /><rect x="9.25" y="4" width="5.5" height="16" rx="1.5" /><rect x="15.5" y="4" width="5.5" height="16" rx="1.5" /><path d="M5 8h1.5M11.25 8h1.5M17.5 8h1.5" /></>,
+    chart: <><path d="M4 20V10M10 20V4M16 20v-8M2 20h22" /></>,
     plus: <path d="M12 5v14M5 12h14" />,
     box: <><path d="m4 7 8-4 8 4-8 4-8-4Z" /><path d="M4 7v10l8 4 8-4V7M12 11v10" /></>,
     people: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
@@ -2631,6 +2633,8 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
     { id: "products" as const, label: "Stock", icon: "box" as const, group: "FINANCIAL" },
     { id: "contacts" as const, label: "Contacts", icon: "people" as const, group: "FINANCIAL" },
     { id: "history" as const, label: "Bills", icon: "history" as const, group: "FINANCIAL" },
+    { id: "analytics" as const, label: "Analytics", icon: "chart" as const, group: "FINANCIAL" },
+    { id: "workspace" as const, label: "Workspace", icon: "kanban" as const, group: "TOOLS" },
     { id: "profile" as const, label: "Profile", icon: "profile" as const, group: "TOOLS" },
   ];
 
@@ -2665,6 +2669,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
           </div> : null}
         </div>
         <button className={`rail-btn${tab === "profile" ? " active" : ""}`} type="button" aria-label="Settings" data-tip="Settings" onClick={() => goTab("profile")}><Icon name="settings" /></button>
+        <button className={`rail-btn${tab === "workspace" ? " active" : ""}`} type="button" aria-label="Workspace" data-tip="Workspace" onClick={() => goTab("workspace")}><Icon name="kanban" /></button>
         <div className="rail-divider" />
         <button className="rail-btn" type="button" aria-label="Help" data-tip="Help" onClick={() => setShowHelpFeedback(true)}><Icon name="help" /></button>
         <button className="rail-btn" type="button" aria-label="Toggle theme" data-tip="Theme" onClick={() => setTheme(theme === "light" ? "dark" : "light")}><Icon name={theme === "light" ? "moon" : "sun"} /></button>
@@ -2787,7 +2792,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         ) : tab === "products" ? <ProductsView products={products} contacts={contacts} invoices={workspace.data.invoices} currency={settings.currency} categories={workspace.data.categories ?? []} onDone={() => setTab("create")} />
         : tab === "contacts" ? <ContactsView contacts={contacts} invoices={workspace.data.invoices} onDone={() => setTab("create")} onOpenContact={setSelectedContactId} />
         : tab === "history" ? <HistoryView invoices={workspace.data.invoices} purchases={workspace.data.purchases} settings={settings} onOpen={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} />
-        : <ProfileView settings={settings} account={workspace.data.account} onEdit={() => setShowSettings(true)} onLogout={onLogout} onNotifOpen={() => setShowNotifications(true)} />}
+        : tab === "analytics" ? <AnalyticsView invoices={workspace.data.invoices} currency={settings.currency} /> : tab === "workspace" ? <WorkspaceView /> : <ProfileView settings={settings} account={workspace.data.account} onEdit={() => setShowSettings(true)} onLogout={onLogout} onNotifOpen={() => setShowNotifications(true)} />}
       </main>
 
       <nav className="mobile-tabbar" aria-label="Main menu">
@@ -3781,7 +3786,7 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
   const { language, setLanguage } = useLanguage();
   const { theme, setTheme, accent, setAccent } = useTheme();
   const [showFeedback, setShowFeedback] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<"profile" | "notifications">("profile");
+  const [settingsTab, setSettingsTab] = useState<"profile" | "store" | "notifications">("profile");
   const [notifPrefs, setNotifPrefs] = useState<Record<NotifPrefKey, boolean>>(readNotifPrefs);
   const toggleNotif = (key: NotifPrefKey) => { const next = { ...notifPrefs, [key]: !notifPrefs[key] }; setNotifPrefs(next); try { localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(next)); } catch {} };
   const notifRows: { key: NotifPrefKey; label: string; note: string }[] = [
@@ -3804,7 +3809,7 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
   return <section className="profile-view">
     <div className="settings-page desktop-only-card">
       <h1>Settings</h1>
-      <div className="settings-tabs" role="tablist" aria-label="Settings sections"><button type="button" className={settingsTab === "profile" ? "active" : ""} aria-selected={settingsTab === "profile"} onClick={() => setSettingsTab("profile")}>Profile</button><button type="button" onClick={onEdit}>Store</button>{onNotifOpen ? <button type="button" className={settingsTab === "notifications" ? "active" : ""} aria-selected={settingsTab === "notifications"} onClick={() => setSettingsTab("notifications")}>Notifications</button> : null}</div>
+      <div className="settings-tabs" role="tablist" aria-label="Settings sections"><button type="button" className={settingsTab === "profile" ? "active" : ""} aria-selected={settingsTab === "profile"} onClick={() => setSettingsTab("profile")}>Profile</button><button type="button" className={settingsTab === "store" ? "active" : ""} aria-selected={settingsTab === "store"} onClick={() => setSettingsTab("store")}>Store</button>{onNotifOpen ? <button type="button" className={settingsTab === "notifications" ? "active" : ""} aria-selected={settingsTab === "notifications"} onClick={() => setSettingsTab("notifications")}>Notifications</button> : null}</div>
       {settingsTab === "profile" ? <>
       <section className="settings-card"><h2>Your profile</h2><p>How you appear on invoices and in your shop records.</p><div className="profile-identity">
         <div className="profile-identity-panel">{settings.logo_url ? <img src={settings.logo_url} alt={`${settings.business_name || "Shop"} logo`} /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="Shop avatar" className="shopkeeper-avatar" /> : <ContactAvatar name={account.shopkeeper_name || settings.business_name || "Shop owner"} contactKey={`profile-${account.phone || account.shopkeeper_name}`} className="shopkeeper-avatar" />}<strong>{account.shopkeeper_name || settings.business_name || "Shop owner"}</strong><small>{account.session_kind === "admin" ? "Administrator" : "Shop owner"} · {settings.business_name || "Daybill"}</small></div>
@@ -3816,7 +3821,7 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
         <div className="settings-row"><div><strong>Language</strong><small>Choose the app language.</small></div><div className="language-switch" role="group" aria-label="Language"><button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button><button type="button" className={language === "ur" ? "active" : ""} aria-pressed={language === "ur"} onClick={() => setLanguage("ur")}>اردو</button></div></div>
       </section>
       <section className="settings-card"><div><strong>Feedback</strong><small>Help us improve Daybill.</small></div><button className="secondary compact" type="button" onClick={() => setShowFeedback(true)}>Share feedback</button></section>
-      </> : <section className="settings-card"><h2>Notify me about</h2><p>Shown in your notification panel, on this device.</p>
+      </> : settingsTab === "store" ? <><section className="settings-card"><h2>Store details</h2><p>Shown on receipts, invoices and the sidebar.</p><div className="profile-fields"><label className="settings-field"><span>Store name</span><span className="settings-field-value">{settings.business_name || "—"}</span></label><label className="settings-field"><span>Phone / WhatsApp</span><span className="settings-field-value">{settings.phone ? formatPhoneDisplay(settings.phone) : "—"}</span></label><label className="settings-field"><span>Currency</span><span className="settings-field-value">{settings.currency}</span></label><label className="settings-field wide"><span>Address</span><span className="settings-field-value">{settings.address || "—"}</span></label><button className="secondary compact" type="button" onClick={onEdit}><Icon name="pencil" />Edit shop details</button></div></section><section className="settings-card"><h2>Shops</h2><p>Where customers collect orders and walk in. Daybill has one shop.</p><div className="shop-card"><strong>{settings.business_name || "Your shop"}</strong><span>{settings.address || "No address added"}</span>{settings.phone ? <span>{formatPhoneDisplay(settings.phone)}</span> : null}</div></section></> : <section className="settings-card"><h2>Notify me about</h2><p>Shown in your notification panel, on this device.</p>
         {notifRows.map(r => <div className="settings-row" key={r.key}><div><strong>{r.label}</strong><small>{r.note}</small></div><button type="button" role="switch" aria-checked={notifPrefs[r.key]} aria-label={r.label} className={`settings-toggle ${notifPrefs[r.key] ? "on" : ""}`} onClick={() => toggleNotif(r.key)}><span /></button></div>)}
       </section>}
     </div>
@@ -4504,7 +4509,8 @@ function ProductsView({ products, contacts, invoices, currency, categories, onDo
   const [filterSupplier, setFilterSupplier] = useState<string>("__all");
   const [filterType, setFilterType] = useState<string>("__all");
   const [filterStock, setFilterStock] = useState<string>("__all");
-  const [stockSort, setStockSort] = useState<string>("name");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "archived">("all");
+  const [stockSort, setStockSort] = useState<string>("best");
   const [stockView, setStockView] = useState<"table" | "grid">("table");
   const productTypes = useMemo(() => {
     const set = new Set<string>();
@@ -4542,6 +4548,8 @@ function ProductsView({ products, contacts, invoices, currency, categories, onDo
     if (filterStock === "in" && pr.stock_quantity <= 0) return false;
     if (filterStock === "low" && (pr.stock_quantity <= 0 || pr.stock_quantity > 5)) return false;
     if (filterStock === "out" && pr.stock_quantity > 0) return false;
+    if (filterStatus === "active" && (pr as unknown as { active?: boolean }).active === false) return false;
+    if (filterStatus === "archived" && (pr as unknown as { active?: boolean }).active !== false) return false;
     return true;
   });
   const supplierName = (id: number | null) => id ? suppliers.find((s) => s.id === id)?.name ?? "—" : "—";
@@ -4556,14 +4564,43 @@ function ProductsView({ products, contacts, invoices, currency, categories, onDo
   const maxStock = useMemo(() => Math.max(1, ...products.map((pr) => pr.stock_quantity)), [products]);
   const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";
   const marginPct = (pr: Product) => pr.unit_price > 0 ? Math.round((pr.unit_price - pr.unit_cost) / pr.unit_price * 100) : null;
+  const hasArchived = useMemo(() => products.some((pr) => (pr as unknown as { active?: boolean }).active === false), [products]);
+  const addDaysLocal = (date: string, n: number) => { const dd = new Date(`${date}T00:00:00`); dd.setDate(dd.getDate() + n); return new Date(dd.getTime() - dd.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+  const toDayNum = (s: string) => { const [y, m, dd] = s.split("-").map(Number); return Date.UTC(y, m - 1, dd) / 86400000; };
+  const salesByName = useMemo(() => {
+    const byKey = new Map<string, { units: number; revenue: number; units30: number; revenue30: number; daily: number[] }>();
+    const today = localDate();
+    const start30 = addDaysLocal(today, -29);
+    const startDay = toDayNum(start30);
+    (invoices ?? []).forEach((inv) => (inv.items ?? []).forEach((it) => {
+      const key = it.description.trim().toLowerCase(); if (!key) return;
+      const cur = byKey.get(key) ?? { units: 0, revenue: 0, units30: 0, revenue30: 0, daily: Array(30).fill(0) };
+      cur.units += it.quantity; cur.revenue += it.line_total;
+      if (inv.issue_date >= start30 && inv.issue_date <= today) {
+        cur.units30 += it.quantity; cur.revenue30 += it.line_total;
+        const idx = toDayNum(inv.issue_date) - startDay;
+        if (idx >= 0 && idx < 30) cur.daily[idx] += it.quantity;
+      }
+      byKey.set(key, cur);
+    }));
+    return byKey;
+  }, [invoices]);
+  const salesFor = (pr: Product) => salesByName.get(pr.name.trim().toLowerCase()) ?? { units: 0, revenue: 0, units30: 0, revenue30: 0, daily: Array(30).fill(0) };
+  const viewingSales = useMemo(() => {
+    if (!viewing) return null;
+    const s = salesFor(viewing);
+    const avg = s.units30 / 30;
+    return { ...s, avgDaily: avg, daysCover: avg > 0 ? Math.floor(viewing.stock_quantity / avg) : null as number | null };
+  }, [viewing, salesByName]);
   const sortedVisible = useMemo(() => {
     const list = [...visible];
-    if (stockSort === "price-desc") list.sort((a, b) => b.unit_price - a.unit_price);
+    if (stockSort === "best") list.sort((a, b) => salesFor(b).units - salesFor(a).units || b.unit_price - a.unit_price);
+    else if (stockSort === "price-desc") list.sort((a, b) => b.unit_price - a.unit_price);
     else if (stockSort === "price-asc") list.sort((a, b) => a.unit_price - b.unit_price);
     else if (stockSort === "stock-asc") list.sort((a, b) => a.stock_quantity - b.stock_quantity);
     else list.sort((a, b) => a.name.localeCompare(b.name));
     return list;
-  }, [visible, stockSort]);
+  }, [visible, stockSort, salesByName]);
   const topItems = useMemo(() => {
     const byKey = new Map<string, { name: string; units: number; revenue: number }>();
     (invoices ?? []).forEach((inv) => (inv.items ?? []).forEach((it) => {
@@ -4575,17 +4612,17 @@ function ProductsView({ products, contacts, invoices, currency, categories, onDo
     }));
     return [...byKey.values()].sort((a, b) => b.units - a.units || b.revenue - a.revenue).slice(0, 10);
   }, [invoices]);
-  return <section className="manage-view products-view"><div className="manage-head"><div><p className="eyebrow">{ui(language, "SAVED CATALOG")}</p><h1>{ui(language, "Products")}</h1><p>{ui(language, "Prices added here fill invoices automatically.")}</p></div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button className="secondary compact" onClick={() => setShowAdjustStock(true)}><Icon name="box" />{ui(language, "Adjust Stock")}</button><button className="secondary compact" onClick={() => setShowCategories(true)}><Icon name="box" />{ui(language, "Categories")}</button><button className="primary compact" onClick={newProduct}><Icon name="plus" />{ui(language, "New")}</button></div></div>
+  return <section className="manage-view products-view"><div className="manage-head"><div><p className="eyebrow">{ui(language, "SAVED CATALOG")}</p><h1>{ui(language, "Products")}</h1><p>{ui(language, "Prices added here fill invoices automatically.")}</p></div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button className="secondary compact" onClick={() => setShowAdjustStock(true)}><Icon name="box" />{ui(language, "Adjust Stock")}</button><button className="secondary compact" onClick={() => setShowCategories(true)}><Icon name="box" />{ui(language, "Categories")}</button><button className="primary compact manage-head-add" onClick={newProduct}><Icon name="plus" />Add product</button></div></div>
     {showCategories ? <CategoriesModal categories={categories} onClose={() => setShowCategories(false)} /> : null}
     {showAdjustStock ? <AdjustStockModal products={products} onClose={() => setShowAdjustStock(false)} /> : null}
     <div className="corbel-kpis desktop-only-card"><article className="corbel-kpi dark"><div className="corbel-kpi-head"><span>Stock value at cost</span></div><strong>{money(stockStats.value, currency)}</strong><small>{stockStats.units} units on hand</small></article><article className="corbel-kpi"><div className="corbel-kpi-head"><span>Low stock</span></div><strong>{stockStats.low.length}</strong><small>{stockStats.low.slice(0, 2).map((pr) => pr.name).join(", ")}{stockStats.low.length > 2 ? ` and ${stockStats.low.length - 2} more` : stockStats.low.length ? "" : "All stocked"}</small></article><article className="corbel-kpi"><div className="corbel-kpi-head"><span>Out of stock</span></div><strong>{stockStats.out.length}</strong><small>{stockStats.out.slice(0, 2).map((pr) => pr.name).join(", ")}{stockStats.out.length > 2 ? ` and ${stockStats.out.length - 2} more` : stockStats.out.length ? "" : "Nothing out"}</small></article><article className="corbel-kpi"><div className="corbel-kpi-head"><span>Average margin</span></div><strong>{stockStats.avgMargin === null ? "—" : `${Math.round(stockStats.avgMargin)}%`}</strong><small>Across products with a price</small></article></div>
-    <div className="corbel-search-row desktop-only-card"><div className="corbel-seg" role="group" aria-label="Category">{["__all", ...productCategoryNames].map((c) => <button key={c} type="button" className={activeCategory === c ? "active" : ""} onClick={() => setActiveCategory(c)}>{c === "__all" ? "All" : c}</button>)}</div><div className="corbel-seg" role="group" aria-label="Stock status">{[["__all", "All"], ["in", "In stock"], ["low", "Low stock"], ["out", "Out of stock"]].map(([v, l]) => <button key={v} type="button" className={filterStock === v ? "active" : ""} onClick={() => setFilterStock(v)}>{l}</button>)}</div><label className="corbel-sort">Sort<select value={stockSort} onChange={(e) => setStockSort(e.target.value)}><option value="name">Name A–Z</option><option value="price-desc">Price: high to low</option><option value="price-asc">Price: low to high</option><option value="stock-asc">Stock: lowest first</option></select></label><div className="corbel-seg" role="group" aria-label="View"><button type="button" className={stockView === "table" ? "active" : ""} onClick={() => setStockView("table")}>Table</button><button type="button" className={stockView === "grid" ? "active" : ""} onClick={() => setStockView("grid")}>Grid</button></div><span className="corbel-count">{sortedVisible.length} products</span></div>
+    <div className="corbel-search-row desktop-only-card"><label className="corbel-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or SKU" aria-label="Search products" /></label><span className="corbel-count">{sortedVisible.length} products</span><div className="corbel-seg" role="group" aria-label="Product status">{([["all", "All"], ["active", "Active"]] as const).map(([v, l]) => <button key={v} type="button" className={filterStatus === v ? "active" : ""} onClick={() => setFilterStatus(v)}>{l}</button>)}{hasArchived ? <button type="button" className={filterStatus === "archived" ? "active" : ""} onClick={() => setFilterStatus("archived")}>Archived</button> : null}</div><div className="corbel-seg" role="group" aria-label="Category">{["__all", ...productCategoryNames].map((c) => <button key={c} type="button" className={activeCategory === c ? "active" : ""} onClick={() => setActiveCategory(c)}>{c === "__all" ? "All" : c}</button>)}</div><div className="corbel-seg" role="group" aria-label="Stock status">{[["__all", "All"], ["in", "In stock"], ["low", "Low stock"], ["out", "Out of stock"]].map(([v, l]) => <button key={v} type="button" className={filterStock === v ? "active" : ""} onClick={() => setFilterStock(v)}>{l}</button>)}</div><label className="corbel-sort">Sort<select value={stockSort} onChange={(e) => setStockSort(e.target.value)}><option value="best">Best-selling</option><option value="name">Name A–Z</option><option value="price-desc">Price: high to low</option><option value="price-asc">Price: low to high</option><option value="stock-asc">Stock: lowest first</option></select></label><div className="corbel-seg" role="group" aria-label="View"><button type="button" className={stockView === "table" ? "active" : ""} onClick={() => setStockView("table")}>Table</button><button type="button" className={stockView === "grid" ? "active" : ""} onClick={() => setStockView("grid")}>Grid</button></div><button className="primary compact" onClick={newProduct}><Icon name="plus" />Add product</button></div>
     <div className="product-toolbar"><div className="product-search"><Icon name="search" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={ui(language, "Search products…")} /></div></div>
     <div className="product-filter-bar">
-      <label className="filter-field"><span>{ui(language, "Category")}</span><select value={activeCategory} onChange={(e) => setActiveCategory(e.target.value)}><option value="__all">{ui(language, "All")}</option><option value="__featured">★ {ui(language, "Featured")}</option>{categories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}</select></label>
+      <label className="filter-field filter-field-cat"><span>{ui(language, "Category")}</span><select value={activeCategory} onChange={(e) => setActiveCategory(e.target.value)}><option value="__all">{ui(language, "All")}</option><option value="__featured">★ {ui(language, "Featured")}</option>{categories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}</select></label>
       <label className="filter-field"><span>{ui(language, "Suppliers")}</span><select value={filterSupplier} onChange={(e) => setFilterSupplier(e.target.value)}><option value="__all">{ui(language, "Select here")}</option>{contacts.filter((c) => c.kind === "supplier").map((s) => <option key={s.id} value={String(s.id)}>{s.name}</option>)}</select></label>
       <label className="filter-field"><span>{ui(language, "Product Type")}</span><select value={filterType} onChange={(e) => setFilterType(e.target.value)}><option value="__all">{ui(language, "Select here")}</option>{productTypes.map((t) => <option key={t} value={t}>{t}</option>)}</select></label>
-      <label className="filter-field"><span>{ui(language, "Stock")}</span><select value={filterStock} onChange={(e) => setFilterStock(e.target.value)}><option value="__all">{ui(language, "All")}</option><option value="in">{ui(language, "In stock")}</option><option value="low">{ui(language, "Low stock")}</option><option value="out">{ui(language, "Out of stock")}</option></select></label>
+      <label className="filter-field filter-field-stock"><span>{ui(language, "Stock")}</span><select value={filterStock} onChange={(e) => setFilterStock(e.target.value)}><option value="__all">{ui(language, "All")}</option><option value="in">{ui(language, "In stock")}</option><option value="low">{ui(language, "Low stock")}</option><option value="out">{ui(language, "Out of stock")}</option></select></label>
     </div>
     {showForm ? <form className="inline-form" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}><div className="section-heading"><h2>{editing ? ui(language, "Edit product") : ui(language, "New product")}</h2><button type="button" className="close-button" aria-label={ui(language, "Close")} onClick={() => setShowForm(false)}>×</button></div>
       <div className="product-image-picker">{formImage ? <img src={`data:${formImageMime};base64,${formImage}`} alt="" /> : editing?.image_url ? <img src={editing.image_url} alt="" /> : <div className="product-image-placeholder"><Icon name="box" /></div>}<button type="button" className="secondary compact" onClick={() => imgRef.current?.click()}>{ui(language, "Product image")}</button><input ref={imgRef} hidden type="file" accept="image/png,image/jpeg" onChange={(e) => { const f = e.target.files?.[0]; if (f) onImagePick(f); }} /></div>
@@ -4597,17 +4634,23 @@ function ProductsView({ products, contacts, invoices, currency, categories, onDo
       <div className="form-row-2"><label className="field"><span>{ui(language, "Selling price")}</span><input required inputMode="decimal" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></label><label className="field"><span>{ui(language, "Cost price")}</span><input inputMode="decimal" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} /></label></div>
       <div className="form-row-2"><label className="field"><span>{ui(language, "Stock count")}</span><input inputMode="numeric" value={form.stock} disabled title={ui(language, "Use Adjust Stock to change stock")} style={{ background: "var(--bg)", cursor: "not-allowed" }} /></label><label className="field"><span>{ui(language, "Supplier")}</span><select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })}><option value="">{ui(language, "No supplier")}</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label></div>
       {save.error ? <p className="error">{String(save.error)}</p> : null}<button className="primary wide" disabled={save.isPending}>{save.isPending ? ui(language, "Saving…") : ui(language, "Save product")}</button></form> : null}
-    {sortedVisible.length ? (stockView === "grid" ? <div className="product-grid">{sortedVisible.map((product) => { const mp = marginPct(product); const st = product.stock_quantity <= 0 ? "out" : product.stock_quantity <= 5 ? "low" : "ok"; return <article key={product.id} className="product-grid-card" onClick={() => setViewing(product)}><div className="product-grid-top"><span className="product-tile">{initials(product.name)}</span>{st !== "ok" ? <span className={`product-status-pill ${st}`}>{st === "low" ? "Low stock" : "Out of stock"}</span> : null}</div><strong>{product.name}</strong><small>{product.shelf_code || `#${product.id}`}{product.category ? ` · ${product.category}` : ""}</small><div className="product-grid-price"><strong>{money(product.unit_price, currency)}</strong>{mp !== null ? <span>{mp}% margin</span> : null}</div><div className="product-grid-stock"><span>{product.stock_quantity} in stock</span></div><span className="stock-bar"><i className={st} style={{ width: `${Math.round(product.stock_quantity / maxStock * 100)}%` }} /></span></article>; })}</div> : <div className="product-table-wrap"><table className="product-table"><thead><tr><th>{ui(language, "Image")}</th><th>ID</th><th>{ui(language, "Name")}</th><th>{ui(language, "Brand")}</th><th className="num">Price</th><th className="num">Cost</th><th className="num">Margin</th><th>{ui(language, "Count")}</th><th>{ui(language, "Type")}</th><th>{ui(language, "Shelf code")}</th><th>{ui(language, "Supplier")}</th><th>{ui(language, "Last updated")}</th><th></th></tr></thead><tbody>{sortedVisible.map((product) => <tr key={product.id} className="product-row product-clickable" onClick={() => setViewing(product)}><td className="cell-edit-left"><button aria-label={ui(language, "Edit")} onClick={(e) => { e.stopPropagation(); startEdit(product); }}><Icon name="pencil" /></button></td><td className="cell-image">{product.image_url ? <img className="product-thumb" src={product.image_url} alt="" /> : <span className="product-thumb empty"><Icon name="box" /></span>}</td><td className="mono cell-id">#{product.id}</td><td className="cell-main"><div className="cell-top"><strong>{product.name}</strong>{product.is_featured ? <span className="featured-star" title={ui(language, "Featured product")}>★</span> : null}<span className="mobile-only-meta"><span className={"stock-badge" + (product.stock_quantity <= 5 ? " low" : "")}>{product.stock_quantity} {ui(language, "in stock")}</span></span></div><div className="cell-meta mobile-only-meta"><span className="price">{money(product.unit_price, currency)}</span>{product.category ? <span className="cell-category"> · {product.category}</span> : null}{product.sizes ? <span> · {product.sizes}</span> : null}</div></td><td className="cell-brand">{product.brand || <span className="dim">—</span>}</td><td className="num">{money(product.unit_price, currency)}</td><td className="num">{money(product.unit_cost, currency)}</td><td className="num">{marginPct(product) === null ? <span className="dim">—</span> : `${marginPct(product)}%`}</td><td className="cell-count"><span className={product.stock_quantity <= 5 ? "low-stock" : ""}>{product.stock_quantity}</span><span className="stock-bar"><i className={product.stock_quantity <= 0 ? "out" : product.stock_quantity <= 5 ? "low" : "ok"} style={{ width: `${Math.round(product.stock_quantity / maxStock * 100)}%` }} /></span></td><td className="cell-type">{product.product_type || <span className="dim">—</span>}</td><td className="mono cell-shelf">{product.shelf_code || <span className="dim">—</span>}</td><td className="cell-supplier">{supplierName(product.supplier_id)}</td><td className="cell-updated">{product.updated_at ? new Date(product.updated_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : <span className="dim">—</span>}</td><td className="row-actions"><button className="btn-edit" aria-label={ui(language, "Edit")} onClick={(e) => { e.stopPropagation(); startEdit(product); }}><Icon name="pencil" /></button><button className="btn-delete" aria-label={ui(language, "Delete")} onClick={(e) => { e.stopPropagation(); setPendingArchive(product); }}><Icon name="trash" /></button></td></tr>)}</tbody></table></div>) : !showForm ? <Empty title={ui(language, "No products here")} body={ui(language, "Add products to fill invoices automatically.")} /> : null}
+    {sortedVisible.length ? (stockView === "grid" ? <div className="product-grid">{sortedVisible.map((product) => { const mp = marginPct(product); const st = product.stock_quantity <= 0 ? "out" : product.stock_quantity <= 5 ? "low" : "ok"; return <article key={product.id} className="product-grid-card" onClick={() => setViewing(product)}><div className="product-grid-top"><span className="product-tile">{initials(product.name)}</span>{st !== "ok" ? <span className={`product-status-pill ${st}`}>{st === "low" ? "Low stock" : "Out of stock"}</span> : null}</div><strong>{product.name}</strong><small>{product.shelf_code || `#${product.id}`}{product.category ? ` · ${product.category}` : ""}</small><div className="product-grid-price"><strong>{money(product.unit_price, currency)}</strong>{mp !== null ? <span>{mp}% margin</span> : null}</div><div className="product-grid-stock"><span>{product.stock_quantity} in stock</span></div><span className="stock-bar"><i className={st} style={{ width: `${Math.round(product.stock_quantity / maxStock * 100)}%` }} /></span><div className="product-grid-sold">{salesFor(product).units30} sold, 30 days</div></article>; })}</div> : <div className="product-table-wrap"><table className="product-table"><thead><tr><th>{ui(language, "Image")}</th><th>ID</th><th>{ui(language, "Name")}</th><th>{ui(language, "Brand")}</th><th className="num">Price</th><th className="num">Cost</th><th className="num">Margin</th><th className="num">Sold</th><th className="num">30 days</th><th>Status</th><th>{ui(language, "Count")}</th><th>{ui(language, "Type")}</th><th>{ui(language, "Shelf code")}</th><th>{ui(language, "Supplier")}</th><th>{ui(language, "Last updated")}</th><th></th></tr></thead><tbody>{sortedVisible.map((product) => <tr key={product.id} className="product-row product-clickable" onClick={() => setViewing(product)}><td className="cell-edit-left"><button aria-label={ui(language, "Edit")} onClick={(e) => { e.stopPropagation(); startEdit(product); }}><Icon name="pencil" /></button></td><td className="cell-image">{product.image_url ? <img className="product-thumb" src={product.image_url} alt="" /> : <span className="product-thumb empty"><Icon name="box" /></span>}</td><td className="mono cell-id">#{product.id}</td><td className="cell-main"><div className="cell-top"><strong>{product.name}</strong>{product.is_featured ? <span className="featured-star" title={ui(language, "Featured product")}>★</span> : null}<span className="mobile-only-meta"><span className={"stock-badge" + (product.stock_quantity <= 5 ? " low" : "")}>{product.stock_quantity} {ui(language, "in stock")}</span></span></div><div className="cell-meta mobile-only-meta"><span className="price">{money(product.unit_price, currency)}</span>{product.category ? <span className="cell-category"> · {product.category}</span> : null}{product.sizes ? <span> · {product.sizes}</span> : null}</div></td><td className="cell-brand">{product.brand || <span className="dim">—</span>}</td><td className="num">{money(product.unit_price, currency)}</td><td className="num">{money(product.unit_cost, currency)}</td><td className="num">{marginPct(product) === null ? <span className="dim">—</span> : `${marginPct(product)}%`}</td><td className="num">{salesFor(product).units}</td><td className="num">{salesFor(product).units30}</td><td><span className={`product-status-pill ${product.stock_quantity <= 0 ? "out" : product.stock_quantity <= 5 ? "low" : "ok"}`}>{product.stock_quantity <= 0 ? "Out of stock" : product.stock_quantity <= 5 ? "Low stock" : "In stock"}</span></td><td className="cell-count"><span className={product.stock_quantity <= 5 ? "low-stock" : ""}>{product.stock_quantity}</span><span className="stock-bar"><i className={product.stock_quantity <= 0 ? "out" : product.stock_quantity <= 5 ? "low" : "ok"} style={{ width: `${Math.round(product.stock_quantity / maxStock * 100)}%` }} /></span></td><td className="cell-type">{product.product_type || <span className="dim">—</span>}</td><td className="mono cell-shelf">{product.shelf_code || <span className="dim">—</span>}</td><td className="cell-supplier">{supplierName(product.supplier_id)}</td><td className="cell-updated">{product.updated_at ? new Date(product.updated_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : <span className="dim">—</span>}</td><td className="row-actions"><button className="btn-edit" aria-label={ui(language, "Edit")} onClick={(e) => { e.stopPropagation(); startEdit(product); }}><Icon name="pencil" /></button><button className="btn-delete" aria-label={ui(language, "Delete")} onClick={(e) => { e.stopPropagation(); setPendingArchive(product); }}><Icon name="trash" /></button></td></tr>)}</tbody></table></div>) : !showForm ? <Empty title={ui(language, "No products here")} body={ui(language, "Add products to fill invoices automatically.")} /> : null}
     {topItems.length ? <section className="top-items-card desktop-only-card"><div className="top-items-head"><div><h2>Top sold items</h2><p>Grouped by item description from sales invoices · share of the top item by units sold</p></div></div><div className="top-items-list">{topItems.map((item, i) => <div className="top-items-row" key={item.name}><span className="top-rank">{i + 1}</span><span className="top-name">{item.name}</span><span className="top-units">{item.units} sold</span><span className="top-revenue">{money(item.revenue, currency)}</span><span className="top-share"><i style={{ width: `${Math.round(item.units / topItems[0].units * 100)}%` }} /></span></div>)}</div></section> : null}
     <button className="return-link" onClick={onDone}>← {ui(language, "Back to invoice")}</button>
-    {viewing ? <div className="sheet-backdrop" onClick={() => setViewing(null)}><div className="sheet product-detail-sheet" onClick={(e) => e.stopPropagation()}>
+    {viewing ? <div className="sheet-backdrop" onClick={() => setViewing(null)}><div className="sheet product-detail-sheet product-detail-drawer" onClick={(e) => e.stopPropagation()}>{(() => {
+      const vs = viewingSales ?? { units: 0, revenue: 0, units30: 0, revenue30: 0, daily: Array(30).fill(0), avgDaily: 0, daysCover: null as number | null };
+      const st = viewing.stock_quantity <= 0 ? "out" : viewing.stock_quantity <= 5 ? "low" : "ok";
+      const maxD = Math.max(1, ...vs.daily);
+      const pts = vs.daily.map((v, i) => `${Math.round(i / 29 * 300)},${Math.round(60 - (v / maxD) * 56)}`).join(" ");
+      return <>
       <div className="sheet-handle" />
-      <div className="sheet-head"><h2>{viewing.name}</h2><button className="icon-button" onClick={() => setViewing(null)} aria-label="Close">×</button></div>
+      <div className="sheet-head drawer-head"><span className="product-tile">{initials(viewing.name)}</span><div className="drawer-head-copy"><h2>{viewing.name}</h2><small>{viewing.shelf_code || `#${viewing.id}`}{viewing.category ? ` · ${viewing.category}` : ""}</small></div><button className="icon-button" onClick={() => setViewing(null)} aria-label="Close">×</button></div>
       <div className="product-detail-body">
         {viewing.image_url ? <img className="product-detail-image" src={viewing.image_url} alt="" /> : null}
+        <div className="drawer-stat-row"><div><span>Price</span><strong>{money(viewing.unit_price, currency)}</strong></div><div><span>Unit cost</span><strong>{money(viewing.unit_cost, currency)}</strong></div><div><span>Margin</span><strong>{marginPct(viewing) === null ? "—" : `${marginPct(viewing)}%`}</strong><small>{marginPct(viewing) === null ? "No price set" : `${money(viewing.unit_price - viewing.unit_cost, currency)} per unit`}</small></div></div>
+        <div className="drawer-stock"><div className="drawer-stock-head"><span>Stock</span><span className={`product-status-pill ${st}`}>{st === "out" ? "Out of stock" : st === "low" ? "Low stock" : "In stock"}</span></div><strong>{viewing.stock_quantity} units on hand</strong><span className="stock-bar"><i className={st} style={{ width: `${Math.round(viewing.stock_quantity / maxStock * 100)}%` }} /></span>{vs.daysCover !== null ? <small>About {vs.daysCover} days of cover at the last-30-day pace</small> : <small>No sales in the last 30 days</small>}</div>
+        <div className="drawer-sales"><div className="drawer-sales-head"><span>Sales, last 30 days</span><strong>{vs.units30} units, {money(vs.revenue30, currency)}</strong></div><svg className="drawer-spark" viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true"><polygon points={`0,64 ${pts} 300,64`} fill="rgba(32,189,120,0.15)" /><polyline points={pts} fill="none" stroke="#20bd78" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" /></svg><small>{vs.units} units sold all time</small></div>
         <div className="product-detail-grid">
-          <div><span>Price</span><strong>{money(viewing.unit_price, currency)}</strong></div>
-          <div><span>Stock</span><strong>{viewing.stock_quantity}</strong></div>
           <div><span>Brand</span><strong>{viewing.brand || "—"}</strong></div>
           <div><span>Category</span><strong>{viewing.category || "—"}</strong></div>
           <div><span>Type</span><strong>{viewing.product_type || "—"}</strong></div>
@@ -4616,9 +4659,163 @@ function ProductsView({ products, contacts, invoices, currency, categories, onDo
           <div><span>ID</span><strong>#{viewing.id}</strong></div>
         </div>
         <button className="primary wide" onClick={() => { setViewing(null); startEdit(viewing); }}>Edit Product</button>
+        <button className="secondary wide" onClick={() => { setViewing(null); setShowAdjustStock(true); }}>Adjust stock</button>
+        <button className="secondary wide" onClick={() => { setViewing(null); setPendingArchive(viewing); }}>Archive product</button>
       </div>
-    </div></div> : null}
+    </>; })()}</div></div> : null}
     {pendingArchive ? <ArchiveConfirmDialog title={`Archive ${pendingArchive.name}?`} lines={[`${pendingArchive.name} will be hidden from your product list.`, `Stock on hand: ${pendingArchive.stock_quantity} · Price: ${money(pendingArchive.unit_price, currency)}`, "You can add it again later as a new product."]} confirmLabel="Hold to archive" onConfirm={async () => { await archive.mutateAsync(pendingArchive.id); }} onClose={() => setPendingArchive(null)} /> : null}
+  </section>;
+}
+
+type WsCard = { id: string; title: string; tag: string; assignee: string; due: string; column: "todo" | "progress" | "review" | "done" };
+const WS_KEY = "daybill-workspace-v1";
+const WS_COLS = [{ id: "todo", label: "To do" }, { id: "progress", label: "In progress" }, { id: "review", label: "Review" }, { id: "done", label: "Done" }] as const;
+
+function AnalyticsView({ invoices, currency }: { invoices: Workspace["invoices"]; currency: string }) {
+  const [range, setRange] = useState<"7" | "30" | "90" | "365">("30");
+  const [compare, setCompare] = useState(true);
+  const today = localDate();
+  const days = range === "7" ? 7 : range === "30" ? 30 : range === "90" ? 90 : 365;
+  const shift = (date: string, n: number) => { const d = new Date(`${date}T00:00:00`); d.setDate(d.getDate() + n); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+  const start = shift(today, -(days - 1));
+  const prevEnd = shift(start, -1);
+  const prevStart = shift(prevEnd, -(days - 1));
+  const inRange = (d: string, s: string, e: string) => d >= s && d <= e;
+  const cur = (invoices ?? []).filter((inv) => inRange(inv.issue_date, start, today));
+  const prev = (invoices ?? []).filter((inv) => inRange(inv.issue_date, prevStart, prevEnd));
+  const rev = cur.reduce((s, i) => s + i.total, 0);
+  const prevRev = prev.reduce((s, i) => s + i.total, 0);
+  const orders = cur.length;
+  const prevOrders = prev.length;
+  const avg = orders ? rev / orders : 0;
+  const prevAvg = prevOrders ? prevRev / prevOrders : 0;
+  const paidShare = orders ? Math.round(cur.filter((i) => i.payment_status === "paid").length / orders * 100) : 0;
+  const prevPaidShare = prevOrders ? Math.round(prev.filter((i) => i.payment_status === "paid").length / prevOrders * 100) : 0;
+  const custCounts = new Map<number, number>();
+  cur.forEach((i) => { if (i.customer_id != null) custCounts.set(i.customer_id, (custCounts.get(i.customer_id) ?? 0) + 1); });
+  const returning = custCounts.size ? Math.round([...custCounts.values()].filter((n) => n >= 2).length / custCounts.size * 1000) / 10 : 0;
+  const prevCust = new Map<number, number>();
+  prev.forEach((i) => { if (i.customer_id != null) prevCust.set(i.customer_id, (prevCust.get(i.customer_id) ?? 0) + 1); });
+  const prevReturning = prevCust.size ? Math.round([...prevCust.values()].filter((n) => n >= 2).length / prevCust.size * 1000) / 10 : 0;
+  const pct = (c: number, p: number) => p === 0 ? null : Math.round((c - p) / p * 1000) / 10;
+  const toDay = (s: string) => { const [y, m, dd] = s.split("-").map(Number); return Date.UTC(y, m - 1, dd) / 86400000; };
+  const makeKeys = (s: string, e: string) => {
+    if (days === 365) {
+      const out: string[] = [];
+      let [y, m] = s.split("-").map(Number);
+      const [ey, em] = e.split("-").map(Number);
+      while (y < ey || (y === ey && m <= em)) { out.push(`${y}-${String(m).padStart(2, "0")}`); m += 1; if (m === 13) { m = 1; y += 1; } }
+      return out;
+    }
+    const n = toDay(e) - toDay(s) + 1;
+    return Array.from({ length: n }, (_, i) => shift(s, i));
+  };
+  const curKeys = makeKeys(start, today);
+  const prevKeys = makeKeys(prevStart, prevEnd);
+  const bucketOf = (date: string) => days === 365 ? date.slice(0, 7) : date;
+  const labelOf = (k: string) => days === 365 ? new Date(`${k}-02T00:00:00`).toLocaleString(undefined, { month: "short" }) : new Date(`${k}T00:00:00`).toLocaleString(undefined, { month: "short", day: "numeric" });
+  const series = curKeys.map((k, idx) => ({
+    label: labelOf(k),
+    revenue: cur.filter((i) => bucketOf(i.issue_date) === k).reduce((s, i) => s + i.total, 0) / 100,
+    previous: prev.filter((i) => bucketOf(i.issue_date) === (prevKeys[idx] ?? "")).reduce((s, i) => s + i.total, 0) / 100,
+  }));
+  const dailyOrders = curKeys.map((k) => cur.filter((i) => bucketOf(i.issue_date) === k).length);
+  const spark = (vals: number[]) => { const mx = Math.max(1, ...vals); return vals.map((v, i) => <i key={i} style={{ height: `${Math.max(4, Math.round(v / mx * 100))}%` }} />); };
+  const payMethods = ["card", "cash", "transfer", "credit"] as const;
+  const payRows = payMethods.map((m) => {
+    const rows = cur.filter((i) => (i.payment_method ?? "") === m);
+    const r = rows.reduce((s, i) => s + i.total, 0);
+    return { method: m, orders: rows.length, revenue: r, avg: rows.length ? r / rows.length : 0, share: orders ? rows.length / orders * 100 : 0 };
+  }).filter((r) => r.orders > 0);
+  const otherRows = cur.filter((i) => !(payMethods as readonly string[]).includes(i.payment_method ?? ""));
+  if (otherRows.length) payRows.push({ method: "other", orders: otherRows.length, revenue: otherRows.reduce((s, i) => s + i.total, 0), avg: otherRows.reduce((s, i) => s + i.total, 0) / otherRows.length, share: orders ? otherRows.length / orders * 100 : 0 });
+  const topPeriod = (() => {
+    const byKey = new Map<string, { name: string; units: number; revenue: number }>();
+    cur.forEach((inv) => (inv.items ?? []).forEach((it) => {
+      const key = it.description.trim().toLowerCase(); if (!key) return;
+      const c = byKey.get(key) ?? { name: it.description.trim(), units: 0, revenue: 0 };
+      c.units += it.quantity; c.revenue += it.line_total; byKey.set(key, c);
+    }));
+    return [...byKey.values()].sort((a, b) => b.units - a.units).slice(0, 5);
+  })();
+  const exportCsv = () => {
+    const rows: (string | number)[][] = [["Daybill analytics", `Last ${days} days`, today], [], ["Metric", "Value"], ["Revenue", money(rev, currency)], ["Orders", orders], ["Average order value", money(Math.round(avg), currency)], ["Paid share", `${paidShare}%`], ["Returning customers", `${returning}%`], [], ["Date", "Revenue", "Previous period"], ...series.map((r) => [r.label, Math.round(r.revenue * 100), Math.round(r.previous * 100)])];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join(String.fromCharCode(10));
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `daybill-analytics-${range}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+  const dRev = pct(rev, prevRev);
+  const dOrd = pct(orders, prevOrders);
+  const dAvg = pct(avg, prevAvg);
+  const stats = [
+    { label: "Revenue", value: money(rev, currency), d: dRev, suffix: "%", sparkVals: series.map((r) => r.revenue), dark: true },
+    { label: "Orders", value: String(orders), d: dOrd, suffix: "%", sparkVals: dailyOrders, dark: false },
+    { label: "Average order value", value: money(Math.round(avg), currency), d: dAvg, suffix: "%", sparkVals: series.map((r) => r.revenue), dark: false },
+    { label: "Paid share", value: `${paidShare}%`, d: paidShare - prevPaidShare, suffix: " pt", sparkVals: series.map((r) => r.revenue), dark: false },
+    { label: "Returning customers", value: `${returning}%`, d: Math.round((returning - prevReturning) * 10) / 10, suffix: " pt", sparkVals: series.map((r) => r.revenue), dark: false },
+  ];
+  return <section className="manage-view analytics-view"><div className="manage-head"><div><p className="eyebrow">INSIGHTS</p><h1>Analytics</h1><p>Real sales from your invoices. No visit data, so no conversion rate.</p></div><button className="secondary compact" onClick={exportCsv}>↓ Export CSV</button></div>
+    <div className="analytics-controls"><div className="corbel-seg" role="group" aria-label="Range">{([["7", "7D"], ["30", "30D"], ["90", "90D"], ["365", "12M"]] as const).map(([v, l]) => <button key={v} type="button" className={range === v ? "active" : ""} onClick={() => setRange(v)}>{l}</button>)}</div><label className="analytics-compare"><input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)} /> vs previous period</label></div>
+    <div className="corbel-kpis analytics-kpis desktop-only-card">{stats.map((s) => <article key={s.label} className={`corbel-kpi${s.dark ? " dark" : ""}`}><div className="corbel-kpi-head"><span>{s.label}</span></div><strong>{s.value}</strong><div>{s.d === null ? <span className="analytics-delta">—</span> : <span className={`analytics-delta ${s.d >= 0 ? "up" : "down"}`}>{s.d >= 0 ? "↑" : "↓"}{Math.abs(s.d)}{s.suffix}</span>}<small> vs previous period</small></div><span className="analytics-spark">{spark(s.sparkVals)}</span></article>)}</div>
+    <section className="analytics-chart-card"><div className="analytics-chart-head"><div><h2>Revenue over time</h2><strong>{money(rev, currency)}</strong>{dRev === null ? null : <span className={`analytics-delta ${dRev >= 0 ? "up" : "down"}`}>{dRev >= 0 ? "↑" : "↓"}{Math.abs(dRev)}%</span>}<p>Last {days} days</p></div><div className="analytics-legend"><span>— This period</span>{compare ? <span className="prev">- - Previous period</span> : null}</div></div>
+    <div className="analytics-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={series} margin={{ top: 10, right: 8, left: -8, bottom: 0 }}><defs><linearGradient id="analyticsFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--text)" stopOpacity={0.18} /><stop offset="100%" stopColor="var(--text)" stopOpacity={0.01} /></linearGradient></defs><CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 7" /><XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "var(--dim)", fontSize: 11 }} interval="preserveStartEnd" /><YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--dim)", fontSize: 11 }} width={58} tickFormatter={(value: number) => new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }).format(value)} /><Tooltip formatter={(value: number, name: string) => [money(Math.round(Number(value) * 100), currency), name === "revenue" ? "This period" : "Previous period"]} contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)" }} /><Area type="monotone" dataKey="revenue" stroke="var(--text)" strokeWidth={2.5} fill="url(#analyticsFill)" dot={false} animationDuration={1200} />{compare ? <Area type="monotone" dataKey="previous" stroke="var(--dim)" strokeWidth={2} strokeDasharray="5 5" fill="transparent" dot={false} animationDuration={1200} /> : null}</AreaChart></ResponsiveContainer></div>
+    <div className="analytics-table-wrap"><table className="analytics-table"><thead><tr><th>Date</th><th>Revenue</th><th>Previous period</th></tr></thead><tbody>{series.map((r) => <tr key={r.label}><td>{r.label}</td><td>{money(Math.round(r.revenue * 100), currency)}</td><td>{money(Math.round(r.previous * 100), currency)}</td></tr>)}</tbody></table></div></section>
+    <div className="analytics-grid">
+      <section className="analytics-card"><h2>Payment methods</h2>{payRows.length ? <><div className="pay-split-bar">{payRows.map((r) => <i key={r.method} style={{ width: `${r.share}%`, background: r.method === "cash" ? "#2F7D62" : r.method === "card" ? "#111" : r.method === "transfer" ? "#3f7ab8" : r.method === "credit" ? "#e2a93b" : "#9a9a9a" }} />)}</div>{payRows.map((r) => <div className="pay-row" key={r.method}><span>{r.method[0]?.toUpperCase()}{r.method.slice(1)}</span><span>{r.orders} orders</span><span>{money(Math.round(r.avg), currency)} avg</span></div>)}</> : <p>No sales in this period.</p>}</section>
+      <section className="analytics-card"><h2>Top products</h2>{topPeriod.length ? topPeriod.map((item, i) => <div className="pay-row" key={item.name}><span>{i + 1}. {item.name}</span><span>{item.units} sold</span><span>{money(item.revenue, currency)}</span></div>) : <p>No sales in this period.</p>}</section>
+    </div>
+  </section>;
+}
+
+function WorkspaceView() {
+  const [cards, setCards] = useState<WsCard[]>(() => {
+    try { const raw = localStorage.getItem(WS_KEY); if (raw) return JSON.parse(raw) as WsCard[]; } catch {}
+    return [];
+  });
+  const [filter, setFilter] = useState("__all");
+  const [title, setTitle] = useState("");
+  const [tag, setTag] = useState("Copy");
+  const [assignee, setAssignee] = useState("");
+  const [due, setDue] = useState("");
+  const [column, setColumn] = useState<WsCard["column"]>("todo");
+  useEffect(() => { try { localStorage.setItem(WS_KEY, JSON.stringify(cards)); } catch {} }, [cards]);
+  const done = cards.filter((c) => c.column === "done").length;
+  const assignees = [...new Set(cards.map((c) => c.assignee.trim()).filter(Boolean))];
+  const visible = filter === "__all" ? cards : cards.filter((c) => c.assignee === filter);
+  const move = (id: string, dir: 1 | -1) => setCards((list) => list.map((c) => {
+    if (c.id !== id) return c;
+    const idx = WS_COLS.findIndex((col) => col.id === c.column);
+    const next = WS_COLS[Math.min(WS_COLS.length - 1, Math.max(0, idx + dir))];
+    return { ...c, column: next.id as WsCard["column"] };
+  }));
+  const add = () => {
+    const t = title.trim(); if (!t) return;
+    setCards((list) => [...list, { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, title: t, tag, assignee: assignee.trim(), due, column }]);
+    setTitle(""); setAssignee(""); setDue("");
+  };
+  const dueLabel = (d: string) => {
+    if (!d) return null;
+    const today = localDate();
+    if (d === today) return "Due today";
+    const tomorrow = new Date(`${today}T00:00:00`); tomorrow.setDate(tomorrow.getDate() + 1);
+    if (d === tomorrow.toISOString().slice(0, 10)) return "Due tomorrow";
+    if (d < today) return "Overdue";
+    return `Due ${new Date(`${d}T00:00:00`).toLocaleString(undefined, { month: "short", day: "numeric" })}`;
+  };
+  return <section className="manage-view workspace-view"><div className="manage-head"><div><p className="eyebrow">PLAN</p><h1>Workspace</h1><p>Your board, saved in this browser only.</p></div></div>
+    <section className="ws-board-card"><div><strong>{cards.length} cards</strong><small>{done} of {cards.length} done · {cards.length ? Math.round(done / cards.length * 100) : 0}%</small></div><div className="ws-progress"><i style={{ width: `${cards.length ? Math.round(done / cards.length * 100) : 0}%` }} /></div>{assignees.length ? <div className="ws-filters">{["__all", ...assignees].map((a) => <button key={a} type="button" className={filter === a ? "active" : ""} onClick={() => setFilter(a)}>{a === "__all" ? "All" : a}</button>)}</div> : null}</section>
+    <form className="ws-add" onSubmit={(e) => { e.preventDefault(); add(); }}><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Card title" aria-label="Card title" /><select value={tag} onChange={(e) => setTag(e.target.value)} aria-label="Tag">{["Copy", "Photo", "Design", "Buying", "Store", "Ops"].map((t) => <option key={t}>{t}</option>)}</select><input value={assignee} onChange={(e) => setAssignee(e.target.value)} placeholder="Assignee initials" aria-label="Assignee" /><input type="date" value={due} onChange={(e) => setDue(e.target.value)} aria-label="Due date" /><select value={column} onChange={(e) => setColumn(e.target.value as WsCard["column"])} aria-label="Column">{WS_COLS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</select><button className="primary compact" type="submit">+ Add card</button></form>
+    <div className="ws-board">{WS_COLS.map((col) => {
+      const items = visible.filter((c) => c.column === col.id);
+      return <section className="ws-col" key={col.id}><h2>{col.label} <span>{items.length}</span></h2>{items.map((c) => {
+        const dl = dueLabel(c.due);
+        return <article className="ws-card" key={c.id}><span className="ws-tag">{c.tag}</span><strong>{c.title}</strong><div className="ws-card-foot">{c.assignee ? <span className="ws-avatar">{c.assignee.slice(0, 2).toUpperCase()}</span> : null}{dl ? <span className={`ws-due ${dl === "Due tomorrow" ? "soon" : dl === "Overdue" || dl === "Due today" ? "late" : ""}`}>{dl}</span> : null}<span className="ws-move"><button type="button" aria-label="Move back" onClick={() => move(c.id, -1)}>‹</button><button type="button" aria-label="Move forward" onClick={() => move(c.id, 1)}>›</button><button type="button" aria-label="Delete card" onClick={() => setCards((list) => list.filter((x) => x.id !== c.id))}>×</button></span></div></article>;
+      })}<button className="ws-add-inline" type="button" onClick={() => { setColumn(col.id as WsCard["column"]); document.querySelector<HTMLInputElement>(".ws-add input")?.focus(); }}>+ Add card</button></section>;
+    })}</div>
+    <p className="ws-note">Saved in this browser only. A synced board for every device needs a backend change — say the word and I will add it.</p>
   </section>;
 }
 
