@@ -87,6 +87,14 @@ const invoiceSummaryShape = z.object({
   total: z.number(),
   cost_total: z.number(),
   currency: z.string(),
+  items: z.array(z.object({
+    id: z.number(),
+    description: z.string(),
+    unit: z.string(),
+    quantity: z.number(),
+    unit_price: z.number(),
+    line_total: z.number(),
+  })),
 });
 
 const invoiceDetailShape = z.object({
