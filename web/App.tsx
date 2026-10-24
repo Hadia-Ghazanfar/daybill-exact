@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Area, AreaChart, CartesianGrid, Legend, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { fileToBase64, SafeAreaTopScrim } from "./sdk-shim";
 import { api, setApiSession, type AccountSession, type ApiResponse } from "./api";
 import daybillLogoDark from "./assets/daybill-logo-dark.png";
@@ -1613,6 +1613,10 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   };
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const { data: notifData } = useQuery({ queryKey: ["notifications"], queryFn: () => api.listNotifications({}), refetchInterval: 30000 });
+  const notifUnread: number = (notifData as any)?.unreadCount ?? 0;
+  const unpaidBadge = workspace.data ? workspace.data.invoices.filter((i) => i.payment_status === "pending").length : 0;
   useEffect(() => {
     if (!drawerOpen) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setDrawerOpen(false); };
@@ -1939,7 +1943,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const quickCreate = (kind: "sale" | "purchase") => { setQuickAddOpen(false); setCreateKind(kind); if (kind === "purchase") setSavedPurchaseId(null); goTab("create"); };
 
   return (
-    <div className={`app-shell${tab === "dashboard" && selectedContactId === null ? " overview-dark" : ""}`}>
+    <div className="app-shell">
       <SafeAreaTopScrim backgroundColor="var(--bg)" />
       <header className="app-topbar" aria-label="Daybill header">
         <div className="topbar-brand">
@@ -1948,11 +1952,11 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
           <div className="app-brand-copy"><span>Roz ka karobar, ab asaan</span><small>Your daily trade, simplified</small></div>
         </div>
         <nav className="pill-nav" aria-label="Primary navigation">
-          {nav.map((item) => <button key={item.id} type="button" aria-label={item.label} aria-current={tab === item.id ? "page" : undefined} className={tab === item.id ? "active" : ""} onClick={() => goTab(item.id)}><Icon name={item.icon} /><span>{item.label}</span></button>)}
+          {nav.map((item) => <button key={item.id} type="button" aria-label={item.label} aria-current={tab === item.id ? "page" : undefined} className={tab === item.id ? "active" : ""} onClick={() => goTab(item.id)}><Icon name={item.icon} /><span>{item.label}</span>{item.id === "history" && unpaidBadge > 0 ? <span className="nav-badge">{unpaidBadge > 99 ? "99+" : unpaidBadge}</span> : null}</button>)}
         </nav>
         <div className="topbar-actions">
-          <button className="topbar-util" type="button" onClick={() => setShowHelpFeedback(true)}><Icon name="help" /><span>{ui(language, "Help")}</span></button>
-          <button className="topbar-util" type="button" onClick={onLogout}><Icon name="logout" /><span>{ui(language, "Logout")}</span></button>
+          <button className="topbar-bell" type="button" aria-label={`${notifUnread} unread notifications`} onClick={() => setShowNotifications(true)}><Icon name="bell" />{notifUnread > 0 ? <span className="bell-dot" /> : null}</button>
+          <button className="topbar-avatar" type="button" aria-label={workspace.data.account.shopkeeper_name || settings.business_name || "Profile"} title={workspace.data.account.shopkeeper_name || settings.business_name || "Profile"} onClick={() => goTab("profile")}>{settings.logo_url ? <img src={settings.logo_url} alt="" /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="" /> : <span className="sidebar-avatar-fallback"><Icon name="profile" /></span>}</button>
         </div>
       </header>
       <aside className="icon-rail" aria-label="Quick access">
@@ -1964,11 +1968,14 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
           </div> : null}
         </div>
         <button className={`rail-btn${tab === "products" ? " active" : ""}`} type="button" aria-label="Stock" data-tip="Stock" onClick={() => goTab("products")}><Icon name="box" /></button>
-        <button className={`rail-btn${tab === "history" ? " active" : ""}`} type="button" aria-label="Bills" data-tip="Bills" onClick={() => goTab("history")}><Icon name="history" /></button>
+        <button className={`rail-btn${tab === "history" ? " active" : ""}`} type="button" aria-label="Bills" data-tip="Bills" onClick={() => goTab("history")}><Icon name="history" />{unpaidBadge > 0 ? <span className="rail-badge">{unpaidBadge > 99 ? "99+" : unpaidBadge}</span> : null}</button>
         <button className={`rail-btn${tab === "contacts" ? " active" : ""}`} type="button" aria-label="Contacts" data-tip="Contacts" onClick={() => goTab("contacts")}><Icon name="people" /></button>
-        <div className="rail-spacer" />
-        <button className={`rail-avatar${tab === "profile" ? " active" : ""}`} type="button" aria-label={workspace.data.account.shopkeeper_name || settings.business_name || "Profile"} title={workspace.data.account.shopkeeper_name || settings.business_name || "Profile"} onClick={() => goTab("profile")}>{settings.logo_url ? <img src={settings.logo_url} alt="" /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="" /> : <span className="sidebar-avatar-fallback"><Icon name="profile" /></span>}</button>
+        <div className="rail-divider" />
+        <button className="rail-btn" type="button" aria-label="Help" data-tip="Help" onClick={() => setShowHelpFeedback(true)}><Icon name="help" /></button>
+        <button className="rail-btn" type="button" aria-label="Toggle theme" data-tip="Theme" onClick={() => setTheme(theme === "light" ? "dark" : "light")}><Icon name={theme === "light" ? "moon" : "sun"} /></button>
+        <button className="rail-btn" type="button" aria-label="Logout" data-tip="Logout" onClick={onLogout}><Icon name="logout" /></button>
       </aside>
+      {showNotifications ? <NotificationPanel onClose={() => setShowNotifications(false)} /> : null}
       {drawerOpen ? <div className="drawer-backdrop" onClick={() => setDrawerOpen(false)} aria-hidden="true" /> : null}
       <aside className={`mobile-drawer${drawerOpen ? " open" : ""}`} aria-label="Menu" aria-hidden={!drawerOpen}>
         <div className="drawer-head">
@@ -1989,7 +1996,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         </div>
       </aside>
       <main>
-        {selectedContactId !== null ? <ContactHistoryView contact={contacts.find((item) => item.id === selectedContactId) ?? null} invoices={workspace.data.invoices} purchases={workspace.data.purchases} currency={settings.currency} onBack={() => setSelectedContactId(null)} onOpenInvoice={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} /> : tab === "dashboard" ? <DashboardView workspace={workspace.data} onCreate={() => { setCreateKind("sale"); setTab("create"); }} onCreatePurchase={() => { setCreateKind("purchase"); setSavedPurchaseId(null); setTab("create"); }} onOpenInvoice={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} onInventory={() => setTab("products")} onBills={() => setTab("history")} /> : tab === "create" ? (
+        {selectedContactId !== null ? <ContactHistoryView contact={contacts.find((item) => item.id === selectedContactId) ?? null} invoices={workspace.data.invoices} purchases={workspace.data.purchases} currency={settings.currency} onBack={() => setSelectedContactId(null)} onOpenInvoice={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} /> : tab === "dashboard" ? <DashboardView workspace={workspace.data} onCreate={() => { setCreateKind("sale"); setTab("create"); }} onCreatePurchase={() => { setCreateKind("purchase"); setSavedPurchaseId(null); setTab("create"); }} onOpenInvoice={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} onInventory={() => setTab("products")} onBills={() => setTab("history")} notifUnread={notifUnread} onNotifOpen={() => setShowNotifications(true)} /> : tab === "create" ? (
           <section className="create-view">
             <div className="create-header reference-create-header">
               <div><p className="eyebrow">{createKind === "sale" ? "SALES INVOICE" : "SUPPLIER INVOICE"}</p><h1>{ui(language, "Create")}</h1><p className="create-subtitle">{createKind === "sale" ? (savedInvoiceId ? "Ready to send" : "Build a customer invoice") : (savedPurchaseId ? "Supplier document ready" : "Record a supplier document")}</p></div>
@@ -3227,6 +3234,25 @@ function AnimatedMoney({ value, currency }: { value: number; currency: string })
   return <>{money(display, currency)}</>;
 }
 
+function CountUp({ value }: { value: number }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setDisplay(value); return; }
+    let raf = 0;
+    const start = performance.now();
+    const duration = 1100;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(value * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <>{display.toLocaleString()}</>;
+}
+
 function Sparkline({ values, color }: { values: number[]; color: string }) {
   const w = 120, h = 36, pad = 2;
   if (values.length < 2) return null;
@@ -3243,14 +3269,11 @@ function DonutArc({ share, color }: { share: number; color: string }) {
   return <circle cx="48" cy="48" r="34" fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" strokeDasharray={`${shown * C} ${C}`} transform="rotate(-90 48 48)" style={{ transition: "stroke-dasharray 1.1s ease" }} />;
 }
 
-function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, onOpenPurchase, onOpenContact, onInventory, onBills }: { workspace: Workspace; onCreate: () => void; onCreatePurchase: () => void; onOpenInvoice: (id: number) => void; onOpenPurchase: (id: number) => void; onOpenContact: (id: number) => void; onInventory: () => void; onBills: () => void }) {
+function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, onOpenPurchase, onOpenContact, onInventory, onBills, notifUnread, onNotifOpen }: { workspace: Workspace; onCreate: () => void; onCreatePurchase: () => void; onOpenInvoice: (id: number) => void; onOpenPurchase: (id: number) => void; onOpenContact: (id: number) => void; onInventory: () => void; onBills: () => void; notifUnread: number; onNotifOpen: () => void }) {
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
   const [chartRange, setChartRange] = useState<ChartRange>("1m");
   const [heroRange, setHeroRange] = useState<"1W" | "1M" | "1Y" | "All">("1W");
-  const [showNotifications, setShowNotifications] = useState(false);
-  const { data: notifData } = useQuery({ queryKey: ["notifications"], queryFn: () => api.listNotifications({}), refetchInterval: 30000 });
-  const unreadCount: number = (notifData as any)?.unreadCount ?? 0;
   const today = localDate();
   const overdue = workspace.invoices.filter((invoice) => invoice.payment_status === "pending" && invoice.due_date && invoice.due_date < today);
   const overduePurchases = workspace.purchases.filter((purchase) => purchase.delivery_status === "delivered" && purchase.payment_status === "pending" && purchase.due_date && purchase.due_date < today);
@@ -3374,12 +3397,56 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
     const palette = ["#20bd78", "#e2a93b", "#5b8def", "#e07856", "#8a9a5b", "#2a9d8f", "#c96f9b", "#7c6bd9"];
     return { total, rows: [...map.entries()].map(([name, value], i) => ({ name, value, pct: total > 0 ? Math.round((value / total) * 100) : 0, color: palette[i % palette.length]! })).sort((a, b) => b.value - a.value) };
   })();
+  const monthPaid = (key: string) => workspace.invoices.filter((i) => i.payment_status === "paid" && monthKey(i.issue_date) === key).reduce((s, i) => s + i.total, 0);
+  const monthPending = (key: string) => workspace.invoices.filter((i) => i.payment_status === "pending" && monthKey(i.issue_date) === key).reduce((s, i) => s + i.total, 0);
+  const monthInvoiceCount = (key: string) => workspace.invoices.filter((i) => monthKey(i.issue_date) === key).length;
+  const collectedDelta = deltaOf(monthPaid(currentMonth), monthPaid(prevMonth));
+  const duesDelta = deltaOf(monthPending(currentMonth), monthPending(prevMonth));
+  const invoicesDelta = deltaOf(monthInvoiceCount(currentMonth), monthInvoiceCount(prevMonth));
+  const stockValue = (workspace.products ?? []).reduce((s, p) => s + (p.unit_cost / 100) * p.stock_quantity, 0);
+  const lastSixMonths = (() => { const keys: string[] = []; const d = new Date(`${today}T12:00:00`); for (let k = 5; k >= 0; k--) { const t = new Date(d.getFullYear(), d.getMonth() - k, 1); keys.push(`${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}`); } return keys; })();
+  const pendingSeries = lastSixMonths.map((key) => monthPending(key) / 100);
+  const invoiceCountSeries = lastSixMonths.map((key) => monthInvoiceCount(key));
+  const gaugeTotal = paidRevenue + workspace.dashboard.outstanding;
+  const gaugeScore = gaugeTotal > 0 ? Math.round((paidRevenue / gaugeTotal) * 100) : 100;
+  const prevGaugeTotal = monthPaid(prevMonth) + monthPending(prevMonth);
+  const prevGaugeScore = prevGaugeTotal > 0 ? Math.round((monthPaid(prevMonth) / prevGaugeTotal) * 100) : 100;
+  const gaugeDelta = gaugeScore - prevGaugeScore;
+  const gaugeNote = gaugeScore >= 80 ? "Ahead of plan — collections are running strong." : gaugeScore >= 50 ? "On track — steady collections this month." : "Needs attention — dues need chasing.";
+  const gaugeAngle = (score: number) => (180 - (score / 100) * 180) * (Math.PI / 180);
+  const gaugeKnob = (() => { const a = gaugeAngle(gaugeScore); return { x: 100 + 80 * Math.cos(a), y: 110 - 80 * Math.sin(a) }; })();
+  const gaugeTicks = Array.from({ length: 21 }, (_, i) => { const a = gaugeAngle(i * 5); return { x1: 100 + 88 * Math.cos(a), y1: 110 - 88 * Math.sin(a), x2: 100 + 94 * Math.cos(a), y2: 110 - 94 * Math.sin(a) }; });
+  const thisYear = new Date(`${today}T12:00:00`).getFullYear();
+  const [barYear, setBarYear] = useState(thisYear);
+  const [barSet, setBarSet] = useState<"invoiced" | "collected" | "purchases">("invoiced");
+  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const barData = (() => {
+    const sums = Array.from({ length: 12 }, () => 0);
+    const put = (dateStr: string, v: number) => { const d = new Date(`${dateStr}T12:00:00`); if (d.getFullYear() === barYear) sums[d.getMonth()] = (sums[d.getMonth()] ?? 0) + v; };
+    if (barSet === "invoiced") workspace.invoices.forEach((i) => put(i.issue_date, i.total / 100));
+    if (barSet === "collected") workspace.invoices.filter((i) => i.payment_status === "paid").forEach((i) => put(i.issue_date, i.total / 100));
+    if (barSet === "purchases") (workspace.purchases ?? []).filter((p) => p.document_type === "delivered_purchase").forEach((p) => put(p.issue_date, p.total / 100));
+    return sums.map((value, i) => ({ label: monthLabels[i]!, value }));
+  })();
+  const barAvg = Math.round(barData.reduce((s, b) => s + b.value, 0) / 12);
+  const methodLabels: Record<string, string> = { cash: "Cash", card: "Card", transfer: "Transfer", credit: "Credit" };
+  const methodColors = ["#111111", "#5c5c5c", "#9a9a9a", "#d6d6d6"];
+  const methodSplit = (() => {
+    const map = new Map<string, number>();
+    for (const i of workspace.invoices) if (i.payment_status === "paid") map.set(i.payment_method, (map.get(i.payment_method) ?? 0) + i.total);
+    const total = [...map.values()].reduce((s, v) => s + v, 0);
+    return [...map.entries()].map(([method, value]) => ({ method, label: methodLabels[method] ?? method, value, pct: total > 0 ? Math.round((value / total) * 100) : 0 })).sort((a, b) => b.value - a.value);
+  })();
+  const donutCirc = 2 * Math.PI * 70;
+  const donutSegs = (() => { let off = 0; return methodSplit.map((m, i) => { const len = (m.pct / 100) * donutCirc; const seg = { ...m, color: methodColors[i % methodColors.length]!, len, off }; off += len; return seg; }); })();
+  const [donutSel, setDonutSel] = useState(0);
+  const donutSelSafe = donutSegs.length > 0 ? Math.min(donutSel, donutSegs.length - 1) : 0;
 
   return <section className="dashboard-view overview-view">
-    <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="theme-toggle-header" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="notification-button" aria-label={`${unreadCount} unread notifications`} onClick={() => setShowNotifications(true)}><Icon name="bell" />{unreadCount > 0 ? <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
-    {showNotifications ? <NotificationPanel onClose={() => setShowNotifications(false)} /> : null}
+    <div className="corbel-head desktop-only-card"><div><h1>Dashboard</h1><p>{new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(new Date(`${today}T12:00:00`))}, month to date</p></div></div>
+    <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="theme-toggle-header" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="notification-button" aria-label={`${notifUnread} unread notifications`} onClick={onNotifOpen}><Icon name="bell" />{notifUnread > 0 ? <span className="notif-badge">{notifUnread > 99 ? "99+" : notifUnread}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
     <section className="received-card" aria-label="Received total">
-      <div className="received-welcome"><span className="rw-avatar">{(workspace.settings.business_name || "D").trim().charAt(0).toUpperCase()}</span><span className="rw-copy"><small>Welcome back</small><strong>{workspace.settings.business_name || "Daybill"}</strong></span><span className="rw-actions"><button className="rw-icon-btn" type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="rw-icon-btn" type="button" aria-label={`${unreadCount} unread notifications`} onClick={() => setShowNotifications(true)}><Icon name="bell" />{unreadCount > 0 ? <span className="rw-badge">{unreadCount > 99 ? "99+" : unreadCount}</span> : null}</button></span></div>
+      <div className="received-welcome"><span className="rw-avatar">{(workspace.settings.business_name || "D").trim().charAt(0).toUpperCase()}</span><span className="rw-copy"><small>Welcome back</small><strong>{workspace.settings.business_name || "Daybill"}</strong></span><span className="rw-actions"><button className="rw-icon-btn" type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="rw-icon-btn" type="button" aria-label={`${notifUnread} unread notifications`} onClick={onNotifOpen}><Icon name="bell" />{notifUnread > 0 ? <span className="rw-badge">{notifUnread > 99 ? "99+" : notifUnread}</span> : null}</button></span></div>
       <div className="received-copy"><span>Received <i className={`trend-badge ${trendPercent < 0 ? "down" : ""}`}>{trendPercent >= 0 ? "+" : ""}{trendPercent}%</i></span><strong><AnimatedMoney value={paidRevenue} currency={workspace.settings.currency} /></strong><small>{ui(language, "Payments collected from paid invoices")}</small><div className="hero-ranges" role="group" aria-label="Balance chart range">{(["1W", "1M", "1Y", "All"] as const).map((range) => <button type="button" key={range} className={heroRange === range ? "active" : ""} aria-pressed={heroRange === range} onClick={() => setHeroRange(range)}>{range}</button>)}</div></div>
       <div className="received-chart" role="img" aria-label="Invoice sales for the selected range"><ResponsiveContainer width="100%" height="100%"><AreaChart data={heroSeries} margin={{ top: 10, right: 4, left: 4, bottom: 0 }}><defs><linearGradient id="overviewFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffffff" stopOpacity={0.45} /><stop offset="100%" stopColor="#ffffff" stopOpacity={0.02} /></linearGradient></defs><Area type="monotone" dataKey="sales" stroke="#ffffff" strokeWidth={2.5} fill="url(#overviewFill)" dot={false} animationDuration={1400} animationEasing="ease-out" /></AreaChart></ResponsiveContainer></div>
     </section>
@@ -3415,19 +3482,104 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
         <div className="weekly-bars">{(() => { const max = Math.max(0, ...salesSeries.map((d) => d.sales)); return salesSeries.map((day, i) => <div className="weekly-bar" key={day.key} title={`${day.label}: ${money(Math.round(day.sales * 100), workspace.settings.currency)}`}><span className="bar-track"><i style={{ height: `${max > 0 ? (day.sales / max) * 100 : 0}%`, animationDelay: `${i * 60}ms` }} /></span><small>{day.label}</small></div>); })()}</div>
       </article>
     </section>
-    <section className="dashboard-extra desktop-only-card">
+    <section className="corbel-kpis desktop-only-card" aria-label="Key figures">
+      <article className="corbel-kpi dark">
+        <div className="corbel-kpi-head"><span>Payments collected</span><span className="info-i" title="Payments collected from paid invoices">i</span></div>
+        <strong><AnimatedMoney value={paidRevenue} currency={workspace.settings.currency} /></strong>
+        <span className="tile-delta"><i className={`delta-pill ${collectedDelta.dir}`}>{collectedDelta.label}</i> vs last month</span>
+        <div className="corbel-mini-bars" aria-hidden="true">{(() => { const max = Math.max(1, ...salesSeries.map((d) => d.sales)); return salesSeries.map((day) => <i key={day.key} style={{ height: `${Math.max(12, Math.round((day.sales / max) * 100))}%` }} />); })()}</div>
+        <span className="corbel-divider" />
+        <button type="button" className="see-all-link" onClick={onBills}>See bills →</button>
+      </article>
+      <article className="corbel-kpi">
+        <div className="corbel-kpi-head"><span>Pending dues</span><span className="info-i" title="Unpaid invoices still outstanding">i</span></div>
+        <strong><AnimatedMoney value={workspace.dashboard.outstanding} currency={workspace.settings.currency} /></strong>
+        <span className="tile-delta"><i className={`delta-pill ${duesDelta.dir === "up" ? "down" : duesDelta.dir === "down" ? "up" : "flat"}`}>{duesDelta.label}</i> vs last month</span>
+        <Sparkline values={pendingSeries} color="#111111" />
+        <span className="corbel-divider" />
+        <button type="button" className="see-all-link" onClick={onBills}>See bills →</button>
+      </article>
+      <article className="corbel-kpi">
+        <div className="corbel-kpi-head"><span>Invoices</span><span className="info-i" title="Invoices issued this month">i</span></div>
+        <strong><CountUp value={monthInvoiceCount(currentMonth)} /></strong>
+        <span className="tile-delta"><i className={`delta-pill ${invoicesDelta.dir}`}>{invoicesDelta.label}</i> vs last month</span>
+        <Sparkline values={invoiceCountSeries} color="#111111" />
+        <span className="corbel-divider" />
+        <button type="button" className="see-all-link" onClick={onBills}>See bills →</button>
+      </article>
+      <article className="corbel-kpi">
+        <div className="corbel-kpi-head"><span>Stock value</span><span className="info-i" title="Cost value of stock on hand">i</span></div>
+        <strong><AnimatedMoney value={Math.round(stockValue * 100)} currency={workspace.settings.currency} /></strong>
+        <span className="tile-delta"><i className="delta-pill flat">{(workspace.products ?? []).length} products</i>{workspace.dashboard.low_stock_count > 0 ? <i className="delta-pill down">{workspace.dashboard.low_stock_count} low</i> : null}</span>
+        <div className="corbel-mini-bars dark" aria-hidden="true">{(() => { const max = Math.max(1, ...stockByCategory.rows.map((r) => r.value)); return stockByCategory.rows.map((row) => <i key={row.name} style={{ height: `${Math.max(12, Math.round((row.value / max) * 100))}%` }} />); })()}</div>
+        <span className="corbel-divider" />
+        <button type="button" className="see-all-link" onClick={onInventory}>See stock →</button>
+      </article>
+    </section>
+    <section className="corbel-main-row desktop-only-card">
+      <article className="corbel-gauge">
+        <div className="corbel-kpi-head"><span>Collection score</span><span className="info-i" title="Share of invoiced amount already collected">i</span></div>
+        <div className="gauge-wrap">
+          <svg viewBox="0 0 200 120" role="img" aria-label={`Collection score ${gaugeScore} out of 100`}>
+            <defs><linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" /><stop offset="100%" stopColor="#ffffff" /></linearGradient></defs>
+            {gaugeTicks.map((t, i) => <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" />)}
+            <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="14" strokeLinecap="round" pathLength={100} />
+            <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="url(#gaugeGrad)" strokeWidth="14" strokeLinecap="round" pathLength={100} strokeDasharray={`${gaugeScore} 100`} />
+            <circle cx={gaugeKnob.x} cy={gaugeKnob.y} r="7" fill="#fff" stroke="#111" strokeWidth="2" />
+          </svg>
+          <div className="gauge-score"><strong><CountUp value={gaugeScore} /></strong><span>/ 100</span></div>
+        </div>
+        <span className="tile-delta"><i className={`delta-pill ${gaugeDelta >= 0 ? "up" : "down"}`}>{gaugeDelta >= 0 ? `↑ +${gaugeDelta}` : `↓ ${Math.abs(gaugeDelta)}`}</i> vs last month</span>
+        <p className="gauge-note">{gaugeNote}</p>
+        <p className="gauge-sub">{money(paidRevenue, workspace.settings.currency)} collected of {money(gaugeTotal, workspace.settings.currency)} invoiced.</p>
+      </article>
+      <article className="corbel-chart">
+        <div className="dashboard-section-head"><div><p className="card-kicker">MONTHLY TOTALS</p><h2>{barSet === "invoiced" ? "Invoiced" : barSet === "collected" ? "Collected" : "Stock purchases"}</h2></div><div className="corbel-seg" role="group" aria-label="Chart data">{(["invoiced", "collected", "purchases"] as const).map((s) => <button type="button" key={s} className={barSet === s ? "active" : ""} onClick={() => setBarSet(s)}>{s === "invoiced" ? "Invoiced" : s === "collected" ? "Collected" : "Purchases"}</button>)}</div></div>
+        <div className="corbel-year-row" role="group" aria-label="Chart year">{[thisYear, thisYear - 1].map((y) => <button type="button" key={y} className={barYear === y ? "active" : ""} onClick={() => setBarYear(y)}>{y}</button>)}</div>
+        <div className="corbel-chart-box" role="img" aria-label="Monthly totals bar chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={barData} margin={{ top: 12, right: 4, left: 4, bottom: 0 }}>
+              <defs><pattern id="corbelStripes" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#e9e6e1" /><line x1="0" y1="0" x2="0" y2="7" stroke="#111" strokeWidth="2.5" /></pattern></defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e2de" />
+              <XAxis dataKey="label" tick={{ fill: "#6f6d6a", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#6f6d6a", fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1).replace(/\.0$/, "")}k` : `${v}`} width={40} />
+              <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={{ background: "#111", color: "#fff", border: "none", borderRadius: 12, fontSize: 12 }} formatter={(v: any) => [money(Math.round(Number(v) * 100), workspace.settings.currency), "Total"]} />
+              <ReferenceLine y={barAvg} stroke="#111" strokeDasharray="5 5" label={{ value: `avg ${barAvg.toLocaleString()}`, fill: "#111", fontSize: 11, position: "insideTopRight" }} />
+              <Bar dataKey="value" fill="url(#corbelStripes)" radius={[8, 8, 0, 0]} maxBarSize={34} animationDuration={900} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </article>
+    </section>
+    <section className="corbel-donut-row desktop-only-card">
+      <article className="corbel-donut">
+        <div className="dashboard-section-head"><div><p className="card-kicker">COLLECTED BY METHOD</p><h2>How you got paid</h2></div></div>
+        {donutSegs.length ? <div className="corbel-donut-body">
+          <div className="corbel-donut-svg">
+            <svg viewBox="0 0 180 180" role="img" aria-label="Collected revenue by payment method">
+              {donutSegs.map((s) => <circle key={s.method} cx="90" cy="90" r="70" fill="none" stroke={s.color} strokeWidth="24" strokeDasharray={`${s.len} ${donutCirc - s.len}`} strokeDashoffset={-s.off} transform="rotate(-90 90 90)" />)}
+            </svg>
+            <div className="corbel-donut-center"><strong>{donutSegs[donutSelSafe]?.pct ?? 0}%</strong><span>{donutSegs[donutSelSafe]?.label ?? ""}</span></div>
+          </div>
+          <div className="corbel-donut-legend">
+            {donutSegs.map((s, i) => <button type="button" key={s.method} className={i === donutSelSafe ? "selected" : ""} onClick={() => setDonutSel(i)}><i style={{ background: s.color }} />{s.label}<b>{money(s.value, workspace.settings.currency)} · {s.pct}%</b></button>)}
+          </div>
+        </div> : <p className="extra-empty">No paid invoices yet.</p>}
+      </article>
       <article className="extra-card funnel-card">
         <div className="dashboard-section-head"><div><p className="card-kicker">INVOICE PIPELINE</p><h2>Where your invoices stand</h2></div></div>
         <div className="funnel-rows">{funnelStages.map((stage) => <div className="funnel-row" key={stage.label}><span className="funnel-label">{stage.label}</span><span className="funnel-track"><i className={`funnel-fill ${stage.tone}`} style={{ width: `${stage.width}%` }} /></span><span className="funnel-count">{stage.count}</span><strong className="funnel-amount">{money(stage.amount, workspace.settings.currency)}</strong></div>)}</div>
       </article>
+    </section>
+    <section className="dashboard-extra desktop-only-card">
       <article className="extra-card dues-card">
         <div className="dashboard-section-head"><div><p className="card-kicker">DUE NEXT</p><h2>Upcoming payments</h2></div><button type="button" className="see-all-link" onClick={onBills}>See all →</button></div>
         {upcomingDues.length ? <div className="dues-list">{upcomingDues.map((invoice) => <button type="button" key={invoice.id} onClick={() => onOpenInvoice(invoice.id)}><ContactAvatar name={invoice.customer_name} kind="customer" contactKey={String(invoice.customer_id)} /><span><strong>{invoice.customer_name}</strong><small>{invoice.invoice_number} · {invoice.issue_date}</small></span><b>{money(invoice.total, invoice.currency)}<i className="due-badge">{dueLabel(invoice.due_date ?? today)}</i></b></button>)}</div> : <p className="extra-empty">No payments due in the next two weeks.</p>}
       </article>
-    </section>
-    <section className="extra-card stock-cat-card desktop-only-card">
-      <div className="dashboard-section-head"><div><p className="card-kicker">STOCK VALUE</p><h2>Stock by category</h2></div><span className="extra-total">{money(Math.round(stockByCategory.total * 100), workspace.settings.currency)}</span></div>
-      {stockByCategory.rows.length ? <><div className="stock-stack" role="img" aria-label="Stock value by category">{stockByCategory.rows.map((row) => <i key={row.name} className="stock-seg" style={{ width: `${row.pct}%`, background: row.color }} title={`${row.name}: ${row.pct}%`} />)}</div><div className="stock-legend">{stockByCategory.rows.map((row) => <span key={row.name}><i style={{ background: row.color }} />{row.name}<b>{money(Math.round(row.value * 100), workspace.settings.currency)} · {row.pct}%</b></span>)}</div></> : <p className="extra-empty">No stock recorded yet.</p>}
+      <article className="extra-card stock-cat-card">
+        <div className="dashboard-section-head"><div><p className="card-kicker">STOCK VALUE</p><h2>Stock by category</h2></div><span className="extra-total">{money(Math.round(stockByCategory.total * 100), workspace.settings.currency)}</span></div>
+        {stockByCategory.rows.length ? <><div className="stock-stack" role="img" aria-label="Stock value by category">{stockByCategory.rows.map((row) => <i key={row.name} className="stock-seg" style={{ width: `${row.pct}%`, background: row.color }} title={`${row.name}: ${row.pct}%`} />)}</div><div className="stock-legend">{stockByCategory.rows.map((row) => <span key={row.name}><i style={{ background: row.color }} />{row.name}<b>{money(Math.round(row.value * 100), workspace.settings.currency)} · {row.pct}%</b></span>)}</div></> : <p className="extra-empty">No stock recorded yet.</p>}
+      </article>
     </section>
     {overdue.length ? <section id="attention-section" className="dashboard-section overdue-section"><div className="dashboard-section-head"><div><p className="card-kicker danger">CUSTOMER DUES</p><h2>Overdue reminders</h2></div><span className="count-badge">{overdue.length}</span></div><div className="overdue-list">{overdue.map((invoice) => <article className="overdue-item" key={invoice.id}><button className="overdue-open" onClick={() => onOpenInvoice(invoice.id)}><span><strong>{invoice.customer_name}</strong><small>{invoice.invoice_number} · due {invoice.due_date}</small></span><b>{money(invoice.total, invoice.currency)}</b><em>Overdue</em></button><button className="reminder-button" disabled={!whatsappDigits(invoice.customer_phone)} onClick={() => openWhatsAppReminder(invoice, workspace.settings.business_name, language)}><Icon name="whatsapp" />{whatsappDigits(invoice.customer_phone) ? "Send Reminder on WhatsApp" : "WhatsApp number missing"}</button></article>)}</div></section> : null}
     {overduePurchases.length ? <section id={overdue.length ? undefined : "attention-section"} className="dashboard-section overdue-section"><div className="dashboard-section-head"><div><p className="card-kicker danger">SUPPLIER PAYABLES</p><h2>Payments overdue</h2></div><span className="count-badge">{overduePurchases.length}</span></div><div className="due-list">{overduePurchases.map((purchase) => <button key={purchase.id} onClick={() => onOpenPurchase(purchase.id)}><span><strong>{purchase.supplier_name}</strong><small>{purchase.purchase_number} · due {purchase.due_date}</small></span><b>{money(purchase.total, purchase.currency)}</b><em>Open purchase</em></button>)}</div></section> : null}
