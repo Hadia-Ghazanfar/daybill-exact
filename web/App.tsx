@@ -6,6 +6,7 @@ import { fileToBase64, SafeAreaTopScrim } from "./sdk-shim";
 import { api, setApiSession, type AccountSession, type ApiResponse } from "./api";
 import daybillLogoDark from "./assets/daybill-logo-dark.png";
 import daybillLogoWhite from "./assets/daybill-logo-white.png";
+import daybillSymbol from "./assets/daybill-symbol.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-full.jpg";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
@@ -2642,8 +2643,8 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
       <header className="app-topbar" aria-label="Daybill header">
         <div className="topbar-brand">
           <button className="topbar-menu-btn" type="button" aria-label="Open menu" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><span /><span /><span /></button>
-          <img className="topbar-logo" src={daybillLogoWhite} alt="Daybill" />
-          <div className="app-brand-copy"><span>Roz ka karobar, ab asaan</span><small>Your daily trade, simplified</small></div>
+          <img className="topbar-logo" src={daybillSymbol} alt="Daybill" />
+          <span className="topbar-wordmark">daybill</span>
         </div>
         <nav className="pill-nav" aria-label="Primary navigation">
           {nav.map((item) => <button key={item.id} type="button" aria-label={item.label} aria-current={tab === item.id ? "page" : undefined} className={tab === item.id ? "active" : ""} onClick={() => goTab(item.id)}><Icon name={item.icon} /><span>{item.label}</span>{item.id === "history" && unpaidBadge > 0 ? <span className="nav-badge">{unpaidBadge > 99 ? "99+" : unpaidBadge}</span> : null}</button>)}
@@ -2659,11 +2660,11 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
           {quickAddOpen ? <div className="rail-flyout" role="menu" aria-label="Quick create">
             <button type="button" role="menuitem" onClick={() => quickCreate("sale")}><Icon name="invoice" /><span>Sales invoice</span></button>
             <button type="button" role="menuitem" onClick={() => quickCreate("purchase")}><Icon name="truck" /><span>Supplier invoice</span></button>
+            <button type="button" role="menuitem" onClick={() => { setQuickAddOpen(false); goTab("products"); }}><Icon name="box" /><span>Add product</span></button>
+            <button type="button" role="menuitem" onClick={() => { setQuickAddOpen(false); goTab("contacts"); }}><Icon name="people" /><span>Add contact</span></button>
           </div> : null}
         </div>
-        <button className={`rail-btn${tab === "products" ? " active" : ""}`} type="button" aria-label="Stock" data-tip="Stock" onClick={() => goTab("products")}><Icon name="box" /></button>
-        <button className={`rail-btn${tab === "history" ? " active" : ""}`} type="button" aria-label="Bills" data-tip="Bills" onClick={() => goTab("history")}><Icon name="history" />{unpaidBadge > 0 ? <span className="rail-badge">{unpaidBadge > 99 ? "99+" : unpaidBadge}</span> : null}</button>
-        <button className={`rail-btn${tab === "contacts" ? " active" : ""}`} type="button" aria-label="Contacts" data-tip="Contacts" onClick={() => goTab("contacts")}><Icon name="people" /></button>
+        <button className={`rail-btn${tab === "profile" ? " active" : ""}`} type="button" aria-label="Settings" data-tip="Settings" onClick={() => goTab("profile")}><Icon name="settings" /></button>
         <div className="rail-divider" />
         <button className="rail-btn" type="button" aria-label="Help" data-tip="Help" onClick={() => setShowHelpFeedback(true)}><Icon name="help" /></button>
         <button className="rail-btn" type="button" aria-label="Toggle theme" data-tip="Theme" onClick={() => setTheme(theme === "light" ? "dark" : "light")}><Icon name={theme === "light" ? "moon" : "sun"} /></button>
