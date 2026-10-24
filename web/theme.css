@@ -5140,3 +5140,20 @@ html[data-theme="dark"] .rp-paper-total { border-top-color: #f2f2f2; }
 .corbel-kpi .tile-spark { height: 30px; margin-top: 12px; }
 .corbel-divider { padding-top: 12px; }
 .corbel-kpi .see-all-link { margin-top: 8px; }
+
+/* Dashboard: Recent Activity spans full width on desktop (its old column-2 partner no longer renders, leaving a gap) */
+@media (min-width: 760px) {
+  .overview-view > .activity-card { grid-column: 1 / -1; }
+}
+
+/* Top menu: Corbel proportions (roomier bar + items, warm-grey container) */
+@media (min-width: 760px) {
+  .app-shell:not(.admin-shell) .pill-nav { background: var(--surface-2); border-color: #e8e4df; padding: 6px; gap: 2px; }
+  .app-shell:not(.admin-shell) .pill-nav button { padding: 10px 18px; font-size: 14.5px; }
+  html[data-theme="dark"] .app-shell:not(.admin-shell) .pill-nav { background: #262626; border-color: #2c2c2c; }
+}
+
+/* Dashboard: lift the old 1060px cap so the page uses the full main width like Corbel's */
+@media (min-width: 760px) {
+  .overview-view { max-width: none; }
+}
