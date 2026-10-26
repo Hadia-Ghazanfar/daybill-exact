@@ -5694,3 +5694,123 @@ html[data-theme="dark"][data-accent="pastel"] .stock-bar i.out { background: #2E
 .filter-tabs button.active { background: #fff; color: #111; }
 .manage-view .filter-tabs button.active { background: #fff; color: #111; }
 .manage-view .filter-tabs button.active .tab-count { background: rgba(127,127,127,.18); color: #111; }
+
+/* ===== Ocean deep pass (Oct 26, late): demo re-inspected page by page, light + dark =====
+   All values are screenshot-sampled estimates from the Corbel demo, not source tokens.
+   Ocean only - other palettes untouched. Appended last so these win. */
+
+/* Page backgrounds (measured: light diagonal pale blue -> pale centre -> pale teal;
+   dark diagonal deep navy -> deep teal) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) { background: linear-gradient(120deg, #DCE9F2 0%, #E9EEF2 50%, #DDECEA 100%); }
+html[data-accent="ocean"][data-theme="dark"] .app-shell:not(.admin-shell) { background: linear-gradient(120deg, #0A1E2E 0%, #0E2A35 50%, #0A2E2E 100%); }
+
+/* Tokens, ocean (measured) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) { --text: #162E3D; --dim: #5A6B7A; --border: #DDE8EF; }
+html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) { --surface: #122A38; --surface-2: #1A3547; --border: #23465A; --dim: #8AA0BE; --text: #C7D6DE; }
+html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) :is(input[type="text"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="date"], select, textarea) { background: #1E3A4A; border-color: #23465A; }
+
+/* Dashboard KPI fills, light (measured - all four blue/aqua, incl. the first card) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) { background: #BFD9F2; border-color: #BFD9F2; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(2) { background: #9FE3DD; border-color: #9FE3DD; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(3) { background: #DDEAF5; border-color: #DDEAF5; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(4) { background: #A8D4E8; border-color: #A8D4E8; color: #111; }
+/* First card is .dark (white-text rules) - force dark text on the light fill */
+html[data-accent="ocean"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="ocean"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="ocean"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) .tile-delta { color: rgba(0,0,0,.6); }
+/* Gauge deep ocean navy (measured) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .overview-view .corbel-gauge { background: #14405E; border-color: #14405E; }
+/* Dashboard KPI fills, dark (measured - same light fills, slightly deepened) */
+html[data-theme="dark"][data-accent="ocean"] .dashboard-view .corbel-kpis > article:nth-child(1) { background: #A9CDEB; border-color: #A9CDEB; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .dashboard-view .corbel-kpis > article:nth-child(2) { background: #9FE3DD; border-color: #9FE3DD; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .dashboard-view .corbel-kpis > article:nth-child(3) { background: #D6E6F2; border-color: #D6E6F2; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .dashboard-view .corbel-kpis > article:nth-child(4) { background: #9CC8DE; border-color: #9CC8DE; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .overview-view .corbel-gauge { background: #1E4A6B; border-color: #1E4A6B; color: #fff; }
+
+/* First-card fills per page, light (measured: Bills sky, Products sky, Contacts aqua, Analytics aqua) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) { background: #BFD9F2; border-color: #BFD9F2; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) { background: #C7DDF0; border-color: #C7DDF0; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) { background: #9ADBD8; border-color: #9ADBD8; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) { background: #9ADBD8; border-color: #9ADBD8; color: #111; }
+/* First cards keep light fills in dark (measured) */
+html[data-theme="dark"][data-accent="ocean"] .bills-view .corbel-kpis > article:nth-child(1) { background: #A9CDEB; border-color: #A9CDEB; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .contacts-view .corbel-kpis > article:nth-child(1) { background: #9ADBD8; border-color: #9ADBD8; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .products-view .corbel-kpis > article:nth-child(1) { background: #A9CDEB; border-color: #A9CDEB; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .analytics-kpis > article:nth-child(1) { background: #9ADBD8; border-color: #9ADBD8; color: #111; }
+
+/* Links, ocean (measured: steel blue light, pale blue dark) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .see-all-link { color: #2F7AB8; }
+html[data-theme="dark"][data-accent="ocean"] .see-all-link { color: #7FB2D9; }
+html[data-theme="dark"][data-accent="ocean"] .dashboard-view .corbel-kpis > article .see-all-link { color: #111; }
+
+/* Toggles, ocean (measured: ON teal-green; dark mint) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .vs-toggle.on i { background: #2E9A7A; }
+html[data-theme="dark"][data-accent="ocean"] .vs-toggle.on i { background: #2FA88A; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .settings-toggle.on { background: #1E9A7A; }
+html[data-theme="dark"][data-accent="ocean"] .settings-toggle.on { background: #6ED6A0; }
+html[data-theme="dark"][data-accent="ocean"] .settings-toggle.on span { background: #fff; }
+
+/* Notification panel, ocean (measured: unread pale sky / dark slate; mark-all steel/pale blue) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .notif-item.unread { background: #EAF3F8; }
+html[data-theme="dark"][data-accent="ocean"] .notif-item.unread { background: #1A3547; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .notif-panel .text-button { color: #2F7AB8; }
+html[data-theme="dark"][data-accent="ocean"] .notif-panel .text-button { color: #7FB2D9; }
+
+/* Segmented control tracks, ocean (measured: pale blue-grey light, dark slate) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .corbel-seg { background: #E3EAF0; }
+html[data-theme="dark"][data-accent="ocean"] .corbel-seg { background: #162F3E; }
+
+/* Product grid tiles rotate pastels (demo tiles stay multi-pastel in every palette);
+   muted dark versions (estimated, same family as Pastel dark) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+1) .product-tile { background: #D6EAF7; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+2) .product-tile { background: #BFF0D6; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+3) .product-tile { background: #FBD0C2; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+4) .product-tile { background: #FDE68A; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+5) .product-tile { background: #FBCDBE; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .product-grid-card:nth-child(5n+1) .product-tile { background: #2A4A5A; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="ocean"] .product-grid-card:nth-child(5n+2) .product-tile { background: #2E4A3A; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="ocean"] .product-grid-card:nth-child(5n+3) .product-tile { background: #4A2E2E; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="ocean"] .product-grid-card:nth-child(5n+4) .product-tile { background: #4A4A2E; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="ocean"] .product-grid-card:nth-child(5n+5) .product-tile { background: #4A2E3A; color: #F2F2F2; }
+
+/* Workspace columns, ocean (measured: all pale blue-grey light, all dark slate) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .ws-col:nth-child(1),
+html[data-accent="ocean"]:not([data-theme="dark"]) .ws-col:nth-child(2),
+html[data-accent="ocean"]:not([data-theme="dark"]) .ws-col:nth-child(3),
+html[data-accent="ocean"]:not([data-theme="dark"]) .ws-col:nth-child(4) { background: #E3EBF1; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .ws-progress i { background: #2F7AB8; }
+html[data-theme="dark"][data-accent="ocean"] .ws-col { background: #162F3E; }
+html[data-theme="dark"][data-accent="ocean"] .ws-card { background: #122A38; border-color: #1E3A4A; }
+html[data-theme="dark"][data-accent="ocean"] .ws-progress i { background: #7FB2D9; }
+
+/* Top-sold share bars, ocean (measured: first deep blue, others pale blue; dark pale/steel) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .top-items-row:first-child .top-share i { background: #1E6A9E; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .top-items-row:not(:first-child) .top-share i { background: #B9D2E6; }
+html[data-theme="dark"][data-accent="ocean"] .top-items-row:first-child .top-share i { background: #7FB2D9; }
+html[data-theme="dark"][data-accent="ocean"] .top-items-row:not(:first-child) .top-share i { background: #4A6B82; }
+
+/* Stock bars, ocean (measured: teal-green main, amber low; dark mint-teal) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .stock-bar i { background: #1E8A6D; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .stock-bar i.low { background: #C98A1B; }
+html[data-theme="dark"][data-accent="ocean"] .stock-bar i,
+html[data-theme="dark"][data-accent="ocean"] .stock-bar i.low,
+html[data-theme="dark"][data-accent="ocean"] .stock-bar i.out { background: #6ED6A0; }
+
+/* Shop fallback avatar, ocean (measured: pale sky / dark teal-blue) */
+html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .sidebar-avatar-fallback { background: #D6EAF5; color: #14405E; }
+html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .sidebar-avatar-fallback { background: #1E3A4A; color: #fff; }
+
+@media (min-width: 760px) {
+  /* Nav, ocean (measured: light translucent white, active DARK NAVY; dark #0F2533, active pale) */
+  html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav { background: rgba(255,255,255,0.9); }
+  html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav button.active { background: #0F2E44; color: #fff; }
+  html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav button:not(.active) { color: #162E3D; }
+  html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav .nav-badge { background: #E6EDF2; color: #111; }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .pill-nav { background: #0F2533; }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F2F7FA; color: #111; }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .pill-nav button:not(.active) { color: #C7D6DE; }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .pill-nav .nav-badge { background: #1E3A4A; color: #F2F2F2; }
+  /* Rail navy in both themes (measured #0B2436 light, #0F2533 dark) */
+  html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .icon-rail { background: #0B2436; }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .icon-rail { background: #0F2533; }
+}
