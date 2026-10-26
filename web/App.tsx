@@ -10,10 +10,6 @@ import daybillSymbol from "./assets/daybill-symbol.png";
 import daybillIcon from "./assets/brand/daybill-app-icon-transparent.png";
 import welcomeShopkeeper from "./assets/approved/welcome-shopkeeper-full.jpg";
 import welcomeSlideBilling from "./assets/approved/welcome-slide-billing.png";
-import finalWelcome from "./assets/onboarding-exact/ob-welcome-notext.jpg";
-import finalDashboard from "./assets/onboarding-exact/user-dashboard.jpg";
-import finalInvoice from "./assets/onboarding-exact/user-invoice.jpg";
-import finalAssistant from "./assets/onboarding-exact/user-assistant.jpg";
 
 
 
@@ -102,7 +98,7 @@ type PurchaseDraft = {
 };
 type Language = "en" | "ur";
 type Theme = "light" | "dark";
-type LaunchPhase = "splash" | "welcome" | "auth" | "open";
+type LaunchPhase = "splash" | "auth" | "open";
 
 const SESSION_STORAGE_KEY = "hisaab-account-session-v1";
 const THEME_STORAGE_KEY = "hisaab-theme-v1";
@@ -2882,40 +2878,6 @@ function BrandIdentity({ compact = false, variant = "auto" }: { compact?: boolea
   return <div className={`brand-identity${compact ? " compact" : ""}`}><img src={useWhiteLogo ? daybillLogoWhite : daybillLogoDark} alt="Daybill logo" /><div><span>Roz ka karobar, ab asaan</span>{compact ? null : <small>Your daily trade, simplified</small>}</div></div>;
 }
 
-const onboardingSlides = [
-  { id: "s1", screenshot: finalWelcome, headline: "Your business, simplified.", accent: "simplified.", subtitle: "Create invoices, manage stock, track payments, and stay on top of your shop." },
-  { id: "s2", screenshot: finalDashboard, headline: "Know your business", accent: "at a glance.", subtitle: "Track sales, stock, and outstanding payments from one simple dashboard." },
-  { id: "s3", screenshot: finalInvoice, headline: "Professional bills,", accent: "in seconds.", subtitle: "Create, download, print, and share invoices with your customers." },
-  { id: "s4", screenshot: finalAssistant, headline: "Your shop assistant,", accent: "always ready.", subtitle: "Ask about stock levels, revenue, invoices, and customer dues." },
-] as const;
-
-function OnboardingMockup({ type }: { type: string }) {
-  if (type === "intro") return <div className="ob2-phone"><div className="ob2-intro-art">
-    <div className="ob2-invoice-card"><span>INVOICE</span><div className="ob2-inv-lines"><i></i><i></i><i></i></div><b>PKR</b><div className="ob2-check">✓</div></div>
-    <div className="ob2-float-icon" style={{top:"8%",left:"4%"}}>📦</div>
-    <div className="ob2-float-icon" style={{top:"4%",right:"12%"}}>📊</div>
-    <div className="ob2-float-icon" style={{bottom:"24%",left:"0%"}}>👥</div>
-    <div className="ob2-float-icon" style={{bottom:"30%",right:"4%"}}>📈</div>
-  </div></div>;
-  if (type === "dashboard") return <div className="ob2-phone"><div className="ob2-screen">
-    <div className="ob2-dash-top"><span>Overview</span></div>
-    <div className="ob2-recv"><span>Received <em>+100%</em></span><strong>PKR 11,008</strong><small>Payments collected</small><div className="ob2-spark"></div></div>
-    <div className="ob2-stats"><div><b>PKR 11,008</b><span>Revenue</span></div><div><b>PKR 7,000</b><span>Cost</span></div><div><b>-PKR 28,992</b><span>Profit</span></div><div><b>PKR 0</b><span>Dues</span></div></div>
-  </div></div>;
-  if (type === "invoice") return <div className="ob2-phone"><div className="ob2-screen">
-    <div className="ob2-bill-head"><div><strong>General store</strong><span>Lahore</span></div><div className="ob2-inv-no"><span>INVOICE</span><b>INV-0002</b></div></div>
-    <div className="ob2-bill-to"><span>BILL TO</span><strong>Fajar</strong></div>
-    <div className="ob2-items"><div><span>C type Cable × 4</span><b>PKR 3,200</b></div><div className="ob2-total"><span>Total</span><b>PKR 3,168</b></div></div>
-    <div className="ob2-share-row"><div>📱<span>WhatsApp</span></div><div>⬇<span>PDF</span></div><div>🖨<span>Print</span></div></div>
-  </div></div>;
-  return <div className="ob2-phone"><div className="ob2-screen">
-    <div className="ob2-chat-head"><div className="ob2-bot">🤖</div><div><strong>Daybill Assistant</strong><span>● Online</span></div></div>
-    <div className="ob2-msg bot">Hi! I'm the Daybill assistant. Ask me about your shop.</div>
-    <div className="ob2-msg user">Kitny products inventory ma hn</div>
-    <div className="ob2-msg bot">No products below 20 in stock ✓</div>
-  </div></div>;
-}
-
 function LoginShowcase() {
   return <section className="login-showcase desktop-business-showcase" aria-label="Daybill business overview">
     <div className="desktop-showcase-brand"><BrandIdentity compact variant="white" /></div>
@@ -2926,39 +2888,6 @@ function LoginShowcase() {
     </div>
     <div className="desktop-showcase-copy"><h2>Roz ka karobar, ab asaan</h2><p>Your daily trade, simplified</p></div>
   </section>;
-}
-
-function WelcomeScreen({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => void }) {
-  const [slide, setSlide] = useState(0);
-  const touchStart = useRef<number | null>(null);
-  const onTouchEnd = (event: React.TouchEvent<HTMLElement>) => {
-    const start = touchStart.current;
-    touchStart.current = null;
-    const end = event.changedTouches[0]?.clientX;
-    if (start === null || end === undefined || Math.abs(end - start) < 36) return;
-    setSlide((current) => end < start ? (current + 1) % onboardingSlides.length : (current - 1 + onboardingSlides.length) % onboardingSlides.length);
-  };
-  const isLast = slide === onboardingSlides.length - 1;
-  const goNext = () => { if (isLast) { onSignup(); } else { setSlide(slide + 1); } };
-  const current = onboardingSlides[slide];
-  return <main className="welcome-modern" onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={onTouchEnd}>
-    <button className="wm-skip" type="button" onClick={onLogin}>Skip</button>
-    <div className="wm-desktop-layout">
-      <div className="wm-image">{slide === 0 ? <div className="wm-welcome-brand"><span className="wm-welcome-logo">daybill</span><span className="wm-welcome-tag">Roz ka karobar, ab asaan</span></div> : <img src={current?.screenshot} alt="Daybill feature preview" />}</div>
-      <div className="wm-content">
-        <div className="wm-brand">daybill</div>
-        <div className="wm-text">
-          <h2>{current?.headline.replace(current?.accent ?? "", "").trim()} <span className="wm-accent">{current?.accent}</span></h2>
-          <p>{current?.subtitle}</p>
-        </div>
-        <div className="wm-dots">{onboardingSlides.map((s, i) => <span key={s.id} className={`wm-dot${i === slide ? " active" : ""}`} />)}</div>
-        <div className="wm-actions">
-          <button className="wm-cta" type="button" onClick={goNext}>{isLast ? "Get Started" : "Next"}</button>
-          {!isLast ? <button className="wm-secondary" type="button" onClick={onLogin}>I already have an account</button> : null}
-        </div>
-      </div>
-    </div>
-  </main>;
 }
 
 function NotFoundPage({ loggedIn, onHome }: { loggedIn: boolean; onHome: () => void }) {
@@ -3095,7 +3024,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   const isCreating = mode === "create";
 
   return <main className="login-page">
-    <SafeAreaTopScrim backgroundColor="#0B3B39" />
+    <SafeAreaTopScrim backgroundColor="#111111" />
     <div className="login-layout">
       <LoginShowcase />
       <section className="login-panel" aria-label="Daybill login">
@@ -3220,7 +3149,7 @@ function AppContent() {
       const saved = readAccountSession();
       setApiSession(saved);
       setSession(saved);
-      setPhase(saved ? "open" : "welcome");
+      setPhase(saved ? "open" : "auth");
     }, 2200);
     return () => window.clearTimeout(timer);
   }, []);
@@ -3265,7 +3194,6 @@ function AppContent() {
 
   if (unknownRoute) return <NotFoundPage loggedIn={Boolean(session ?? readAccountSession())} onHome={goHome} />;
   if (phase === "splash") return <section className="launch-screen splash-animated"><SafeAreaTopScrim backgroundColor="#0B3B39" /><div className="splash-orb orb-1" /><div className="splash-orb orb-2" /><div className="splash-orb orb-3" /><div className="splash-content"><div className="splash-art"><img src={welcomeShopkeeper} alt="Shopkeeper" /></div><img className="launch-logo splash-logo" src={daybillLogoWhite} alt="Daybill" /><p className="splash-tagline">Roz ka karobar, ab asaan</p><p className="splash-subtag">Your daily trade, simplified</p></div><div className="splash-dots"><span className="dot active" /><span className="dot" /><span className="dot" /></div></section>;
-  if (phase === "welcome") return <WelcomeScreen onLogin={() => { setAuthInitialMode("user-login"); setPhase("auth"); }} onSignup={() => { setAuthInitialMode("create"); setPhase("auth"); }} />;
   if (phase === "auth" || !session) return <AccountAuth key={authInitialMode} initialMode={authInitialMode} onAuthenticated={authenticated} />;
   setApiSession(session);
   return session.session_kind === "admin" ? <AdminApp session={session} onLogout={logout} /> : <InvoiceApp onLogout={logout} />;
@@ -3800,10 +3728,10 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const accents: { id: AccentColor; color: string; label: string; swatch: string }[] = [
-    { id: "mono", color: "#111111", label: "Mono", swatch: "conic-gradient(#111111 0 45%, #f5f5f5 45% 75%, #9a9a9a 75% 100%)" },
-    { id: "pastel", color: "#d08aa5", label: "Pastel", swatch: "conic-gradient(#f2b7c6 0 25%, #a9c6e4 25% 50%, #f2e3ac 50% 75%, #b7dfc6 75% 100%)" },
-    { id: "ocean", color: "#2f6da3", label: "Ocean", swatch: "conic-gradient(#1f3a5f 0 35%, #3f7ab8 35% 65%, #8fc1dd 65% 100%)" },
-    { id: "sage", color: "#4f7a5a", label: "Sage", swatch: "conic-gradient(#3d5a45 0 35%, #8aa88f 35% 65%, #e8e0b8 65% 100%)" },
+    { id: "mono", color: "#111111", label: "Mono", swatch: "conic-gradient(#111111 0 25%, #FFFFFF 25% 50%, #9A9A9A 50% 75%, #D8D8D8 75% 100%)" },
+    { id: "pastel", color: "#A9D2E8", label: "Pastel", swatch: "conic-gradient(#A9D2E8 0 25%, #A9E2C4 25% 50%, #F9C8B4 50% 75%, #FDE89B 75% 100%)" },
+    { id: "ocean", color: "#163E5C", label: "Ocean", swatch: "conic-gradient(#163E5C 0 25%, #6EA6C9 25% 50%, #A9D6E6 50% 75%, #8FD0D0 75% 100%)" },
+    { id: "sage", color: "#2E5A3E", label: "Sage", swatch: "conic-gradient(#2E5A3E 0 25%, #8FB096 25% 50%, #F0E3A0 50% 75%, #DDE8D0 75% 100%)" },
   ];
 
   return <section className="profile-view">
