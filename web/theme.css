@@ -5562,3 +5562,97 @@ html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) {
   html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F5F5F5; color: #111; }
   html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F5F5F5; color: #111; }
 }
+
+/* ===== Pastel deep pass (Oct 26, late): demo re-inspected page by page, light + dark =====
+   All values are screenshot-sampled estimates from the Corbel demo, not source tokens.
+   Pastel only - other palettes untouched. Appended last so these win. */
+
+/* Page backgrounds (measured: light diagonal blue -> peach -> mint; dark diagonal deep gradient) */
+html[data-accent="pastel"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) { background: linear-gradient(120deg, #D7E6F5 0%, #FDE0D5 55%, #D9EEE3 100%); }
+html[data-accent="pastel"][data-theme="dark"] .app-shell:not(.admin-shell) { background: linear-gradient(120deg, #0E1A24 0%, #171412 50%, #122A26 100%); }
+
+/* Dark tokens, pastel (measured) */
+html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) { --surface: #1C2B30; --surface-2: #223038; --border: #2E3D42; --dim: #9AA8AD; }
+html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) :is(input[type="text"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="date"], select, textarea) { background: #223038; border-color: #33444A; }
+
+/* Dashboard KPI fills, light (measured - all four light pastels, incl. the first card) */
+html[data-accent="pastel"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) { background: #BFE0F5; border-color: #BFE0F5; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(2) { background: #BFF0D6; border-color: #BFF0D6; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(3) { background: #FDE68A; border-color: #FDE68A; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(4) { background: #FBD0C2; border-color: #FBD0C2; color: #111; }
+/* First card is .dark (white-text rules) - force dark text on the light fill */
+html[data-accent="pastel"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="pastel"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="pastel"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) .tile-delta { color: rgba(0,0,0,.6); }
+/* Gauge deep teal (measured) */
+html[data-accent="pastel"]:not([data-theme="dark"]) .overview-view .corbel-gauge { background: #174E6B; border-color: #174E6B; }
+/* Dashboard KPI fills, dark (measured - same four light fills, NOT darkened) */
+html[data-theme="dark"][data-accent="pastel"] .dashboard-view .corbel-kpis > article:nth-child(1) { background: #BFE0F5; border-color: #BFE0F5; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .dashboard-view .corbel-kpis > article:nth-child(2) { background: #BFF0D6; border-color: #BFF0D6; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .dashboard-view .corbel-kpis > article:nth-child(3) { background: #FDE68A; border-color: #FDE68A; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .dashboard-view .corbel-kpis > article:nth-child(4) { background: #FBD0C2; border-color: #FBD0C2; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .overview-view .corbel-gauge { background: #1D5A7A; border-color: #1D5A7A; color: #fff; }
+
+/* First-card fills per page, light (measured: Bills blue, Contacts peach, Analytics mint;
+   Products yellow already matches round 3) */
+html[data-accent="pastel"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) { background: #BFE0F5; border-color: #BFE0F5; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) { background: #FBCDBE; border-color: #FBCDBE; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) { background: #BFF0D6; border-color: #BFF0D6; color: #111; }
+/* First cards keep their light fills in dark (measured) */
+html[data-theme="dark"][data-accent="pastel"] .bills-view .corbel-kpis > article:nth-child(1) { background: #BFE0F5; border-color: #BFE0F5; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .contacts-view .corbel-kpis > article:nth-child(1) { background: #FBCDBE; border-color: #FBCDBE; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .products-view .corbel-kpis > article:nth-child(1) { background: #FDE68A; border-color: #FDE68A; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .analytics-kpis > article:nth-child(1) { background: #BFF0D6; border-color: #BFF0D6; color: #111; }
+
+/* Links, pastel (measured: blue accent, not black) */
+html[data-accent="pastel"]:not([data-theme="dark"]) .see-all-link { color: #2F7BBF; }
+html[data-theme="dark"][data-accent="pastel"] .see-all-link { color: #7AB8E0; }
+html[data-theme="dark"][data-accent="pastel"] .dashboard-view .corbel-kpis > article .see-all-link { color: #111; }
+
+/* Toggles, pastel (measured: ON teal/green; notifications brighter mint in dark) */
+html[data-accent="pastel"]:not([data-theme="dark"]) .vs-toggle.on i { background: #2E9E7A; }
+html[data-theme="dark"][data-accent="pastel"] .vs-toggle.on i { background: #2E9E7A; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .settings-toggle.on { background: #2E9E7A; }
+html[data-theme="dark"][data-accent="pastel"] .settings-toggle.on { background: #3ABF8F; }
+html[data-theme="dark"][data-accent="pastel"] .settings-toggle.on span { background: #fff; }
+
+/* Notification panel, pastel (measured: unread pale blue-grey / dark slate; mark-all blue link) */
+html[data-accent="pastel"]:not([data-theme="dark"]) .notif-item.unread { background: #EAF2F8; }
+html[data-theme="dark"][data-accent="pastel"] .notif-item.unread { background: #25343A; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .notif-panel .text-button { color: #2F7BBF; }
+html[data-theme="dark"][data-accent="pastel"] .notif-panel .text-button { color: #7AB8E0; }
+
+/* Product grid tiles rotate pastels (light, measured); muted dark versions (dark, estimated) */
+html[data-accent="pastel"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+1) .product-tile { background: #D6EAF7; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+2) .product-tile { background: #BFF0D6; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+3) .product-tile { background: #FBD0C2; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+4) .product-tile { background: #FDE68A; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+5) .product-tile { background: #FBCDBE; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .product-grid-card:nth-child(5n+1) .product-tile { background: #2A4A5A; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="pastel"] .product-grid-card:nth-child(5n+2) .product-tile { background: #2E4A3A; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="pastel"] .product-grid-card:nth-child(5n+3) .product-tile { background: #4A2E2E; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="pastel"] .product-grid-card:nth-child(5n+4) .product-tile { background: #4A4A2E; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="pastel"] .product-grid-card:nth-child(5n+5) .product-tile { background: #4A2E3A; color: #F2F2F2; }
+
+/* Workspace columns per position, light (measured); progress blue; cards darker in dark */
+html[data-accent="pastel"]:not([data-theme="dark"]) .ws-col:nth-child(1) { background: #E8EEF2; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .ws-col:nth-child(2) { background: #DCEAF5; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .ws-col:nth-child(3) { background: #FDE8E0; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .ws-col:nth-child(4) { background: #DFF0E6; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .ws-progress i { background: #2F7BBF; }
+html[data-theme="dark"][data-accent="pastel"] .ws-card { background: #161F24; border-color: #2E3D42; }
+
+/* Shop fallback avatar, pastel (measured: light blue / dark teal-blue) */
+html[data-accent="pastel"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .sidebar-avatar-fallback { background: #D6EAF7; color: #1D5A7A; }
+html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .sidebar-avatar-fallback { background: #2A4A5A; color: #fff; }
+
+@media (min-width: 760px) {
+  /* Nav, pastel (measured: light translucent white; dark #222E33, active #F2F2F2) */
+  html[data-accent="pastel"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav { background: rgba(255,255,255,0.9); }
+  html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .pill-nav { background: #222E33; }
+  html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F2F2F2; color: #111; }
+  /* Rail darkens with theme (measured #1C282D); light stays black */
+  html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .icon-rail { background: #1C282D; }
+}
+/* Pastel deep pass fix: board progress bar in dark (was default teal) */
+html[data-theme="dark"][data-accent="pastel"] .ws-progress i { background: #2F7BBF; }
