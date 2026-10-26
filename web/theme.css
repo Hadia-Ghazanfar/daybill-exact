@@ -5814,3 +5814,139 @@ html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .sideb
   html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .icon-rail { background: #0B2436; }
   html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .icon-rail { background: #0F2533; }
 }
+
+/* ===== Sage deep pass (Oct 27, early): demo re-inspected page by page, light + dark =====
+   All values are screenshot-sampled estimates from the Corbel demo, not source tokens.
+   Sage only - other palettes untouched. Appended last so these win. */
+
+/* Page backgrounds (measured: light diagonal pale sage -> cream;
+   dark diagonal deep green-black) */
+html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) { background: linear-gradient(120deg, #E2EFDF 0%, #F3F0E3 100%); }
+html[data-accent="sage"][data-theme="dark"] .app-shell:not(.admin-shell) { background: linear-gradient(120deg, #0E1A14 0%, #1E241C 100%); }
+
+/* Tokens, sage (measured) */
+html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) { --text: #17211C; --dim: #5C6B60; --border: #E6E8DF; }
+html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) { --surface: #17241C; --surface-2: #1E2E23; --border: #2A3A2E; --dim: #A9B8AC; --text: #F2F7F2; }
+html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) :is(input[type="text"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="date"], select, textarea) { background: #1E2E23; border-color: #2E3D33; }
+
+/* Dashboard KPI fills, light (measured - pale sage, mint, pale yellow, peach) */
+html[data-accent="sage"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) { background: #D8EBD8; border-color: #D8EBD8; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(2) { background: #A9DDC5; border-color: #A9DDC5; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(3) { background: #F6E8A8; border-color: #F6E8A8; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(4) { background: #FAD9B5; border-color: #FAD9B5; color: #111; }
+/* First card is .dark (white-text rules) - force dark text on the light fill */
+html[data-accent="sage"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="sage"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="sage"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) .tile-delta { color: rgba(0,0,0,.6); }
+/* Gauge deep sage-green (measured) */
+html[data-accent="sage"]:not([data-theme="dark"]) .overview-view .corbel-gauge { background: #1F4D3A; border-color: #1F4D3A; }
+/* Dashboard KPI fills, dark (measured - SAME light fills, theme-stable) */
+html[data-theme="dark"][data-accent="sage"] .dashboard-view .corbel-kpis > article:nth-child(1) { background: #D8EBD8; border-color: #D8EBD8; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .dashboard-view .corbel-kpis > article:nth-child(2) { background: #A9DDC5; border-color: #A9DDC5; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .dashboard-view .corbel-kpis > article:nth-child(3) { background: #F6E8A8; border-color: #F6E8A8; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .dashboard-view .corbel-kpis > article:nth-child(4) { background: #FAD9B5; border-color: #FAD9B5; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .overview-view .corbel-gauge { background: #2A5F47; border-color: #2A5F47; color: #fff; }
+
+/* First-card fills per page, light (measured: Bills pale sage, Products pale yellow,
+   Contacts peach, Analytics mint) */
+html[data-accent="sage"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) { background: #D7EBD7; border-color: #D7EBD7; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) { background: #F9E9A8; border-color: #F9E9A8; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) { background: #FBD9B5; border-color: #FBD9B5; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) { background: #A9DDC0; border-color: #A9DDC0; color: #111; }
+/* First-card light text (they are .dark -> white-text rules must be overridden) */
+html[data-accent="sage"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="sage"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="sage"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="sage"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="sage"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="sage"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="sage"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="sage"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) .analytics-delta-row small { color: rgba(0,0,0,.6); }
+/* First cards keep light fills in dark (measured, theme-stable) */
+html[data-theme="dark"][data-accent="sage"] .bills-view .corbel-kpis > article:nth-child(1) { background: #D7EBD7; border-color: #D7EBD7; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .contacts-view .corbel-kpis > article:nth-child(1) { background: #FBD9B5; border-color: #FBD9B5; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .products-view .corbel-kpis > article:nth-child(1) { background: #F9E9A8; border-color: #F9E9A8; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .analytics-kpis > article:nth-child(1) { background: #A9DDC0; border-color: #A9DDC0; color: #111; }
+
+/* Links, sage (measured: dark green light, mint dark) */
+html[data-accent="sage"]:not([data-theme="dark"]) .see-all-link { color: #2F6B4F; }
+html[data-theme="dark"][data-accent="sage"] .see-all-link { color: #A8D5B0; }
+html[data-theme="dark"][data-accent="sage"] .dashboard-view .corbel-kpis > article .see-all-link { color: #111; }
+
+/* Toggles, sage (measured: ON moss green light; vs bright sage-green dark, settings light sage dark) */
+html[data-accent="sage"]:not([data-theme="dark"]) .vs-toggle.on i { background: #5A9A6A; }
+html[data-theme="dark"][data-accent="sage"] .vs-toggle.on i { background: #6BAE6B; }
+html[data-accent="sage"]:not([data-theme="dark"]) .settings-toggle.on { background: #5C9A4A; }
+html[data-theme="dark"][data-accent="sage"] .settings-toggle.on { background: #B5D8A0; }
+html[data-theme="dark"][data-accent="sage"] .settings-toggle.on span { background: #fff; }
+
+/* Notification panel, sage (dark sampled; light left at default green tint) */
+html[data-theme="dark"][data-accent="sage"] .notif-item.unread { background: #22332A; }
+html[data-accent="sage"]:not([data-theme="dark"]) .notif-panel .text-button { color: #2F6B4F; }
+html[data-theme="dark"][data-accent="sage"] .notif-panel .text-button { color: #A8D5B0; }
+
+/* Segmented control tracks, sage (measured: pale sage light, dark #1B2A20) */
+html[data-accent="sage"]:not([data-theme="dark"]) .corbel-seg { background: #E8EDE6; }
+html[data-theme="dark"][data-accent="sage"] .corbel-seg { background: #1B2A20; }
+/* Segmented actives, sage dark (measured: filter actives light mint;
+   analytics date/channel + chart actives medium dark sage) */
+html[data-theme="dark"][data-accent="sage"] .corbel-seg button.active { background: #DDEBE0; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .analytics-range button.active,
+html[data-theme="dark"][data-accent="sage"] .corbel-seg[aria-label="Chart data"] button.active { background: #2E3D33; color: #F2F7F2; }
+
+/* Product grid tiles rotate pastels (demo tiles stay multi-pastel in every palette);
+   muted dark versions (estimated, same family as Pastel dark) */
+html[data-accent="sage"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+1) .product-tile { background: #D6EAF7; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+2) .product-tile { background: #BFF0D6; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+3) .product-tile { background: #FBD0C2; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+4) .product-tile { background: #FDE68A; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .product-grid-card:nth-child(5n+5) .product-tile { background: #FBCDBE; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .product-grid-card:nth-child(5n+1) .product-tile { background: #2A4A5A; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="sage"] .product-grid-card:nth-child(5n+2) .product-tile { background: #2E4A3A; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="sage"] .product-grid-card:nth-child(5n+3) .product-tile { background: #4A2E2E; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="sage"] .product-grid-card:nth-child(5n+4) .product-tile { background: #4A4A2E; color: #F2F2F2; }
+html[data-theme="dark"][data-accent="sage"] .product-grid-card:nth-child(5n+5) .product-tile { background: #4A2E3A; color: #F2F2F2; }
+
+/* Workspace columns, sage (measured: all pale sage-grey light, #1A2A20 dark) */
+html[data-accent="sage"]:not([data-theme="dark"]) .ws-col:nth-child(1),
+html[data-accent="sage"]:not([data-theme="dark"]) .ws-col:nth-child(2),
+html[data-accent="sage"]:not([data-theme="dark"]) .ws-col:nth-child(3),
+html[data-accent="sage"]:not([data-theme="dark"]) .ws-col:nth-child(4) { background: #E8EBDD; }
+html[data-accent="sage"]:not([data-theme="dark"]) .ws-progress i { background: #2F6B4F; }
+html[data-theme="dark"][data-accent="sage"] .ws-col { background: #1A2A20; }
+html[data-theme="dark"][data-accent="sage"] .ws-card { background: #1E2E23; border-color: #2A3A2E; }
+html[data-theme="dark"][data-accent="sage"] .ws-progress i { background: #A8D5B0; }
+
+/* Top-sold share bars, sage (measured: first dark sage, others pale sage; dark mint/muted) */
+html[data-accent="sage"]:not([data-theme="dark"]) .top-items-row:first-child .top-share i { background: #2F6B4F; }
+html[data-accent="sage"]:not([data-theme="dark"]) .top-items-row:not(:first-child) .top-share i { background: #B9D3C0; }
+html[data-theme="dark"][data-accent="sage"] .top-items-row:first-child .top-share i { background: #A8D5B0; }
+html[data-theme="dark"][data-accent="sage"] .top-items-row:not(:first-child) .top-share i { background: #5A7A68; }
+
+/* Stock bars, sage (measured: dark sage light, mint dark) */
+html[data-accent="sage"]:not([data-theme="dark"]) .stock-bar i,
+html[data-accent="sage"]:not([data-theme="dark"]) .stock-bar i.low,
+html[data-accent="sage"]:not([data-theme="dark"]) .stock-bar i.out { background: #2F6B4F; }
+html[data-theme="dark"][data-accent="sage"] .stock-bar i,
+html[data-theme="dark"][data-accent="sage"] .stock-bar i.low,
+html[data-theme="dark"][data-accent="sage"] .stock-bar i.out { background: #7ED0A8; }
+
+/* Shop fallback avatar, sage (measured: pale blue / dark teal) */
+html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .sidebar-avatar-fallback { background: #DCEEF5; color: #1F4D3A; }
+html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .sidebar-avatar-fallback { background: #1F3A4A; color: #fff; }
+
+@media (min-width: 760px) {
+  /* Nav, sage (measured: light translucent cream-white, active dark green-black;
+     dark #1E2E23, active light mint) */
+  html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav { background: rgba(247,248,244,0.9); }
+  html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav button.active { background: #14251E; color: #fff; }
+  html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav button:not(.active) { color: #17211C; }
+  html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav .nav-badge { background: #E8EDE6; color: #111; }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .pill-nav { background: #1E2E23; }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #DDEBE0; color: #111; }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .pill-nav button:not(.active) { color: #A9B8AC; }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .pill-nav .nav-badge { background: #2A3A2E; color: #F2F2F2; }
+  /* Rail very dark green-black in BOTH themes (measured #101C15) */
+  html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .icon-rail { background: #101C15; }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .icon-rail { background: #101C15; }
+}
