@@ -5425,3 +5425,140 @@ html[data-accent="sage"]:not([data-theme="dark"]) .overview-view .corbel-kpis > 
 /* Launch splash + loader follow the black-and-white login (Oct 26). */
 .splash-animated { background: linear-gradient(160deg, #111111 0%, #1A1A19 100%); }
 .brand-loading .loader { border-top-color: #111111; }
+
+/* ===== Corbel exact round 3 (Oct 26): measured top bar, dark palettes, whole-app first-card fills =====
+   Source: fresh demo inspection Oct 26 (screenshot-sampled estimates, not source tokens).
+   Appended last so these win. Desktop nav/layout rules stay in min-width:760px;
+   palette page + KPI rules are view-scoped so mobile is untouched. */
+
+/* --- Dark page backgrounds per palette (measured) --- */
+html[data-theme="dark"] .app-shell:not(.admin-shell) { background: #111111; }
+html[data-accent="pastel"][data-theme="dark"] .app-shell:not(.admin-shell) { background: #10161A; }
+html[data-accent="ocean"][data-theme="dark"] .app-shell:not(.admin-shell) { background: linear-gradient(180deg, #0B1720 0%, #0E1A20 100%); }
+html[data-accent="sage"][data-theme="dark"] .app-shell:not(.admin-shell) { background: linear-gradient(180deg, #0F1A14 0%, #101B15 100%); }
+
+/* --- Dark section-card tint / border / dim per palette (measured) --- */
+html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) { --surface: #182428; --border: #2C3539; --dim: #AAB3B5; }
+html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) { --surface: #14242E; --border: #243642; --dim: #9FB4BF; }
+html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) { --surface: #16241C; --border: #2E4034; --dim: #A8B8AC; }
+html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) { --surface: #1E1E1E; --border: #2B2B2B; --dim: #A8A8A8; }
+
+/* --- Dashboard KPI row in dark mode keeps LIGHT palette fills (measured);
+       Mono stays pale. Overrides the earlier all-pale dark dashboard rule. --- */
+html[data-theme="dark"][data-accent="mono"] .dashboard-view .corbel-kpis > article:nth-child(1) { background: #EDEDEB; border-color: #EDEDEB; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .dashboard-view .corbel-kpis > article:nth-child(2) { background: #E8E8E6; border-color: #E8E8E6; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .dashboard-view .corbel-kpis > article:nth-child(3) { background: #DAD9D5; border-color: #DAD9D5; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .dashboard-view .corbel-kpis > article:nth-child(4) { background: #CFCFC9; border-color: #CFCFC9; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .dashboard-view .corbel-kpis > article:nth-child(1) { background: #BFDFFF; border-color: #BFDFFF; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .dashboard-view .corbel-kpis > article:nth-child(2) { background: #BFE8D0; border-color: #BFE8D0; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .dashboard-view .corbel-kpis > article:nth-child(3) { background: #FDE68A; border-color: #FDE68A; color: #111; }
+html[data-theme="dark"][data-accent="pastel"] .dashboard-view .corbel-kpis > article:nth-child(4) { background: #FBCFBF; border-color: #FBCFBF; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .dashboard-view .corbel-kpis > article:nth-child(1) { background: #A9CDE8; border-color: #A9CDE8; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .dashboard-view .corbel-kpis > article:nth-child(2) { background: #A9E6D8; border-color: #A9E6D8; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .dashboard-view .corbel-kpis > article:nth-child(3) { background: #D6EAF5; border-color: #D6EAF5; color: #111; }
+html[data-theme="dark"][data-accent="ocean"] .dashboard-view .corbel-kpis > article:nth-child(4) { background: #8FC7E8; border-color: #8FC7E8; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .dashboard-view .corbel-kpis > article:nth-child(1) { background: #D8EBCF; border-color: #D8EBCF; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .dashboard-view .corbel-kpis > article:nth-child(2) { background: #BFE8D0; border-color: #BFE8D0; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .dashboard-view .corbel-kpis > article:nth-child(3) { background: #F7E9B0; border-color: #F7E9B0; color: #111; }
+html[data-theme="dark"][data-accent="sage"] .dashboard-view .corbel-kpis > article:nth-child(4) { background: #F3D9B8; border-color: #F3D9B8; color: #111; }
+
+/* --- Dark gauge card keeps its deep colour per palette (measured) --- */
+html[data-theme="dark"][data-accent="pastel"] .overview-view .corbel-gauge { background: #1F5A7A; border-color: #1F5A7A; color: #fff; }
+html[data-theme="dark"][data-accent="ocean"] .overview-view .corbel-gauge { background: #164A6B; border-color: #164A6B; color: #fff; }
+html[data-theme="dark"][data-accent="sage"] .overview-view .corbel-gauge { background: #235647; border-color: #235647; color: #fff; }
+html[data-theme="dark"][data-accent="mono"] .overview-view .corbel-gauge { background: #1E1E1E; border-color: #1E1E1E; color: #fff; }
+
+/* --- Whole app, light mode: only the FIRST stat card takes a palette fill;
+       other cards stay white. (Dashboard keeps its own 4-fill row.) --- */
+html[data-accent="pastel"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1),
+html[data-accent="pastel"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1),
+html[data-accent="pastel"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) { background: #FDE68A; border-color: #FDE68A; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1),
+html[data-accent="ocean"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1),
+html[data-accent="ocean"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) { background: #D6EAF5; border-color: #D6EAF5; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1),
+html[data-accent="sage"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1),
+html[data-accent="sage"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) { background: #F7E9B0; border-color: #F7E9B0; color: #111; }
+/* First cards are .dark (white text in light mode) - palette fills need black text. */
+html[data-accent="pastel"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="ocean"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="sage"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="pastel"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="ocean"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="sage"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="pastel"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="ocean"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="sage"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="pastel"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="ocean"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="sage"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="pastel"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="ocean"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="sage"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="pastel"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="ocean"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) small,
+html[data-accent="sage"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) small { color: rgba(0,0,0,.6); }
+/* Analytics first KPI per palette (measured). */
+html[data-accent="pastel"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) { background: #A8E6C5; border-color: #A8E6C5; color: #111; }
+html[data-accent="ocean"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) { background: #A8E8D8; border-color: #A8E8D8; color: #111; }
+html[data-accent="sage"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) { background: #BFE8D0; border-color: #BFE8D0; color: #111; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="ocean"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="sage"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+html[data-accent="pastel"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) .analytics-delta-row small,
+html[data-accent="ocean"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) .analytics-delta-row small,
+html[data-accent="sage"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) .analytics-delta-row small { color: rgba(0,0,0,.6); }
+
+/* --- Chart accents, measured (light) --- */
+html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) { --chart-accent: #3A7CA5; }
+html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) { --chart-accent: #2E7D5B; }
+
+@media (min-width: 760px) {
+  /* --- Top menu bar: Corbel measured (46-48px bar, 4px container padding
+         + 1px border, 9px 16px items, 13.5px/500, active 600, 22px from
+         viewport top, 32-36px to content) --- */
+  .app-shell:not(.admin-shell) .app-topbar { height: auto; padding: 22px 28px 0; background: transparent; border-bottom: 0; }
+  .app-shell:not(.admin-shell) > main { padding-top: 32px; }
+  .app-shell:not(.admin-shell) .pill-nav { padding: 4px; gap: 4px; border-color: #E7E7E3; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+  .app-shell:not(.admin-shell) .pill-nav button { padding: 9px 16px; font-size: 13.5px; font-weight: 500; }
+  .app-shell:not(.admin-shell) .pill-nav button.active { font-weight: 600; }
+  .app-shell:not(.admin-shell) .pill-nav .nav-badge { background: #EDEDEA; color: #111; }
+  /* Dark nav (measured): charcoal container, white active pill. */
+  html[data-theme="dark"] .app-shell:not(.admin-shell) .app-topbar { background: transparent; }
+  html[data-theme="dark"] .app-shell:not(.admin-shell) .pill-nav { background: #1E1E1E; border-color: #333333; box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
+  html[data-theme="dark"] .app-shell:not(.admin-shell) .pill-nav button { color: #C7C7C7; }
+  html[data-theme="dark"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F5F5F5; color: #111; }
+  html[data-theme="dark"] .app-shell:not(.admin-shell) .pill-nav .nav-badge { background: #2E2E2E; color: #F5F5F5; }
+  html[data-theme="dark"] .app-shell:not(.admin-shell) .pill-nav button.active .nav-badge { background: #111; color: #fff; }
+  /* Dark nav container + inactive text per palette (measured). */
+  html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .pill-nav { background: #232A2D; }
+  html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .pill-nav button { color: #C8D0D2; }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .pill-nav { background: #1A2A33; }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .pill-nav button { color: #B9CBD6; }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .pill-nav { background: #1D2B22; }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .pill-nav button { color: #BCCBC0; }
+  /* --- Workspace columns: faint palette tints (measured, light) --- */
+  html[data-accent="mono"]:not([data-theme="dark"]) .ws-col { background: #EDEDEA; }
+  html[data-accent="pastel"]:not([data-theme="dark"]) .ws-col:nth-child(3n+1) { background: #EAF0F6; }
+  html[data-accent="pastel"]:not([data-theme="dark"]) .ws-col:nth-child(3n+2) { background: #FDF0EA; }
+  html[data-accent="pastel"]:not([data-theme="dark"]) .ws-col:nth-child(3n+3) { background: #EAF7EF; }
+  html[data-accent="ocean"]:not([data-theme="dark"]) .ws-col { background: #EAF1F6; }
+  html[data-accent="sage"]:not([data-theme="dark"]) .ws-col { background: #E9EFE4; }
+  /* --- Workspace progress bars per palette (measured, light) --- */
+  html[data-accent="pastel"]:not([data-theme="dark"]) .ws-progress i { background: #5B9BD5; }
+  html[data-accent="ocean"]:not([data-theme="dark"]) .ws-progress i { background: #3A7CA5; }
+  html[data-accent="sage"]:not([data-theme="dark"]) .ws-progress i { background: #2E7D5B; }
+}
+
+/* Corbel exact round 3 fix (Oct 26): dark active pill text must stay black in
+   every palette (the palette inactive-text rules outrank the generic active rule),
+   and nav buttons get a fixed 20px line-height so the bar lands at 48px. */
+@media (min-width: 760px) {
+  .app-shell:not(.admin-shell) .pill-nav button { line-height: 20px; }
+  .app-shell:not(.admin-shell) .pill-nav button span:not(.nav-badge) { line-height: 20px; }
+  .app-shell:not(.admin-shell) .pill-nav .nav-badge { line-height: 1; }
+  html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F5F5F5; color: #111; }
+  html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F5F5F5; color: #111; }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F5F5F5; color: #111; }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F5F5F5; color: #111; }
+}
