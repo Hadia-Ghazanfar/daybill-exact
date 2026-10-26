@@ -5656,3 +5656,41 @@ html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .side
 }
 /* Pastel deep pass fix: board progress bar in dark (was default teal) */
 html[data-theme="dark"][data-accent="pastel"] .ws-progress i { background: #2F7BBF; }
+
+/* ===== Feedback fixes (Oct 26, late): user's Products screenshots, light + dark ===== */
+/* 1. Dark primary buttons were invisible: old rule forced accent bg + white text,
+   and accent is white in dark. White bg, black text (WhatsApp stays green). */
+html[data-theme="dark"] .primary { background: #f4f4f4 !important; color: #111 !important; }
+html[data-theme="dark"] .primary.whatsapp { background: #167a56 !important; color: #fff !important; }
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .primary { background: #f4f4f4 !important; color: #111 !important; }
+  html:not([data-theme="light"]) .primary.whatsapp { background: #167a56 !important; color: #fff !important; }
+}
+/* Dark rail active icon: same accent trap */
+html[data-theme="dark"] .rail-btn.active { background: #fff; color: #111; }
+/* 2. Segmented controls, light: Corbel status/stock/view controls use white active
+   pills on the pale track; category pills keep black active (as in the demo). */
+.corbel-seg button.active { background: #fff; color: #111; }
+.corbel-seg[aria-label="Category"] button.active { background: #111; color: #fff; }
+/* 3. Bills tabs, dark: white active pill (demo Orders) instead of near-invisible slate */
+html[data-theme="dark"] .filter-tabs button.active { background: #fff; color: #111; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+/* 4. Status pills, dark: light text on translucent fills (were dark text on dark bg) */
+html[data-theme="dark"] .product-status-pill.low { background: rgba(233,180,76,.16); color: #E9B44C; }
+html[data-theme="dark"] .product-status-pill.out { background: rgba(240,128,128,.14); color: #F08080; }
+html[data-theme="dark"] .product-table .low-stock { color: #F08080; }
+/* 5. Pastel only: top-sold share bars blue family (demo), not black/white */
+html[data-accent="pastel"]:not([data-theme="dark"]) .top-items-row:first-child .top-share i { background: #2F7BBF; }
+html[data-accent="pastel"]:not([data-theme="dark"]) .top-items-row:not(:first-child) .top-share i { background: #A9C6D8; }
+html[data-theme="dark"][data-accent="pastel"] .top-items-row:first-child .top-share i { background: #7AB8E0; }
+html[data-theme="dark"][data-accent="pastel"] .top-items-row:not(:first-child) .top-share i { background: #4A6A7E; }
+/* 6. Pastel only: stock bars one teal/green fill (demo) instead of status colours */
+html[data-accent="pastel"]:not([data-theme="dark"]) .stock-bar i,
+html[data-accent="pastel"]:not([data-theme="dark"]) .stock-bar i.low,
+html[data-accent="pastel"]:not([data-theme="dark"]) .stock-bar i.out { background: #2E7D6B; }
+html[data-theme="dark"][data-accent="pastel"] .stock-bar i,
+html[data-theme="dark"][data-accent="pastel"] .stock-bar i.low,
+html[data-theme="dark"][data-accent="pastel"] .stock-bar i.out { background: #2E7D6B; }
+/* Feedback fix 2: Bills tabs light use white active (demo Orders), not black */
+.filter-tabs button.active { background: #fff; color: #111; }
+.manage-view .filter-tabs button.active { background: #fff; color: #111; }
+.manage-view .filter-tabs button.active .tab-count { background: rgba(127,127,127,.18); color: #111; }
