@@ -2309,6 +2309,54 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const { data: notifData } = useQuery({ queryKey: ["notifications"], queryFn: () => api.listNotifications({}), refetchInterval: 30000 });
   const notifUnread: number = (notifData as any)?.notifications ? (notifData as any).notifications.filter((n: any) => !n.is_read && notifTypeEnabled(n.type)).length : ((notifData as any)?.unreadCount ?? 0);
   const unpaidBadge = workspace.data ? workspace.data.invoices.filter((i) => i.payment_status === "pending").length : 0;
+  // Sliding nav pill: a single glider span tracks the active button (demo's signature motion).
+  // The nav is found imperatively. First paint can be a loading state with no nav yet,
+  // so setup never gives up: a MutationObserver attaches when the nav appears late.
+  const [glider, setGlider] = useState({ x: 0, w: 0 });
+  const placeGlider = useCallback(() => {
+    const nav = document.querySelector(".app-shell:not(.admin-shell) .pill-nav") as HTMLElement | null;
+    if (!nav) return;
+    const btn = nav.querySelector("button.active") as HTMLElement | null;
+    if (!btn) return;
+    // Rect math (not offsetLeft): robust against border/padding/offsetParent quirks.
+    // Glider is absolutely positioned at left:0 = nav's padding-box origin.
+    const navBox = nav.getBoundingClientRect();
+    const btnBox = btn.getBoundingClientRect();
+    const x = btnBox.left - navBox.left - nav.clientLeft;
+    const w = btnBox.width;
+    setGlider((g) => (Math.abs(g.x - x) < 0.5 && Math.abs(g.w - w) < 0.5 ? g : { x, w }));
+  }, []);
+  useLayoutEffect(() => { placeGlider(); }, [tab, unpaidBadge, placeGlider]);
+  useEffect(() => {
+    let ro: ResizeObserver | null = null;
+    let attached = false;
+    const attach = () => {
+      if (attached) return;
+      const nav = document.querySelector(".app-shell:not(.admin-shell) .pill-nav");
+      if (!nav) return;
+      attached = true;
+      if (typeof ResizeObserver !== "undefined") {
+        ro = new ResizeObserver(() => placeGlider());
+        nav.querySelectorAll("button").forEach((b) => ro!.observe(b));
+      }
+      placeGlider();
+    };
+    attach();
+    window.addEventListener("resize", placeGlider);
+    if (document.fonts) document.fonts.ready.then(placeGlider).catch(() => {});
+    // Safety nets for late layout shifts (icon fonts, badge counts, late nav)
+    const t1 = window.setTimeout(() => { attach(); placeGlider(); }, 600);
+    const t2 = window.setTimeout(() => { attach(); placeGlider(); }, 1800);
+    const mo = new MutationObserver(() => { attach(); });
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      window.removeEventListener("resize", placeGlider);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      mo.disconnect();
+      if (ro) ro.disconnect();
+    };
+  }, [placeGlider]);
   useEffect(() => {
     if (!drawerOpen) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setDrawerOpen(false); };
@@ -2647,6 +2695,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
           <span className="topbar-wordmark">daybill</span>
         </div>
         <nav className="pill-nav" aria-label="Primary navigation">
+          <span className="pill-nav-glider" aria-hidden="true" style={{ transform: `translateX(${glider.x}px)`, width: glider.w }} />
           {nav.map((item) => <button key={item.id} type="button" aria-label={item.label} aria-current={tab === item.id ? "page" : undefined} className={tab === item.id ? "active" : ""} onClick={() => goTab(item.id)}><Icon name={item.icon} /><span>{item.label}</span>{item.id === "history" && unpaidBadge > 0 ? <span className="nav-badge">{unpaidBadge > 99 ? "99+" : unpaidBadge}</span> : null}</button>)}
         </nav>
         <div className="topbar-actions">

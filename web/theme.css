@@ -5950,3 +5950,148 @@ html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .sideba
   html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .icon-rail { background: #101C15; }
   html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .icon-rail { background: #101C15; }
 }
+
+/* ===== Mono deep pass (Oct 27, early): demo re-inspected page by page, light + dark =====
+   All values are screenshot-sampled estimates from the Corbel demo, not source tokens.
+   Mono only - other palettes untouched. Appended last so these win. */
+
+/* Page backgrounds (measured: light pale warm grey gradient; dark flat near-black) */
+html[data-accent="mono"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) { background: linear-gradient(120deg, #E8E8E5 0%, #F2F2F0 100%); }
+html[data-accent="mono"][data-theme="dark"] .app-shell:not(.admin-shell) { background: #111111; }
+
+/* Tokens, mono (measured) */
+html[data-accent="mono"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) { --text: #111111; --dim: #6B6B6B; --border: #E2E2E0; }
+html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) { --surface: #1E1E1E; --surface-2: #262626; --border: #2A2A2A; --dim: #BFBFBF; --text: #F5F5F5; }
+html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) :is(input[type="text"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="date"], select, textarea) { background: #262626; border-color: #333333; }
+
+/* Dashboard KPI fills, light (measured - black, white, light warm grey, mid-light grey) */
+html[data-accent="mono"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(1) { background: #111111; border-color: #111111; color: #fff; }
+html[data-accent="mono"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(2) { background: #FFFFFF; border-color: #E2E2E0; color: #111; }
+html[data-accent="mono"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(3) { background: #EDEDED; border-color: #EDEDED; color: #111; }
+html[data-accent="mono"]:not([data-theme="dark"]) .overview-view .corbel-kpis > article:nth-child(4) { background: #DCDCDC; border-color: #DCDCDC; color: #111; }
+/* Gauge black (measured) */
+html[data-accent="mono"]:not([data-theme="dark"]) .overview-view .corbel-gauge { background: #111111; border-color: #111111; color: #fff; }
+/* Dashboard KPI fills, dark (measured - stepped light-grey ramp, all black text) */
+html[data-theme="dark"][data-accent="mono"] .dashboard-view .corbel-kpis > article:nth-child(1) { background: #F2F2F2; border-color: #F2F2F2; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .dashboard-view .corbel-kpis > article:nth-child(2) { background: #EDEDED; border-color: #EDEDED; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .dashboard-view .corbel-kpis > article:nth-child(3) { background: #CFCFCF; border-color: #CFCFCF; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .dashboard-view .corbel-kpis > article:nth-child(4) { background: #B8B8B8; border-color: #B8B8B8; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .overview-view .corbel-gauge { background: #1E1E1E; border-color: #1E1E1E; color: #fff; }
+
+/* First-card fills per page, light (measured: all black) */
+html[data-accent="mono"]:not([data-theme="dark"]) .bills-view .corbel-kpis > article:nth-child(1) { background: #111111; border-color: #111111; color: #fff; }
+html[data-accent="mono"]:not([data-theme="dark"]) .products-view .corbel-kpis > article:nth-child(1) { background: #111111; border-color: #111111; color: #fff; }
+html[data-accent="mono"]:not([data-theme="dark"]) .contacts-view .corbel-kpis > article:nth-child(1) { background: #111111; border-color: #111111; color: #fff; }
+html[data-accent="mono"]:not([data-theme="dark"]) .analytics-kpis > article:nth-child(1) { background: #111111; border-color: #111111; color: #fff; }
+/* First cards in dark (measured: white, black text) */
+html[data-theme="dark"][data-accent="mono"] .bills-view .corbel-kpis > article:nth-child(1) { background: #F2F2F2; border-color: #F2F2F2; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .contacts-view .corbel-kpis > article:nth-child(1) { background: #F2F2F2; border-color: #F2F2F2; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .products-view .corbel-kpis > article:nth-child(1) { background: #F2F2F2; border-color: #F2F2F2; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .analytics-kpis > article:nth-child(1) { background: #F2F2F2; border-color: #F2F2F2; color: #111; }
+
+/* Links, mono (measured: black light, white dark) */
+html[data-accent="mono"]:not([data-theme="dark"]) .see-all-link { color: #111111; }
+html[data-theme="dark"][data-accent="mono"] .see-all-link { color: #F5F5F5; }
+html[data-theme="dark"][data-accent="mono"] .dashboard-view .corbel-kpis > article .see-all-link { color: #111; }
+
+/* Toggles, mono (measured: ON dark grey light; vs mid-grey dark, settings light grey dark) */
+html[data-accent="mono"]:not([data-theme="dark"]) .vs-toggle.on i { background: #333333; }
+html[data-theme="dark"][data-accent="mono"] .vs-toggle.on i { background: #555555; }
+html[data-accent="mono"]:not([data-theme="dark"]) .settings-toggle.on { background: #4A4A4A; }
+html[data-theme="dark"][data-accent="mono"] .settings-toggle.on { background: #A0A0A0; }
+html[data-theme="dark"][data-accent="mono"] .settings-toggle.on span { background: #fff; }
+
+/* Notification panel, mono (measured: light grey tiles; dark selected tone) */
+html[data-accent="mono"]:not([data-theme="dark"]) .notif-item.unread { background: #EDEDED; }
+html[data-theme="dark"][data-accent="mono"] .notif-item.unread { background: #2A2A2A; }
+html[data-accent="mono"]:not([data-theme="dark"]) .notif-panel .text-button { color: #111111; }
+html[data-theme="dark"][data-accent="mono"] .notif-panel .text-button { color: #F5F5F5; }
+
+/* Segmented control tracks, mono (measured: light grey light, dark grey dark) */
+html[data-accent="mono"]:not([data-theme="dark"]) .corbel-seg { background: #EDEDED; }
+html[data-theme="dark"][data-accent="mono"] .corbel-seg { background: #2A2A2A; }
+/* Segmented actives, mono dark (measured: filter actives white;
+   analytics date/channel + chart actives mid-dark grey) */
+html[data-theme="dark"][data-accent="mono"] .corbel-seg button.active { background: #FFFFFF; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .analytics-range button.active,
+html[data-theme="dark"][data-accent="mono"] .corbel-seg[aria-label="Chart data"] button.active { background: #444444; color: #fff; }
+
+/* Product grid tiles, mono (measured: light grey / dark grey) */
+html[data-accent="mono"]:not([data-theme="dark"]) .product-grid-card .product-tile { background: #E3E3E0; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .product-grid-card .product-tile { background: #333333; color: #F5F5F5; }
+
+/* Workspace columns, mono (measured: pale grey light, charcoal dark) */
+html[data-accent="mono"]:not([data-theme="dark"]) .ws-col:nth-child(1),
+html[data-accent="mono"]:not([data-theme="dark"]) .ws-col:nth-child(2),
+html[data-accent="mono"]:not([data-theme="dark"]) .ws-col:nth-child(3),
+html[data-accent="mono"]:not([data-theme="dark"]) .ws-col:nth-child(4) { background: #EDEDED; }
+html[data-accent="mono"]:not([data-theme="dark"]) .ws-progress i { background: #111111; }
+html[data-theme="dark"][data-accent="mono"] .ws-col { background: #1E1E1E; }
+html[data-theme="dark"][data-accent="mono"] .ws-card { background: #262626; border-color: #333333; }
+html[data-theme="dark"][data-accent="mono"] .ws-progress i { background: #FFFFFF; }
+
+/* Top-sold share bars, mono (measured: first black, others mid-grey; dark white/grey) */
+html[data-accent="mono"]:not([data-theme="dark"]) .top-items-row:first-child .top-share i { background: #111111; }
+html[data-accent="mono"]:not([data-theme="dark"]) .top-items-row:not(:first-child) .top-share i { background: #9A9A9A; }
+html[data-theme="dark"][data-accent="mono"] .top-items-row:first-child .top-share i { background: #FFFFFF; }
+html[data-theme="dark"][data-accent="mono"] .top-items-row:not(:first-child) .top-share i { background: #AAAAAA; }
+
+/* Stock bars, mono (measured: semantic - healthy teal, low amber, out pale pink;
+   dark brighter mint/amber/red-brown) */
+html[data-accent="mono"]:not([data-theme="dark"]) .stock-bar i { background: #176B5A; }
+html[data-accent="mono"]:not([data-theme="dark"]) .stock-bar i.low { background: #B7791F; }
+html[data-accent="mono"]:not([data-theme="dark"]) .stock-bar i.out { background: #E8C4C0; }
+html[data-theme="dark"][data-accent="mono"] .stock-bar i { background: #34D399; }
+html[data-theme="dark"][data-accent="mono"] .stock-bar i.low { background: #E8B84B; }
+html[data-theme="dark"][data-accent="mono"] .stock-bar i.out { background: #B45309; }
+
+/* Shop fallback avatar, mono (measured: light grey / dark grey) */
+html[data-accent="mono"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .sidebar-avatar-fallback { background: #E8E8E6; color: #111; }
+html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) .sidebar-avatar-fallback { background: #333333; color: #F5F5F5; }
+
+@media (min-width: 760px) {
+  /* Nav, mono (measured: light white container, black active; dark charcoal, white active) */
+  html[data-accent="mono"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav { background: #FFFFFF; }
+  html[data-accent="mono"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav button.active { background: #111111; color: #fff; }
+  html[data-accent="mono"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav button:not(.active) { color: #111111; }
+  html[data-accent="mono"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav .nav-badge { background: #EDEDED; color: #111; }
+  html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) .pill-nav { background: #1E1E1E; }
+  html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) .pill-nav button.active { background: #F5F5F5; color: #111; }
+  html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) .pill-nav button:not(.active) { color: #CFCFCF; }
+  html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) .pill-nav .nav-badge { background: #333333; color: #fff; }
+  /* Rail black light, charcoal dark (measured) */
+  html[data-accent="mono"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .icon-rail { background: #111111; }
+  html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) .icon-rail { background: #1E1E1E; }
+}
+
+/* ===== Motion upgrades (Nov 3): demo-observed signature motions =====
+   1. Sliding nav pill (glider span tracks the active button)
+   2. Frosted-glass desktop topbar (translucent + backdrop blur)
+   3. Blurred backdrops for sheets, dialogs, drawers
+   Desktop only (>=760px); mobile untouched. Appended last so these win. */
+
+/* Blurred backdrops (demo: strong full-page blur behind drawers and modals) */
+.sheet-backdrop, .dialog-backdrop, .drawer-backdrop { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+
+@media (min-width: 760px) {
+  /* Frosted-glass topbar (demo: translucent bar with backdrop blur over the page gradient) */
+  html:not([data-theme="dark"]) .app-shell:not(.admin-shell) .app-topbar { background: rgba(255,255,255,.72); -webkit-backdrop-filter: blur(14px) saturate(1.25); backdrop-filter: blur(14px) saturate(1.25); }
+  html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) .app-topbar { background: rgba(30,30,30,.72); -webkit-backdrop-filter: blur(14px) saturate(1.25); backdrop-filter: blur(14px) saturate(1.25); }
+  html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .app-topbar { background: rgba(34,46,51,.72); -webkit-backdrop-filter: blur(14px) saturate(1.25); backdrop-filter: blur(14px) saturate(1.25); }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .app-topbar { background: rgba(15,37,51,.72); -webkit-backdrop-filter: blur(14px) saturate(1.25); backdrop-filter: blur(14px) saturate(1.25); }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .app-topbar { background: rgba(30,46,35,.72); -webkit-backdrop-filter: blur(14px) saturate(1.25); backdrop-filter: blur(14px) saturate(1.25); }
+
+  /* Sliding nav pill: one glider span moves behind the active button (demo signature) */
+  .app-shell:not(.admin-shell) .pill-nav { position: relative; }
+  .app-shell:not(.admin-shell) .pill-nav-glider { position: absolute; top: 4px; bottom: 4px; left: 0; width: 0; border-radius: 999px; z-index: 0; pointer-events: none; transition: transform .38s cubic-bezier(.25,.9,.25,1), width .38s cubic-bezier(.25,.9,.25,1); }
+  .app-shell:not(.admin-shell) .pill-nav button { position: relative; z-index: 1; background: transparent !important; }
+  /* Glider colours = the former active-pill colours, per palette and theme */
+  html[data-accent="mono"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav-glider { background: #111111; }
+  html[data-accent="pastel"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav-glider { background: #111111; }
+  html[data-accent="ocean"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav-glider { background: #0F2E44; }
+  html[data-accent="sage"]:not([data-theme="dark"]) .app-shell:not(.admin-shell) .pill-nav-glider { background: #14251E; }
+  html[data-theme="dark"][data-accent="mono"] .app-shell:not(.admin-shell) .pill-nav-glider { background: #F5F5F5; }
+  html[data-theme="dark"][data-accent="pastel"] .app-shell:not(.admin-shell) .pill-nav-glider { background: #F2F2F2; }
+  html[data-theme="dark"][data-accent="ocean"] .app-shell:not(.admin-shell) .pill-nav-glider { background: #F2F7FA; }
+  html[data-theme="dark"][data-accent="sage"] .app-shell:not(.admin-shell) .pill-nav-glider { background: #DDEBE0; }
+}
