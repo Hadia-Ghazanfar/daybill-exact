@@ -253,6 +253,7 @@ export const actionDefs = {
       shop_address: z.string().trim().min(3).max(300),
       phone: phoneSchema,
       pin: passwordSchema,
+      account_type: z.enum(["full", "supplier_only"]).optional(),
       otp_code: z.string().regex(/^\d{3,8}$/, "Invalid verification code").optional(),
     }),
     response: z.object({ account_id: z.number(), session_token: z.string(), session_kind: z.literal("user"), shopkeeper_name: z.string(), phone: z.string(), claimed_existing_data: z.boolean() }),
@@ -288,7 +289,7 @@ export const actionDefs = {
   getWorkspace: {
     request: z.object({ ...authFields }),
     response: z.object({
-      account: z.object({ shopkeeper_name: z.string(), phone: z.string(), is_owner: z.boolean(), admin_email: z.string().nullable(), session_kind: sessionKindSchema }),
+      account: z.object({ shopkeeper_name: z.string(), phone: z.string(), is_owner: z.boolean(), admin_email: z.string().nullable(), session_kind: sessionKindSchema, account_type: z.string() }),
       settings: settingsShape,
       contacts: z.array(contactShape),
       products: z.array(productShape),

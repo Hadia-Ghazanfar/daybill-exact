@@ -30,6 +30,7 @@ export const accounts = pgTable("accounts", {
   failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
   lockedUntil: timestamp("locked_until", { mode: "date" }),
   pinVersion: integer("pin_version").notNull().default(0),
+  accountType: text("account_type").notNull().default("full"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
 });

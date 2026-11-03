@@ -150,6 +150,7 @@ export const Actions = {
       const salt = crypto.randomUUID();
       const pinHash = await hashPin(args.pin, salt);
       const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+      const accountType = args.account_type === "supplier_only" ? "supplier_only" : "full";
       const unclaimed = await db.select().from(schema.accounts).where(eq(schema.accounts.claimed, false)).orderBy(asc(schema.accounts.id)).limit(1);
       const legacy = unclaimed[0];
       if (legacy) {
@@ -161,6 +162,7 @@ export const Actions = {
           pinVersion: 1,
           sessionToken,
           claimed: true,
+          accountType,
           updatedAt: new Date(),
         }).where(eq(schema.accounts.id, legacy.id));
         const legacySettings = await db.select().from(schema.businessSettings).where(eq(schema.businessSettings.accountId, legacy.id)).limit(1);
@@ -195,6 +197,7 @@ export const Actions = {
         pinVersion: 1,
         sessionToken,
         claimed: true,
+        accountType,
       }).returning({ id: schema.accounts.id });
       const created = rows[0];
       if (!created) throw new Error("Could not create the account");
@@ -415,6 +418,7 @@ export const Actions = {
           is_owner: account.isOwner && args.session_kind === "admin",
           admin_email: args.session_kind === "admin" ? account.adminEmail : null,
           session_kind: args.session_kind,
+          account_type: account.accountType ?? "full",
         },
         settings: {
           business_name: saved?.businessName ?? "",
