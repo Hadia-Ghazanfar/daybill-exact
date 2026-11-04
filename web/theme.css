@@ -6405,3 +6405,27 @@ html[data-theme="dark"] .rp-paper, html[data-theme="dark"] .receipt-paper { back
 html[data-theme="dark"] .rp-paper-head span, html[data-theme="dark"] .rp-paper-customer span, html[data-theme="dark"] .rp-paper-thanks { color: #555; }
 html[data-theme="dark"] .rp-paper-meta, html[data-theme="dark"] .rp-paper-totals { border-top-color: #ccc; }
 html[data-theme="dark"] .rp-paper-total { border-top-color: #111; }
+
+/* KPI boxes follow the selected theme color (Nov 5) */
+/* Ocean: blue tones */
+html[data-accent="ocean"] .cb-k1 { background: #bcd7ea; }
+html[data-accent="ocean"] .cb-k2 { background: #a8cbe4; }
+html[data-accent="ocean"] .cb-k3 { background: #d4e6f2; }
+html[data-accent="ocean"] .cb-k4 { background: #9ec3dd; }
+html[data-theme="dark"][data-accent="ocean"] .cb-k1 { background: #1e3a52; }
+html[data-theme="dark"][data-accent="ocean"] .cb-k2 { background: #1a3450; }
+html[data-theme="dark"][data-accent="ocean"] .cb-k3 { background: #24405c; }
+html[data-theme="dark"][data-accent="ocean"] .cb-k4 { background: #16304a; }
+/* Ocean: blue text accents */
+html[data-accent="ocean"] .cb-see, html[data-accent="ocean"] .cb-kpi-head { color: #1d5578; }
+html[data-theme="dark"][data-accent="ocean"] .cb-see { color: #8ec3ea; }
+/* Sage: green tones */
+html[data-accent="sage"] .cb-k1 { background: #c4ddc4; }
+html[data-accent="sage"] .cb-k2 { background: #b2d4b8; }
+html[data-accent="sage"] .cb-k3 { background: #d6e8d2; }
+html[data-accent="sage"] .cb-k4 { background: #a9cfae; }
+html[data-theme="dark"][data-accent="sage"] .cb-k1 { background: #24382c; }
+html[data-theme="dark"][data-accent="sage"] .cb-k2 { background: #203228; }
+html[data-theme="dark"][data-accent="sage"] .cb-k3 { background: #2a4032; }
+html[data-theme="dark"][data-accent="sage"] .cb-k4 { background: #1e2e24; }
+/* Pastel: keep the Corbel pastel set (already default) */
