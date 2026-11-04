@@ -3075,7 +3075,8 @@ button:active { transform: scale(.96); }
   .product-table .cell-meta { font-size: 12px; color: var(--dim); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .product-table .cell-meta .price { font-weight: 800; color: var(--text); font-size: 13px; }
   .product-table .cell-id, .product-table .cell-brand, .product-table .cell-count,
-  .product-table .cell-type, .product-table .cell-shelf, .product-table .cell-supplier { display: none; }
+  .product-table .cell-type, .product-table .cell-shelf, .product-table .cell-supplier,
+  .product-table .cell-updated { display: none; }
   .product-table .cell-edit-left { display: block !important; flex: 0 0 auto; order: -1; }
   .product-table .cell-edit-left button { width: 38px; height: 38px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border)); color: var(--accent); display: grid; place-items: center; cursor: pointer; }
   .product-table .cell-edit-left button svg { width: 17px; height: 17px; }
@@ -3774,8 +3775,8 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 :root[data-accent="mono"][data-theme="dark"] { --accent: #e8e8e8 !important; --chart-accent: #e8e8e8 !important; --space-accent: #e8e8e8 !important; }
 :root[data-accent="pastel"] { --accent: #111111 !important; --chart-accent: #5B9BD5 !important; --space-accent: #111111 !important; --bg: #fdf8fa !important; --surface-2: #f9eef2 !important; --border: #f0dbe2 !important; }
 :root[data-accent="pastel"][data-theme="dark"] { --accent: #f2f2f2 !important; --chart-accent: #e3a8bf !important; --space-accent: #f2f2f2 !important; --bg: #1d151a !important; --surface: #241b20 !important; --surface-2: #2e232a !important; --border: #46303c !important; }
-:root[data-accent="ocean"] { --accent: #111111 !important; --chart-accent: #2E7AA8 !important; --space-accent: #111111 !important; --bg: #f4f8fb !important; --surface-2: #e8f0f7 !important; --border: #d2e0ec !important; }
-:root[data-accent="ocean"][data-theme="dark"] { --accent: #f2f2f2 !important; --chart-accent: #6fa8d0 !important; --space-accent: #f2f2f2 !important; --bg: #12181f !important; --surface: #1a212b !important; --surface-2: #222b36 !important; --border: #31404f !important; }
+:root[data-accent="ocean"] { --accent: #1d5578 !important; --chart-accent: #2E7AA8 !important; --space-accent: #1d5578 !important; --bg: #f4f8fb !important; --surface-2: #e8f0f7 !important; --border: #d2e0ec !important; }
+:root[data-accent="ocean"][data-theme="dark"] { --accent: #8ec3ea !important; --chart-accent: #6fa8d0 !important; --space-accent: #8ec3ea !important; --bg: #12181f !important; --surface: #1a212b !important; --surface-2: #222b36 !important; --border: #31404f !important; }
 :root[data-accent="sage"] { --accent: #111111 !important; --chart-accent: #2F6B4A !important; --space-accent: #111111 !important; --bg: #f6f8f4 !important; --surface-2: #e9efe6 !important; --border: #d8e2d2 !important; }
 :root[data-accent="sage"][data-theme="dark"] { --accent: #f2f2f2 !important; --chart-accent: #8ab894 !important; --space-accent: #f2f2f2 !important; --bg: #141a14 !important; --surface: #1c231c !important; --surface-2: #242c24 !important; --border: #35402f !important; }
 
@@ -4778,11 +4779,11 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   .rw-icon-btn { position: relative; display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid rgba(255, 255, 255, .22); border-radius: 50%; background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer; }
   .rw-icon-btn svg { width: 19px; height: 19px; }
   .rw-badge { position: absolute; top: -4px; right: -4px; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border: 2px solid #0e1512; border-radius: 99px; background: var(--danger); color: #fff; font-size: 9px; font-weight: 850; }
-  .mobile-quick-actions .qa-circle { background: #c6f24e; color: #111; box-shadow: 0 8px 18px rgba(198, 242, 78, .35); }
-  .tabbar-btn.active { background: #c6f24e; color: #111; }
-  .tabbar-btn:focus-visible { outline-color: #c6f24e; }
+  .mobile-quick-actions .qa-circle { background: var(--accent); color: #fff; box-shadow: 0 8px 18px rgba(0, 0, 0, .25); }
+  .tabbar-btn.active { background: var(--accent); color: #fff; }
+  .tabbar-btn:focus-visible { outline-color: var(--accent); }
   .tabbar-create { background: #111; color: #fff; box-shadow: 0 10px 22px rgba(0, 0, 0, .35); }
-  .tabbar-create:focus-visible { outline-color: #c6f24e; }
+  .tabbar-create:focus-visible { outline-color: var(--accent); }
 }
 
 /* ===== Folka/Corbel desktop additions: delta pills, funnel, dues, stock stack ===== */

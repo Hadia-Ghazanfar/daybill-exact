@@ -3785,7 +3785,7 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
   const accents: { id: AccentColor; color: string; label: string; swatch: string }[] = [
     { id: "mono", color: "#111111", label: "Mono", swatch: "conic-gradient(#111111 0 25%, #FFFFFF 25% 50%, #9A9A9A 50% 75%, #D8D8D8 75% 100%)" },
     { id: "pastel", color: "#A9D2E8", label: "Pastel", swatch: "conic-gradient(#A9D2E8 0 25%, #A9E2C4 25% 50%, #F9C8B4 50% 75%, #FDE89B 75% 100%)" },
-    { id: "ocean", color: "#163E5C", label: "Ocean", swatch: "conic-gradient(#163E5C 0 25%, #6EA6C9 25% 50%, #A9D6E6 50% 75%, #8FD0D0 75% 100%)" },
+    { id: "ocean", color: "#2a6f9a", label: "Ocean", swatch: "conic-gradient(#2a6f9a 0 25%, #6EA6C9 25% 50%, #A9D6E6 50% 75%, #8FD0D0 75% 100%)" },
     { id: "sage", color: "#2E5A3E", label: "Sage", swatch: "conic-gradient(#2E5A3E 0 25%, #8FB096 25% 50%, #F0E3A0 50% 75%, #DDE8D0 75% 100%)" },
   ];
 
@@ -3816,7 +3816,7 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
       <button type="button" className="appearance-header" onClick={() => setAppearanceOpen(o => !o)} aria-expanded={appearanceOpen}><div className="appearance-head"><span id="appearance-title">{ui(language, "Appearance")}</span><small>Customize your app look</small></div><span className={`appearance-chevron ${appearanceOpen ? "open" : ""}`}>›</span></button>
       {appearanceOpen ? <div className="appearance-body">
       <div className="appearance-row column"><span className="appearance-label">Theme</span><div className="theme-switch" role="group" aria-label="Theme"><button type="button" className={theme === "light" ? "active" : ""} aria-pressed={theme === "light"} onClick={() => setTheme("light")}>Light</button><button type="button" className={theme === "dark" ? "active" : ""} aria-pressed={theme === "dark"} onClick={() => setTheme("dark")}>Dark</button></div></div>
-      <div className="appearance-row column"><span className="appearance-label">Theme color <em>{accents.find(a => a.id === accent)?.label}</em></span><div className="accent-picker" role="group" aria-label="Theme color">{accents.map(a => <button key={a.id} type="button" className={`accent-dot ${accent === a.id ? "active" : ""}`} style={{ background: a.color }} onClick={() => setAccent(a.id)} aria-label={a.label} aria-pressed={accent === a.id}>{accent === a.id ? "✓" : ""}</button>)}</div></div>
+      <div className="appearance-row column"><span className="appearance-label">Theme color <em>{accents.find(a => a.id === accent)?.label}</em></span><div className="accent-picker" role="group" aria-label="Theme color">{accents.map(a => <button key={a.id} type="button" className={`accent-dot ${accent === a.id ? "active" : ""}`} style={{ background: a.swatch }} onClick={() => setAccent(a.id)} aria-label={a.label} aria-pressed={accent === a.id}>{accent === a.id ? "✓" : ""}</button>)}</div></div>
 
       </div> : null}
     </section>
