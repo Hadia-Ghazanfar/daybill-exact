@@ -2745,7 +2745,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         </div>
       </aside>
       <main>
-        {selectedContactId !== null ? <ContactHistoryView contact={contacts.find((item) => item.id === selectedContactId) ?? null} invoices={workspace.data.invoices} purchases={workspace.data.purchases} currency={settings.currency} onBack={() => setSelectedContactId(null)} onOpenInvoice={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} /> : tab === "dashboard" ? <DashboardView workspace={workspace.data} onCreate={() => { setCreateKind(supplierOnly ? "purchase" : "sale"); setTab("create"); }} onCreatePurchase={() => { setCreateKind("purchase"); setSavedPurchaseId(null); setTab("create"); }} onOpenInvoice={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} onInventory={() => setTab("products")} onBills={() => setTab("history")} notifUnread={notifUnread} onNotifOpen={() => setShowNotifications(true)} /> : tab === "create" ? (
+        {selectedContactId !== null ? <ContactHistoryView contact={contacts.find((item) => item.id === selectedContactId) ?? null} invoices={workspace.data.invoices} purchases={workspace.data.purchases} currency={settings.currency} onBack={() => setSelectedContactId(null)} onOpenInvoice={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setSelectedContactId(null); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} /> : tab === "dashboard" ? <DashboardView workspace={workspace.data} onCreate={() => { setCreateKind(supplierOnly ? "purchase" : "sale"); setTab("create"); }} onCreatePurchase={() => { setCreateKind("purchase"); setSavedPurchaseId(null); setTab("create"); }} onOpenInvoice={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} onInventory={() => setTab("products")} onBills={() => setTab("history")} notifUnread={notifUnread} onNotifOpen={() => setShowNotifications(true)} onAnalytics={() => setTab("analytics")} /> : tab === "create" ? (
           <section className="create-view">
             <div className="create-header reference-create-header">
               <div><p className="eyebrow">{createKind === "sale" ? "SALES INVOICE" : "SUPPLIER INVOICE"}</p><h1>{ui(language, "Create")}</h1><p className="create-subtitle">{createKind === "sale" ? (savedInvoiceId ? "Ready to send" : "Build a customer invoice") : (savedPurchaseId ? "Supplier document ready" : "Record a supplier document")}</p></div>
@@ -3983,7 +3983,47 @@ function DonutArc({ share, color }: { share: number; color: string }) {
   return <circle cx="48" cy="48" r="34" fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" strokeDasharray={`${shown * C} ${C}`} transform="rotate(-90 48 48)" style={{ transition: "stroke-dasharray 1.1s ease" }} />;
 }
 
-function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, onOpenPurchase, onOpenContact, onInventory, onBills, notifUnread, onNotifOpen }: { workspace: Workspace; onCreate: () => void; onCreatePurchase: () => void; onOpenInvoice: (id: number) => void; onOpenPurchase: (id: number) => void; onOpenContact: (id: number) => void; onInventory: () => void; onBills: () => void; notifUnread: number; onNotifOpen: () => void }) {
+function CbBars({ values, tone }: { values: number[]; tone: "dark" | "grey" }) {
+  const n = 14;
+  const buckets = Array.from({ length: n }, (_, i) => {
+    const s = Math.floor((i * values.length) / n);
+    const e = Math.floor(((i + 1) * values.length) / n);
+    let v = 0;
+    for (let k = s; k < e; k++) v += values[k] ?? 0;
+    return v;
+  });
+  const bmax = Math.max(1, ...buckets);
+  const zeroBg = tone === "dark" ? "rgba(34,48,31,0.16)" : "rgba(170,165,154,0.30)";
+  return <div className={`cb-bars ${tone}`} aria-hidden="true">{buckets.map((v, i) => <i key={i} style={v <= 0 ? { height: "4%", background: zeroBg } : { height: `${Math.max(10, Math.round((v / bmax) * 100))}%` }} />)}</div>;
+}
+
+function CbLine({ values }: { values: number[] }) {
+  const w = 120, h = 46;
+  const n = Math.max(2, values.length);
+  const max = Math.max(1, ...values);
+  const pts = values.map((v, i) => `${((i / (n - 1)) * w).toFixed(1)},${(h - 5 - (v / max) * (h - 12)).toFixed(1)}`).join(" ");
+  const last = values[values.length - 1] ?? 0;
+  const ly = h - 5 - (last / max) * (h - 12);
+  return <svg className="cb-line" viewBox={`0 0 ${w} ${h}`} aria-hidden="true"><polyline points={pts} fill="none" stroke="#1e2d22" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /><circle cx={w - 3} cy={ly} r="3.6" fill="#1e2d22" /></svg>;
+}
+
+function CbDonut({ pct }: { pct: number }) {
+  const r = 26, circ = 2 * Math.PI * r;
+  const frac = Math.max(0, Math.min(100, pct)) / 100;
+  return <span className="cb-donut" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r={r} fill="none" stroke="rgba(30,45,34,0.14)" strokeWidth="7" /><circle cx="32" cy="32" r={r} fill="none" stroke="#1e2d22" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(frac * circ).toFixed(1)} ${circ.toFixed(1)}`} transform="rotate(-90 32 32)" /></svg><b>{pct}%</b></span>;
+}
+
+function CbRevTip({ active, payload, label, currency, year }: any) {
+  if (!active || !payload || !payload.length) return null;
+  const p = payload[0].payload ?? {};
+  const value = Number(p.value ?? 0);
+  const orders = Number(p.orders ?? 0);
+  const prev = p.prev != null ? Number(p.prev) : null;
+  const vsPrev = prev !== null && prev > 0 ? Math.round(((value - prev) / prev) * 100) : null;
+  return <div className="cb-tip"><strong>{label} {year}</strong><span>Revenue <b>{money(Math.round(value * 100), currency)}</b></span><span>Orders <b>{orders.toLocaleString()}</b></span>{vsPrev !== null ? <span>vs last year <b className={vsPrev >= 0 ? "up" : "down"}>{vsPrev >= 0 ? `+${vsPrev}%` : `${vsPrev}%`}</b></span> : null}</div>;
+}
+
+function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, onOpenPurchase, onOpenContact, onInventory, onBills, notifUnread, onNotifOpen, onAnalytics }: { workspace: Workspace; onCreate: () => void; onCreatePurchase: () => void; onOpenInvoice: (id: number) => void; onOpenPurchase: (id: number) => void; onOpenContact: (id: number) => void; onInventory: () => void; onBills: () => void; notifUnread: number; onNotifOpen: () => void; onAnalytics: () => void }) {
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
   const [chartRange, setChartRange] = useState<ChartRange>("1m");
@@ -4156,9 +4196,64 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const donutSegs = (() => { let off = 0; return methodSplit.map((m, i) => { const len = (m.pct / 100) * donutCirc; const seg = { ...m, color: methodColors[i % methodColors.length]!, len, off }; off += len; return seg; }); })();
   const [donutSel, setDonutSel] = useState(0);
   const donutSelSafe = donutSegs.length > 0 ? Math.min(donutSel, donutSegs.length - 1) : 0;
+  // ---- Corbel replica: channel filter + KPI data (real numbers only, never demo data) ----
+  type CbInv = (typeof workspace.invoices)[number];
+  const [cbChannel, setCbChannel] = useState<"overview" | "online" | "instore">("overview");
+  const cbInvoices = useMemo(() => workspace.invoices.filter((inv) => {
+    if (cbChannel === "overview") return true;
+    const m = (inv.payment_method || "").toLowerCase();
+    if (cbChannel === "online") return m === "transfer" || m === "card";
+    return m === "cash" || m === "credit" || m === "";
+  }), [workspace.invoices, cbChannel]);
+  const cbIsPending = (i: CbInv) => i.payment_status === "pending";
+  const cbIsPaid = (i: CbInv) => i.payment_status === "paid";
+  const cbSum = (key: string, pred: (i: CbInv) => boolean) => cbInvoices.filter((i) => monthKey(i.issue_date) === key && pred(i)).reduce((s, i) => s + i.total, 0);
+  const cbCount = (key: string, pred: (i: CbInv) => boolean) => cbInvoices.filter((i) => monthKey(i.issue_date) === key && pred(i)).length;
+  const cbUnits = (key: string) => cbInvoices.filter((i) => monthKey(i.issue_date) === key).reduce((s, i) => s + (i.items ?? []).reduce((t, it) => t + (it.quantity || 0), 0), 0);
+  const cbActive = cbSum(currentMonth, cbIsPending);
+  const cbRevenue = cbSum(currentMonth, () => true);
+  const cbUnitsVal = cbUnits(currentMonth);
+  const cbActiveDelta = deltaOf(cbActive, cbSum(prevMonth, cbIsPending));
+  const cbRevenueDelta = deltaOf(cbRevenue, cbSum(prevMonth, () => true));
+  const cbUnitsDelta = deltaOf(cbUnitsVal, cbUnits(prevMonth));
+  const cbStockQty = (workspace.products ?? []).reduce((s, p) => s + (p.stock_quantity || 0), 0);
+  const cbSellThrough = cbUnitsVal + cbStockQty > 0 ? Math.min(100, Math.round((cbUnitsVal / (cbUnitsVal + cbStockQty)) * 100)) : 0;
+  const cbPaidN = cbCount(currentMonth, cbIsPaid);
+  const cbTotalN = cbCount(currentMonth, () => true);
+  const cbConv = cbTotalN > 0 ? (cbPaidN / cbTotalN) * 100 : 0;
+  const cbPaidNPrev = cbCount(prevMonth, cbIsPaid);
+  const cbTotalNPrev = cbCount(prevMonth, () => true);
+  const cbConvPrev = cbTotalNPrev > 0 ? (cbPaidNPrev / cbTotalNPrev) * 100 : 0;
+  const cbConvDeltaPts = cbConv - cbConvPrev;
+  const cbDaily = useMemo(() => {
+    const now = new Date(`${today}T12:00:00`);
+    const dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const rev = Array.from({ length: dim }, () => 0);
+    const pend = Array.from({ length: dim }, () => 0);
+    for (const i of cbInvoices) {
+      if (monthKey(i.issue_date) !== currentMonth) continue;
+      const day = new Date(`${i.issue_date}T12:00:00`).getDate() - 1;
+      if (day < 0 || day >= dim) continue;
+      rev[day] = (rev[day] ?? 0) + i.total / 100;
+      if (i.payment_status === "pending") pend[day] = (pend[day] ?? 0) + i.total / 100;
+    }
+    return { rev, pend };
+  }, [cbInvoices, currentMonth, today]);
+  const cbMonthLabel = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(new Date(`${today}T12:00:00`));
+  const cbBarData = (() => {
+    const sums = Array.from({ length: 12 }, () => 0);
+    const counts = Array.from({ length: 12 }, () => 0);
+    const prevSums = Array.from({ length: 12 }, () => 0);
+    for (const i of cbInvoices) {
+      const d = new Date(`${i.issue_date}T12:00:00`);
+      if (d.getFullYear() === barYear) { sums[d.getMonth()] = (sums[d.getMonth()] ?? 0) + i.total / 100; counts[d.getMonth()] = (counts[d.getMonth()] ?? 0) + 1; }
+      else if (d.getFullYear() === barYear - 1) { prevSums[d.getMonth()] = (prevSums[d.getMonth()] ?? 0) + i.total / 100; }
+    }
+    return sums.map((value, idx) => ({ label: monthLabels[idx]!, value, orders: counts[idx] ?? 0, prev: prevSums[idx] ?? 0 }));
+  })();
+  const cbYearRevenue = cbBarData.reduce((s, b) => s + b.value, 0);
 
   return <section className="dashboard-view overview-view">
-    <div className="corbel-head desktop-only-card"><div><h1>Dashboard</h1><p>{new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(new Date(`${today}T12:00:00`))}, month to date</p></div><button type="button" className="corbel-export-btn" onClick={() => setShowExport(true)}>↓ Export</button></div>
     {showExport ? <BulkDownloadModal invoices={workspace.invoices} purchases={[]} kind="sales" settings={workspace.settings} onClose={() => setShowExport(false)} /> : null}
     <header className="dashboard-topbar overview-header"><div className="overview-heading"><img src={daybillIcon} alt="" /><div><p>{ui(language, "Business overview")}</p><h1>{ui(language, "Overview")}</h1></div></div><div className="overview-header-actions"><button className="theme-toggle-header" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={ui(language, "Toggle theme")}><Icon name={theme === "light" ? "moon" : "sun"} /></button><button className="notification-button" aria-label={`${notifUnread} unread notifications`} onClick={onNotifOpen}><Icon name="bell" />{notifUnread > 0 ? <span className="notif-badge">{notifUnread > 99 ? "99+" : notifUnread}</span> : null}</button><button className="round-create" aria-label="Create a new invoice" onClick={onCreate}><Icon name="plus" /></button></div></header>
     <section className="received-card" aria-label="Received total">
@@ -4166,140 +4261,81 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
       <div className="received-copy"><span>Received <i className={`trend-badge ${trendPercent < 0 ? "down" : ""}`}>{trendPercent >= 0 ? "+" : ""}{trendPercent}%</i></span><strong><AnimatedMoney value={paidRevenue} currency={workspace.settings.currency} /></strong><small>{ui(language, "Payments collected from paid invoices")}</small><div className="hero-ranges" role="group" aria-label="Balance chart range">{(["1W", "1M", "1Y", "All"] as const).map((range) => <button type="button" key={range} className={heroRange === range ? "active" : ""} aria-pressed={heroRange === range} onClick={() => setHeroRange(range)}>{range}</button>)}</div></div>
       <div className="received-chart" role="img" aria-label="Invoice sales for the selected range"><ResponsiveContainer width="100%" height="100%"><AreaChart data={heroSeries} margin={{ top: 10, right: 4, left: 4, bottom: 0 }}><defs><linearGradient id="overviewFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffffff" stopOpacity={0.45} /><stop offset="100%" stopColor="#ffffff" stopOpacity={0.02} /></linearGradient></defs><Area type="monotone" dataKey="sales" stroke="#ffffff" strokeWidth={2.5} fill="url(#overviewFill)" dot={false} animationDuration={1400} animationEasing="ease-out" /></AreaChart></ResponsiveContainer></div>
     </section>
-    <div className="mobile-quick-actions" aria-label="Quick actions">
-      <button type="button" onClick={onCreate}><span className="qa-circle"><Icon name="invoice" /></span><small>New invoice</small></button>
-      <button type="button" onClick={onCreatePurchase}><span className="qa-circle"><Icon name="truck" /></span><small>Add purchase</small></button>
-      <button type="button" onClick={onInventory}><span className="qa-circle"><Icon name="box" /></span><small>View stock</small></button>
-      <button type="button" onClick={onBills}><span className="qa-circle"><Icon name="history" /></span><small>Bills</small></button>
+    <div className="cb-head"><h1>Dashboard</h1></div>
+    <div className="cb-controls">
+      <div className="cb-seg" role="group" aria-label="Sales channel">
+        {(["overview", "online", "instore"] as const).map((c) => <button key={c} type="button" className={cbChannel === c ? "active" : ""} aria-pressed={cbChannel === c} onClick={() => setCbChannel(c)}>{c === "overview" ? "Overview" : c === "online" ? "Online" : "In store"}</button>)}
+      </div>
+      <p className="cb-month"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 4.6V8l2.6 1.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{cbMonthLabel}, month to date</p>
+      <div className="cb-actions">
+        <button type="button" className="cb-full" onClick={onAnalytics}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 13.6h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><rect x="3" y="8.4" width="2.6" height="3.8" rx="1" fill="currentColor" /><rect x="6.7" y="5.4" width="2.6" height="6.8" rx="1" fill="currentColor" /><rect x="10.4" y="2.6" width="2.6" height="9.6" rx="1" fill="currentColor" /></svg>Full analytics</button>
+        <button type="button" className="cb-export" onClick={() => setShowExport(true)}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 2v8.6M4.6 7.4 8 10.8l3.4-3.4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /><path d="M2.4 12.6h11.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>Export</button>
+      </div>
     </div>
-    <section className="stat-tiles" aria-label="Business totals">
-      <article className="stat-tile revenue"><span className="stat-icon"><Icon name="revenue" /></span><strong><AnimatedMoney value={workspace.dashboard.revenue} currency={workspace.settings.currency} /></strong><span>Revenue</span><small>Sales total</small><span className="tile-delta"><i className={`delta-pill ${revenueDelta.dir}`}>{revenueDelta.label}</i> vs last month</span><Sparkline values={cashFlowSeries.map((b) => b.revenue)} color="#20bd78" /><i className="stat-accent" /></article>
-      <article className="stat-tile cost"><span className="stat-icon"><Icon name="cost" /></span><strong><AnimatedMoney value={workspace.dashboard.cost} currency={workspace.settings.currency} /></strong><span>Cost</span><small>Items sold + stock bought</small><span className="tile-delta"><i className={`delta-pill ${costDelta.dir === "up" ? "down" : costDelta.dir === "down" ? "up" : "flat"}`}>{costDelta.label}</i> vs last month</span><Sparkline values={cashFlowSeries.map((b) => b.cost)} color="#e2a93b" /><i className="stat-accent" /></article>
-      <article className="stat-tile profit"><span className="stat-icon"><Icon name="profit" /></span><strong><AnimatedMoney value={workspace.dashboard.profit} currency={workspace.settings.currency} /></strong><span>Profit</span><small>Revenue minus cost</small><span className="tile-delta"><i className={`delta-pill ${profitDelta.dir}`}>{profitDelta.label}</i> vs last month</span><Sparkline values={cashFlowSeries.map((b) => b.profit)} color="#0a6661" /><i className="stat-accent" /></article>
-      <article className="stat-tile pending"><span className="stat-icon"><Icon name="history" /></span><strong><AnimatedMoney value={workspace.dashboard.outstanding} currency={workspace.settings.currency} /></strong><span>Pending dues</span><small>{unpaidCount} unpaid · {overdue.length} overdue</small><i className="stat-accent" /></article>
-      <article className="stat-tile payables"><span className="stat-icon"><Icon name="wallet" /></span><strong><AnimatedMoney value={workspace.dashboard.payables} currency={workspace.settings.currency} /></strong><span>Supplier payables</span><small>Delivered purchases awaiting payment</small><i className="stat-accent" /></article>
-      <article className="stat-tile purchases"><span className="stat-icon"><Icon name="truck" /></span><strong><AnimatedMoney value={workspace.dashboard.purchases} currency={workspace.settings.currency} /></strong><span>Stock purchases</span><small>Total supplier spending</small><i className="stat-accent" /></article>
-    </section>
-    <section className="finance-section cash-flow-card" aria-labelledby="cash-flow-title"><div className="finance-heading"><div><p className="card-kicker">CASH FLOW</p><h2 id="cash-flow-title">Revenue, cost & profit</h2></div><div className="quick-actions"><button onClick={onCreate}><Icon name="invoice" />New invoice</button><button onClick={onCreatePurchase}><Icon name="truck" />Add purchase</button><button onClick={onInventory}><Icon name="box" />View stock</button></div></div><div className="chart-range-picker" role="group" aria-label="Chart time range">{CHART_RANGES.map((range) => <button type="button" key={range.id} className={chartRange === range.id ? "active" : ""} aria-pressed={chartRange === range.id} onClick={() => setChartRange(range.id)}>{range.label}</button>)}</div><div className="cash-flow-chart" role="img" aria-label={`Revenue, cost and profit chart for ${CHART_RANGES.find((range) => range.id === chartRange)?.label ?? "selected range"}`}><ResponsiveContainer width="100%" height="100%"><AreaChart data={cashFlowSeries} margin={{ top: 20, right: 12, left: -12, bottom: 0 }}><defs><linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#20bd78" stopOpacity={0.3} /><stop offset="100%" stopColor="#20bd78" stopOpacity={0.01} /></linearGradient><linearGradient id="costFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#e2a93b" stopOpacity={0.18} /><stop offset="100%" stopColor="#e2a93b" stopOpacity={0.01} /></linearGradient></defs><CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 7" /><XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "var(--dim)", fontSize: 10 }} interval="preserveStartEnd" /><YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--dim)", fontSize: 10 }} width={58} tickFormatter={(value: number) => new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }).format(value)} /><Tooltip formatter={(value: number, name: string) => [money(Math.round(value * 100), workspace.settings.currency), name[0]?.toUpperCase() + name.slice(1)]} contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", boxShadow: "0 10px 30px rgba(10,64,61,.12)" }} /><Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 11, color: "var(--dim)" }} /><Area type="monotone" dataKey="revenue" stroke="#20bd78" strokeWidth={3} fill="url(#revenueFill)" dot={false} animationDuration={1400} animationEasing="ease-out" /><Area type="monotone" dataKey="cost" stroke="#e2a93b" strokeWidth={2.4} fill="url(#costFill)" dot={false} animationDuration={1400} animationBegin={200} animationEasing="ease-out" /><Area type="monotone" dataKey="profit" stroke="#0a6661" strokeWidth={2.4} fill="transparent" dot={false} animationDuration={1400} animationBegin={400} animationEasing="ease-out" />{latestCashFlow ? <><ReferenceDot x={latestCashFlow.label} y={latestCashFlow.revenue} r={4.5} fill="#20bd78" stroke="var(--surface)" strokeWidth={2} /><ReferenceDot x={latestCashFlow.label} y={latestCashFlow.cost} r={4} fill="#e2a93b" stroke="var(--surface)" strokeWidth={2} /><ReferenceDot x={latestCashFlow.label} y={latestCashFlow.profit} r={4} fill="#0a6661" stroke="var(--surface)" strokeWidth={2} /></> : null}</AreaChart></ResponsiveContainer></div></section>
-    <section className="dashboard-insights">
-      <article className="insight-card collections-card">
-        <div className="dashboard-section-head"><div><p className="card-kicker">COLLECTIONS</p><h2>Paid vs pending</h2></div></div>
-        <div className="donut-wrap">
-          <svg viewBox="0 0 96 96" role="img" aria-label={`${Math.round((paidRevenue + workspace.dashboard.outstanding > 0 ? paidRevenue / (paidRevenue + workspace.dashboard.outstanding) : 1) * 100)}% collected`}>
-            <circle cx="48" cy="48" r="34" fill="none" stroke="var(--border)" strokeWidth="12" />
-            <DonutArc share={paidRevenue + workspace.dashboard.outstanding > 0 ? paidRevenue / (paidRevenue + workspace.dashboard.outstanding) : 1} color="var(--accent)" />
+    <div className="cb-kpis">
+      <article className="cb-kpi cb-k1">
+        <div className="cb-kpi-head"><span>Active sales</span><i className="cb-info" title="Value of unpaid sales invoices, month to date">i</i></div>
+        <div className="cb-kpi-main"><strong><AnimatedMoney value={cbActive} currency={workspace.settings.currency} /></strong><CbBars values={cbDaily.pend} tone="dark" /></div>
+        <span className="cb-delta"><i className={`delta-pill ${cbActiveDelta.dir}`}>{cbActiveDelta.label}</i> vs last month</span>
+        <span className="cb-div" />
+        <button type="button" className="cb-see" onClick={onBills}>See orders</button>
+      </article>
+      <article className="cb-kpi cb-k2">
+        <div className="cb-kpi-head"><span>Revenue</span><i className="cb-info" title="Total invoiced sales, month to date">i</i></div>
+        <div className="cb-kpi-main"><strong><AnimatedMoney value={cbRevenue} currency={workspace.settings.currency} /></strong><CbLine values={cbDaily.rev} /></div>
+        <span className="cb-delta"><i className={`delta-pill ${cbRevenueDelta.dir}`}>{cbRevenueDelta.label}</i> vs last month</span>
+        <span className="cb-div" />
+        <button type="button" className="cb-see" onClick={onAnalytics}>See analytics</button>
+      </article>
+      <article className="cb-kpi cb-k3">
+        <div className="cb-kpi-head"><span>Units sold</span><i className="cb-info" title="Item quantities sold, month to date">i</i></div>
+        <div className="cb-kpi-main"><strong><CountUp value={cbUnitsVal} /></strong><CbDonut pct={cbSellThrough} /></div>
+        <span className="cb-delta"><i className={`delta-pill ${cbUnitsDelta.dir}`}>{cbUnitsDelta.label}</i> vs last month</span>
+        <span className="cb-div" />
+        <button type="button" className="cb-see" onClick={onInventory}>See products</button>
+      </article>
+      <article className="cb-kpi cb-k4">
+        <div className="cb-kpi-head"><span>Conversion rate</span><i className="cb-info" title="Share of this month's invoices already paid">i</i></div>
+        <div className="cb-kpi-main"><strong>{cbConv.toFixed(1)}%</strong><CbBars values={cbDaily.rev} tone="grey" /></div>
+        <span className="cb-delta"><i className={`delta-pill ${cbConvDeltaPts >= 0 ? "up" : "down"}`}>{cbConvDeltaPts >= 0 ? "↑" : "↓"} {Math.abs(cbConvDeltaPts).toFixed(1)} pt</i> vs last month</span>
+        <span className="cb-div" />
+        <button type="button" className="cb-see" onClick={onAnalytics}>See funnel</button>
+      </article>
+    </div>
+    <div className="cb-main">
+      <article className="cb-gauge">
+        <div className="cb-kpi-head cb-light"><span>Sales performance</span><i className="cb-info" title="Collection score: share of invoiced amount already collected">i</i></div>
+        <div className="cb-gauge-wrap">
+          <svg viewBox="0 0 200 124" role="img" aria-label={`Sales performance ${gaugeScore} of 100 points`}>
+            <defs><linearGradient id="cbGaugeArc" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#f4efdb" /><stop offset="100%" stopColor="#e0d087" /></linearGradient></defs>
+            {gaugeTicks.map((t, i) => <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="rgba(255,255,255,0.3)" strokeWidth="1.6" strokeLinecap="round" />)}
+            <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="15" strokeLinecap="round" pathLength={100} />
+            <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="url(#cbGaugeArc)" strokeWidth="15" strokeLinecap="round" pathLength={100} strokeDasharray={`${gaugeScore} 100`} />
+            <circle cx={gaugeKnob.x} cy={gaugeKnob.y} r="8.5" fill="#f4efdb" stroke="#1d4a2a" strokeWidth="3" />
           </svg>
-          <div className="donut-center"><strong>{Math.round((paidRevenue + workspace.dashboard.outstanding > 0 ? paidRevenue / (paidRevenue + workspace.dashboard.outstanding) : 1) * 100)}%</strong><small>collected</small></div>
+          <div className="cb-gauge-score"><strong><CountUp value={gaugeScore} /></strong><span className={`cb-gauge-badge ${gaugeDelta >= 0 ? "up" : "down"}`}>{gaugeDelta >= 0 ? `↑ +${gaugeDelta}` : `↓ ${gaugeDelta}`}</span></div>
+          <p className="cb-gauge-sub">of 100 points</p>
         </div>
-        <div className="donut-legend"><span><i className="dot paid" />Paid · {money(paidRevenue, workspace.settings.currency)}</span><span><i className="dot pending" />Pending · {money(workspace.dashboard.outstanding, workspace.settings.currency)}</span></div>
       </article>
-      <article className="insight-card weekly-card">
-        <div className="dashboard-section-head"><div><p className="card-kicker">LAST 7 DAYS</p><h2>Daily sales</h2></div></div>
-        <div className="weekly-bars">{(() => { const max = Math.max(0, ...salesSeries.map((d) => d.sales)); return salesSeries.map((day, i) => <div className="weekly-bar" key={day.key} title={`${day.label}: ${money(Math.round(day.sales * 100), workspace.settings.currency)}`}><span className="bar-track"><i style={{ height: `${max > 0 ? (day.sales / max) * 100 : 0}%`, animationDelay: `${i * 60}ms` }} /></span><small>{day.label}</small></div>); })()}</div>
-      </article>
-    </section>
-    <section className="corbel-kpis desktop-only-card" aria-label="Key figures">
-      <article className="corbel-kpi dark">
-        <div className="corbel-kpi-head"><span>Payments collected</span><span className="info-i" title="Payments collected from paid invoices">i</span></div>
-        <strong><AnimatedMoney value={paidRevenue} currency={workspace.settings.currency} /></strong>
-        <span className="tile-delta"><i className={`delta-pill ${collectedDelta.dir}`}>{collectedDelta.label}</i> vs last month</span>
-        <div className="corbel-mini-bars" aria-hidden="true">{(() => { const max = Math.max(1, ...salesSeries.map((d) => d.sales)); return salesSeries.map((day) => <i key={day.key} style={{ height: `${Math.max(12, Math.round((day.sales / max) * 100))}%` }} />); })()}</div>
-        <span className="corbel-divider" />
-        <button type="button" className="see-all-link" onClick={onBills}>See bills →</button>
-      </article>
-      <article className="corbel-kpi">
-        <div className="corbel-kpi-head"><span>Pending dues</span><span className="info-i" title="Unpaid invoices still outstanding">i</span></div>
-        <strong><AnimatedMoney value={workspace.dashboard.outstanding} currency={workspace.settings.currency} /></strong>
-        <span className="tile-delta"><i className={`delta-pill ${duesDelta.dir === "up" ? "down" : duesDelta.dir === "down" ? "up" : "flat"}`}>{duesDelta.label}</i> vs last month</span>
-        <Sparkline values={pendingSeries} color="#111111" />
-        <span className="corbel-divider" />
-        <button type="button" className="see-all-link" onClick={onBills}>See bills →</button>
-      </article>
-      <article className="corbel-kpi">
-        <div className="corbel-kpi-head"><span>Invoices</span><span className="info-i" title="Invoices issued this month">i</span></div>
-        <strong><CountUp value={monthInvoiceCount(currentMonth)} /></strong>
-        <span className="tile-delta"><i className={`delta-pill ${invoicesDelta.dir}`}>{invoicesDelta.label}</i> vs last month</span>
-        <Sparkline values={invoiceCountSeries} color="#111111" />
-        <span className="corbel-divider" />
-        <button type="button" className="see-all-link" onClick={onBills}>See bills →</button>
-      </article>
-      <article className="corbel-kpi">
-        <div className="corbel-kpi-head"><span>Stock value</span><span className="info-i" title="Cost value of stock on hand">i</span></div>
-        <strong><AnimatedMoney value={Math.round(stockValue * 100)} currency={workspace.settings.currency} /></strong>
-        <span className="tile-delta"><i className="delta-pill flat">{(workspace.products ?? []).length} products</i>{workspace.dashboard.low_stock_count > 0 ? <i className="delta-pill down">{workspace.dashboard.low_stock_count} low</i> : null}</span>
-        <div className="corbel-mini-bars dark" aria-hidden="true">{(() => { const max = Math.max(1, ...stockByCategory.rows.map((r) => r.value)); return stockByCategory.rows.map((row) => <i key={row.name} style={{ height: `${Math.max(12, Math.round((row.value / max) * 100))}%` }} />); })()}</div>
-        <span className="corbel-divider" />
-        <button type="button" className="see-all-link" onClick={onInventory}>See stock →</button>
-      </article>
-    </section>
-    <section className="corbel-main-row desktop-only-card">
-      <article className="corbel-gauge">
-        <div className="corbel-kpi-head"><span>Collection score</span><span className="info-i" title="Share of invoiced amount already collected">i</span></div>
-        <div className="gauge-wrap">
-          <svg viewBox="0 0 200 120" role="img" aria-label={`Collection score ${gaugeScore} out of 100`}>
-            <defs><linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" /><stop offset="100%" stopColor="#ffffff" /></linearGradient></defs>
-            {gaugeTicks.map((t, i) => <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" />)}
-            <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="14" strokeLinecap="round" pathLength={100} />
-            <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="url(#gaugeGrad)" strokeWidth="14" strokeLinecap="round" pathLength={100} strokeDasharray={`${gaugeScore} 100`} />
-            <circle cx={gaugeKnob.x} cy={gaugeKnob.y} r="7" fill="#fff" stroke="#111" strokeWidth="2" />
-          </svg>
-          <div className="gauge-score"><strong><CountUp value={gaugeScore} /></strong><span>/ 100</span></div>
+      <article className="cb-rev">
+        <div className="cb-rev-head">
+          <div><h2>Revenue <i className="cb-info" title="Invoiced sales per month">i</i></h2><p>{money(Math.round(cbYearRevenue * 100), workspace.settings.currency)} so far this year</p></div>
+          <div className="cb-years" role="group" aria-label="Chart year">{[thisYear, thisYear - 1].map((y) => <button key={y} type="button" className={barYear === y ? "active" : ""} aria-pressed={barYear === y} onClick={() => setBarYear(y)}>{y}</button>)}</div>
         </div>
-        <span className="tile-delta"><i className={`delta-pill ${gaugeDelta >= 0 ? "up" : "down"}`}>{gaugeDelta >= 0 ? `↑ +${gaugeDelta}` : `↓ ${Math.abs(gaugeDelta)}`}</i> vs last month</span>
-        <p className="gauge-note">{gaugeNote}</p>
-        <p className="gauge-sub">{money(paidRevenue, workspace.settings.currency)} collected of {money(gaugeTotal, workspace.settings.currency)} invoiced.</p>
-      </article>
-      <article className="corbel-chart">
-        <div className="dashboard-section-head"><div><p className="card-kicker">MONTHLY TOTALS</p><h2>{barSet === "invoiced" ? "Invoiced" : barSet === "collected" ? "Collected" : "Stock purchases"}</h2></div><div className="corbel-seg" role="group" aria-label="Chart data">{(["invoiced", "collected", "purchases"] as const).map((s) => <button type="button" key={s} className={barSet === s ? "active" : ""} onClick={() => setBarSet(s)}>{s === "invoiced" ? "Invoiced" : s === "collected" ? "Collected" : "Purchases"}</button>)}</div></div>
-        <div className="corbel-year-row" role="group" aria-label="Chart year">{[thisYear, thisYear - 1].map((y) => <button type="button" key={y} className={barYear === y ? "active" : ""} onClick={() => setBarYear(y)}>{y}</button>)}</div>
-        <div className="corbel-chart-box" role="img" aria-label="Monthly totals bar chart">
+        <div className="cb-rev-chart" role="img" aria-label="Monthly revenue bar chart">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={barData} margin={{ top: 12, right: 4, left: 4, bottom: 0 }}>
-              <defs><pattern id="corbelStripes" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#e9e6e1" /><line x1="0" y1="0" x2="0" y2="7" stroke="#111" strokeWidth="2.5" /></pattern></defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e2de" />
-              <XAxis dataKey="label" tick={{ fill: "#6f6d6a", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#6f6d6a", fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1).replace(/\.0$/, "")}k` : `${v}`} width={40} />
-              <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={{ background: "#111", color: "#fff", border: "none", borderRadius: 12, fontSize: 12 }} formatter={(v: any) => [money(Math.round(Number(v) * 100), workspace.settings.currency), "Total"]} />
-              <ReferenceLine y={barAvg} stroke="#111" strokeDasharray="5 5" label={{ value: `avg ${barAvg.toLocaleString()}`, fill: "#111", fontSize: 11, position: "insideTopRight" }} />
-              <Bar dataKey="value" fill="url(#corbelStripes)" radius={[8, 8, 0, 0]} maxBarSize={34} animationDuration={900} />
+            <BarChart data={cbBarData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} barCategoryGap="30%">
+              <defs><pattern id="cbStripes" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#edebe5" /><line x1="0" y1="0" x2="0" y2="7" stroke="#cfccc2" strokeWidth="2" /></pattern></defs>
+              <CartesianGrid vertical={false} stroke="#e8e5de" strokeDasharray="3 3" />
+              <XAxis dataKey="label" tick={{ fill: "#929a92", fontSize: 11 }} axisLine={false} tickLine={false} interval={1} />
+              <YAxis tick={{ fill: "#929a92", fontSize: 11 }} axisLine={false} tickLine={false} width={46} tickFormatter={(v: number) => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(v)} />
+              <Tooltip cursor={{ fill: "rgba(20,40,25,0.05)" }} content={<CbRevTip currency={workspace.settings.currency} year={barYear} />} />
+              <Bar dataKey="value" fill="url(#cbStripes)" radius={[7, 7, 0, 0]} maxBarSize={30} animationDuration={800} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </article>
-    </section>
-    <section className="corbel-donut-row desktop-only-card">
-      <article className="corbel-donut">
-        <div className="dashboard-section-head"><div><p className="card-kicker">COLLECTED BY METHOD</p><h2>How you got paid</h2></div></div>
-        {donutSegs.length ? <div className="corbel-donut-body">
-          <div className="corbel-donut-svg">
-            <svg viewBox="0 0 180 180" role="img" aria-label="Collected revenue by payment method">
-              {donutSegs.map((s) => <circle key={s.method} cx="90" cy="90" r="70" fill="none" stroke={s.color} strokeWidth="24" strokeDasharray={`${s.len} ${donutCirc - s.len}`} strokeDashoffset={-s.off} transform="rotate(-90 90 90)" />)}
-            </svg>
-            <div className="corbel-donut-center"><strong>{donutSegs[donutSelSafe]?.pct ?? 0}%</strong><span>{donutSegs[donutSelSafe]?.label ?? ""}</span></div>
-          </div>
-          <div className="corbel-donut-legend">
-            {donutSegs.map((s, i) => <button type="button" key={s.method} className={i === donutSelSafe ? "selected" : ""} onClick={() => setDonutSel(i)}><i style={{ background: s.color }} />{s.label}<b>{money(s.value, workspace.settings.currency)} · {s.pct}%</b></button>)}
-          </div>
-        </div> : <p className="extra-empty">No paid invoices yet.</p>}
-      </article>
-      <article className="extra-card funnel-card">
-        <div className="dashboard-section-head"><div><p className="card-kicker">INVOICE PIPELINE</p><h2>Where your invoices stand</h2></div></div>
-        <div className="funnel-rows">{funnelStages.map((stage) => <div className="funnel-row" key={stage.label}><span className="funnel-label">{stage.label}</span><span className="funnel-track"><i className={`funnel-fill ${stage.tone}`} style={{ width: `${stage.width}%` }} /></span><span className="funnel-count">{stage.count}</span><strong className="funnel-amount">{money(stage.amount, workspace.settings.currency)}</strong></div>)}</div>
-      </article>
-    </section>
-    <section className="dashboard-extra desktop-only-card">
-      <article className="extra-card dues-card">
-        <div className="dashboard-section-head"><div><p className="card-kicker">DUE NEXT</p><h2>Upcoming payments</h2></div><button type="button" className="see-all-link" onClick={onBills}>See all →</button></div>
-        {upcomingDues.length ? <div className="dues-list">{upcomingDues.map((invoice) => <button type="button" key={invoice.id} onClick={() => onOpenInvoice(invoice.id)}><ContactAvatar name={invoice.customer_name} kind="customer" contactKey={String(invoice.customer_id)} /><span><strong>{invoice.customer_name}</strong><small>{invoice.invoice_number} · {invoice.issue_date}</small></span><b>{money(invoice.total, invoice.currency)}<i className="due-badge">{dueLabel(invoice.due_date ?? today)}</i></b></button>)}</div> : <p className="extra-empty">No payments due in the next two weeks.</p>}
-      </article>
-      <article className="extra-card stock-cat-card">
-        <div className="dashboard-section-head"><div><p className="card-kicker">STOCK VALUE</p><h2>Stock by category</h2></div><span className="extra-total">{money(Math.round(stockByCategory.total * 100), workspace.settings.currency)}</span></div>
-        {stockByCategory.rows.length ? <><div className="stock-stack" role="img" aria-label="Stock value by category">{stockByCategory.rows.map((row) => <i key={row.name} className="stock-seg" style={{ width: `${row.pct}%`, background: row.color }} title={`${row.name}: ${row.pct}%`} />)}</div><div className="stock-legend">{stockByCategory.rows.map((row) => <span key={row.name}><i style={{ background: row.color }} />{row.name}<b>{money(Math.round(row.value * 100), workspace.settings.currency)} · {row.pct}%</b></span>)}</div></> : <p className="extra-empty">No stock recorded yet.</p>}
-      </article>
-    </section>
-    {overdue.length ? <section id="attention-section" className="dashboard-section overdue-section"><div className="dashboard-section-head"><div><p className="card-kicker danger">CUSTOMER DUES</p><h2>Overdue reminders</h2></div><span className="count-badge">{overdue.length}</span></div><div className="overdue-list">{overdue.map((invoice) => <article className="overdue-item" key={invoice.id}><button className="overdue-open" onClick={() => onOpenInvoice(invoice.id)}><span><strong>{invoice.customer_name}</strong><small>{invoice.invoice_number} · due {invoice.due_date}</small></span><b>{money(invoice.total, invoice.currency)}</b><em>Overdue</em></button><button className="reminder-button" disabled={!whatsappDigits(invoice.customer_phone)} onClick={() => openWhatsAppReminder(invoice, workspace.settings.business_name, language)}><Icon name="whatsapp" />{whatsappDigits(invoice.customer_phone) ? "Send Reminder on WhatsApp" : "WhatsApp number missing"}</button></article>)}</div></section> : null}
-    {overduePurchases.length ? <section id={overdue.length ? undefined : "attention-section"} className="dashboard-section overdue-section"><div className="dashboard-section-head"><div><p className="card-kicker danger">SUPPLIER PAYABLES</p><h2>Payments overdue</h2></div><span className="count-badge">{overduePurchases.length}</span></div><div className="due-list">{overduePurchases.map((purchase) => <button key={purchase.id} onClick={() => onOpenPurchase(purchase.id)}><span><strong>{purchase.supplier_name}</strong><small>{purchase.purchase_number} · due {purchase.due_date}</small></span><b>{money(purchase.total, purchase.currency)}</b><em>Open purchase</em></button>)}</div></section> : null}
-    <section id="recent-activity" className="activity-card"><div className="dashboard-section-head"><div><p className="card-kicker">LATEST</p><h2>Recent Activity</h2></div><button type="button" className="see-all-link" onClick={onBills}>See all →</button></div>{recentActivity.length ? <div className="activity-list">{recentActivity.map((item) => <button key={item.id} onClick={() => onOpenContact(item.contactId)} aria-label={`View ${item.name} history`}><ContactAvatar name={item.name} kind={item.kind === "sale" ? "customer" : "supplier"} contactKey={String(item.contactId)} /><span><strong>{item.name}</strong><small className="activity-contact">{item.phone ? formatPhoneDisplay(item.phone) : (item.kind === "sale" ? "Customer" : "Supplier")}</small><small>{item.number} · {item.date}</small></span><b>{item.kind === "purchase" && !item.isOrder ? "−" : item.kind === "sale" ? "+" : ""}{money(item.amount, item.currency)}<i className={`mini-status ${item.overdue ? "overdue" : item.status}`}>{item.overdue ? "Overdue" : item.status === "pending-delivery" ? "Pending delivery" : item.status === "pending" ? "Unpaid" : "Paid"}</i></b></button>)}</div> : <Empty title="No activity yet" body="Create your first invoice or record a supplier purchase." />}</section>
+    </div>
   </section>;
 }
 
