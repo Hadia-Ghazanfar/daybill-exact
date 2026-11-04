@@ -13,6 +13,9 @@
   "orientation": "any",
   "background_color": "#f3f7f6",
   "theme_color": "#0b3b39",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["finance", "business", "productivity"],
   "icons": [
     {
       "src": "./pwa-icon-192.png",
@@ -31,6 +34,20 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./shot-dashboard.png",
+      "sizes": "393x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "./shot-stock.png",
+      "sizes": "393x852",
+      "type": "image/png",
+      "form_factor": "narrow"
     }
   ]
 }
