@@ -6391,3 +6391,17 @@ html[data-theme="dark"] .chatbot-send { background: #f2f2f2; color: #111; }
 /* Mobile product card: prevent price text overlap */
 html.phone-layout .product-table .cell-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; white-space: normal; }
 html.phone-layout .product-table .cell-meta .price { white-space: nowrap; }
+
+/* Dark mode fixes (Nov 5): bill dividers, invisible buttons, white receipt */
+/* 1. Remove chunky dividers between bill status boxes */
+html[data-theme="dark"] .bill-summary > div { border-right: 0; }
+/* 2. Buttons visible in dark mode */
+html[data-theme="dark"] .bills-download-btn, html[data-theme="dark"] .bills-trash-btn { background: #2c2c2c; color: #f2f2f2; border-color: #3a3a3a; }
+html[data-theme="dark"] .create-kind-tabs button.active, html[data-theme="dark"] .bill-kind-tabs button.active { background: #f2f2f2; color: #111; }
+html[data-theme="dark"] .profile-hero-card, html[data-theme="dark"] .shop-profile-card { background: #1c1c1c; color: #f2f2f2; }
+html[data-theme="dark"] .profile-hero-card h2, html[data-theme="dark"] .shop-profile-card h2 { color: #f2f2f2; }
+/* 3. Receipt paper stays white like a real printed receipt */
+html[data-theme="dark"] .rp-paper, html[data-theme="dark"] .receipt-paper { background: #fff; color: #111; }
+html[data-theme="dark"] .rp-paper-head span, html[data-theme="dark"] .rp-paper-customer span, html[data-theme="dark"] .rp-paper-thanks { color: #555; }
+html[data-theme="dark"] .rp-paper-meta, html[data-theme="dark"] .rp-paper-totals { border-top-color: #ccc; }
+html[data-theme="dark"] .rp-paper-total { border-top-color: #111; }
