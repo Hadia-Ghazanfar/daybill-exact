@@ -6274,3 +6274,9 @@ html[data-theme="dark"] .cb-years button.active { background: #333e34; color: #f
   font-size: 14px;
   font-weight: 500;
 }
+
+/* Compact mobile Received hero card (Nov 4) — matches KPI card density */
+html.phone-layout .received-card { min-height: 0; padding: 18px; gap: 6px; }
+html.phone-layout .received-chart { display: none; }
+html.phone-layout .received-copy > strong { font-size: 32px; margin: 8px 0 6px; }
+html.phone-layout .received-copy > small { font-size: 11px; }
