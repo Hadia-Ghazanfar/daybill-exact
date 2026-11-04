@@ -2388,6 +2388,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const [showReceiptPrint, setShowReceiptPrint] = useState(false);
   const [showPurchaseDelete, setShowPurchaseDelete] = useState(false);
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isPreparingImage, setIsPreparingImage] = useState(false);
   const [preparedInvoiceFile, setPreparedInvoiceFile] = useState<File | null>(null);
@@ -2717,6 +2718,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
             <button type="button" role="menuitem" onClick={() => { setQuickAddOpen(false); goTab("contacts"); }}><Icon name="people" /><span>Add contact</span></button>
           </div> : null}
         </div>
+        <button className="rail-btn" type="button" aria-label="Search" data-tip="Search" onClick={() => setSearchOpen(true)}><Icon name="search" /></button>
         <button className={`rail-btn${tab === "profile" ? " active" : ""}`} type="button" aria-label="Settings" data-tip="Settings" onClick={() => goTab("profile")}><Icon name="settings" /></button>
         <button className={`rail-btn${tab === "workspace" ? " active" : ""}`} type="button" aria-label="Workspace" data-tip="Workspace" onClick={() => goTab("workspace")}><Icon name="kanban" /></button>
         <div className="rail-divider" />
@@ -2725,6 +2727,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         <button className="rail-btn" type="button" aria-label="Logout" data-tip="Logout" onClick={onLogout}><Icon name="logout" /></button>
       </aside>
       {showNotifications ? <NotificationPanel onClose={() => setShowNotifications(false)} /> : null}
+      {searchOpen ? <SearchModal products={products} contacts={contacts} invoices={workspace.data.invoices} currency={settings.currency} onClose={() => setSearchOpen(false)} onOpenProduct={(id) => { goTab("products"); }} onOpenContact={(id) => setSelectedContactId(id)} onOpenInvoice={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} /> : null}
       {drawerOpen ? <div className="drawer-backdrop" onClick={() => setDrawerOpen(false)} aria-hidden="true" /> : null}
       <aside className={`mobile-drawer${drawerOpen ? " open" : ""}`} aria-label="Menu" aria-hidden={!drawerOpen}>
         <div className="drawer-head">
@@ -3761,6 +3764,44 @@ function TermsModal({ onClose }: { onClose: () => void }) {
       <p>We aim for reliable service but do not guarantee uninterrupted access. We may update features over time.</p>
       <h3>6. Changes</h3>
       <p>We may update these terms; continued use after changes means you accept them.</p>
+    </div>
+  </div></div>;
+}
+
+function SearchModal({ products, contacts, invoices, currency, onClose, onOpenProduct, onOpenContact, onOpenInvoice }: {
+  products: Product[];
+  contacts: Contact[];
+  invoices: Workspace["invoices"];
+  currency: string;
+  onClose: () => void;
+  onOpenProduct: (id: number) => void;
+  onOpenContact: (id: number) => void;
+  onOpenInvoice: (id: number) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  const q = query.trim().toLowerCase();
+  const allProducts = q ? products.filter((p) => p.name.toLowerCase().includes(q)) : [];
+  const allContacts = q ? contacts.filter((c) => c.name.toLowerCase().includes(q) || (c.phone && c.phone.toLowerCase().includes(q))) : [];
+  const allInvoices = q ? invoices.filter((i) => i.invoice_number.toLowerCase().includes(q) || i.customer_name.toLowerCase().includes(q)) : [];
+  const matchedProducts = allProducts.slice(0, 5);
+  const matchedContacts = allContacts.slice(0, 5);
+  const matchedInvoices = allInvoices.slice(0, 5);
+  const hasResults = matchedProducts.length > 0 || matchedContacts.length > 0 || matchedInvoices.length > 0;
+  return <div className="search-modal-backdrop" onClick={onClose}><div className="search-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Search">
+    <div className="search-modal-input-wrap"><Icon name="search" /><input ref={inputRef} type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search products, contacts, invoices..." aria-label="Search products, contacts, invoices" /><kbd>esc</kbd></div>
+    <div className="search-modal-results">
+      {!q ? <p className="search-hint">Type to search...</p> : !hasResults ? <p className="search-hint">No results for &lsquo;{query.trim()}&rsquo;</p> : <>
+        {matchedProducts.length > 0 ? <div className="search-result-group"><h3>Products</h3>{matchedProducts.map((p) => <button key={p.id} type="button" className="search-result-item" onClick={() => { onClose(); onOpenProduct(p.id); }}><Icon name="box" /><span className="search-result-main">{p.name}</span><span className="search-result-meta">{money(p.unit_price, currency)} · {p.stock_quantity} in stock</span></button>)}{allProducts.length > 5 ? <p className="search-more">{allProducts.length - 5} more</p> : null}</div> : null}
+        {matchedContacts.length > 0 ? <div className="search-result-group"><h3>Contacts</h3>{matchedContacts.map((c) => <button key={c.id} type="button" className="search-result-item" onClick={() => { onClose(); onOpenContact(c.id); }}><Icon name="people" /><span className="search-result-main">{c.name}</span><span className="search-result-meta">{c.phone || ""}</span></button>)}{allContacts.length > 5 ? <p className="search-more">{allContacts.length - 5} more</p> : null}</div> : null}
+        {matchedInvoices.length > 0 ? <div className="search-result-group"><h3>Invoices</h3>{matchedInvoices.map((i) => <button key={i.id} type="button" className="search-result-item" onClick={() => { onClose(); onOpenInvoice(i.id); }}><Icon name="invoice" /><span className="search-result-main">{i.invoice_number}</span><span className="search-result-meta">{i.customer_name} · {money(i.total, i.currency || currency)}</span></button>)}{allInvoices.length > 5 ? <p className="search-more">{allInvoices.length - 5} more</p> : null}</div> : null}
+      </>}
     </div>
   </div></div>;
 }
