@@ -620,7 +620,7 @@ html[data-theme="dark"] .invoice-paper { color-scheme: light; }
   .workbench { grid-template-columns: minmax(390px, .88fr) minmax(460px, 1.12fr); gap: 36px; }
   .editor-panel { top: 28px; }
   .desktop-preview { padding: 16px; border-radius: 24px; background: var(--surface); box-shadow: 0 5px 20px rgba(0,0,0,.045); }
-  .manage-view { max-width: 920px; }
+  .manage-view { max-width: 1120px; }
 }
 
 @media (min-width: 1100px) {
