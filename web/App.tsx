@@ -2727,7 +2727,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         <button className="rail-btn" type="button" aria-label="Logout" data-tip="Logout" onClick={onLogout}><Icon name="logout" /></button>
       </aside>
       {showNotifications ? <NotificationPanel onClose={() => setShowNotifications(false)} /> : null}
-      {searchOpen ? <SearchModal products={products} contacts={contacts} invoices={workspace.data.invoices} currency={settings.currency} onClose={() => setSearchOpen(false)} onOpenProduct={(id) => { goTab("products"); }} onOpenContact={(id) => setSelectedContactId(id)} onOpenInvoice={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} /> : null}
+      {searchOpen ? <SearchModal products={products} contacts={contacts} invoices={workspace.data.invoices} currency={settings.currency} onClose={() => setSearchOpen(false)} onOpenProduct={(id) => { goTab("products"); }} onOpenContact={(id) => setSelectedContactId(id)} onOpenInvoice={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPage={(tab) => goTab(tab)} /> : null}
       {drawerOpen ? <div className="drawer-backdrop" onClick={() => setDrawerOpen(false)} aria-hidden="true" /> : null}
       <aside className={`mobile-drawer${drawerOpen ? " open" : ""}`} aria-label="Menu" aria-hidden={!drawerOpen}>
         <div className="drawer-head">
@@ -3768,7 +3768,7 @@ function TermsModal({ onClose }: { onClose: () => void }) {
   </div></div>;
 }
 
-function SearchModal({ products, contacts, invoices, currency, onClose, onOpenProduct, onOpenContact, onOpenInvoice }: {
+function SearchModal({ products, contacts, invoices, currency, onClose, onOpenProduct, onOpenContact, onOpenInvoice, onOpenPage }: {
   products: Product[];
   contacts: Contact[];
   invoices: Workspace["invoices"];
@@ -3777,6 +3777,7 @@ function SearchModal({ products, contacts, invoices, currency, onClose, onOpenPr
   onOpenProduct: (id: number) => void;
   onOpenContact: (id: number) => void;
   onOpenInvoice: (id: number) => void;
+  onOpenPage: (tab: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -3786,18 +3787,31 @@ function SearchModal({ products, contacts, invoices, currency, onClose, onOpenPr
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+  const pages = [
+    { id: "dashboard", label: "Dashboard", icon: "grid" },
+    { id: "create", label: "Create", icon: "plus" },
+    { id: "products", label: "Stock", icon: "box" },
+    { id: "contacts", label: "Contacts", icon: "people" },
+    { id: "history", label: "Bills", icon: "invoice" },
+    { id: "analytics", label: "Analytics", icon: "chart" },
+    { id: "workspace", label: "Workspace", icon: "kanban" },
+    { id: "profile", label: "Profile", icon: "profile" },
+  ];
   const q = query.trim().toLowerCase();
+  const matchedPages = pages.filter((p) => !q || p.label.toLowerCase().includes(q));
   const allProducts = q ? products.filter((p) => p.name.toLowerCase().includes(q)) : [];
   const allContacts = q ? contacts.filter((c) => c.name.toLowerCase().includes(q) || (c.phone && c.phone.toLowerCase().includes(q))) : [];
   const allInvoices = q ? invoices.filter((i) => i.invoice_number.toLowerCase().includes(q) || i.customer_name.toLowerCase().includes(q)) : [];
   const matchedProducts = allProducts.slice(0, 5);
   const matchedContacts = allContacts.slice(0, 5);
   const matchedInvoices = allInvoices.slice(0, 5);
-  const hasResults = matchedProducts.length > 0 || matchedContacts.length > 0 || matchedInvoices.length > 0;
+  const hasResults = matchedPages.length > 0 || matchedProducts.length > 0 || matchedContacts.length > 0 || matchedInvoices.length > 0;
   return <div className="search-modal-backdrop" onClick={onClose}><div className="search-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Search">
-    <div className="search-modal-input-wrap"><Icon name="search" /><input ref={inputRef} type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search products, contacts, invoices..." aria-label="Search products, contacts, invoices" /><kbd>esc</kbd></div>
+    <div className="search-modal-input-wrap"><Icon name="search" /><input ref={inputRef} type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search pages, products, contacts, invoices..." aria-label="Search pages, products, contacts, invoices" /><kbd>esc</kbd></div>
     <div className="search-modal-results">
-      {!q ? <p className="search-hint">Type to search...</p> : !hasResults ? <p className="search-hint">No results for &lsquo;{query.trim()}&rsquo;</p> : <>
+      {!q && matchedPages.length > 0 ? <div className="search-result-group"><h3>Pages</h3>{matchedPages.map((p) => <button key={p.id} type="button" className="search-result-item" onClick={() => { onClose(); onOpenPage(p.id); }}><Icon name={p.icon} /><span className="search-result-main">{p.label}</span><span className="search-result-go">Go to page</span></button>)}</div> : null}
+      {!q ? null : !hasResults ? <p className="search-hint">No results for &lsquo;{query.trim()}&rsquo;</p> : <>
+        {matchedPages.length > 0 ? <div className="search-result-group"><h3>Pages</h3>{matchedPages.map((p) => <button key={p.id} type="button" className="search-result-item" onClick={() => { onClose(); onOpenPage(p.id); }}><Icon name={p.icon} /><span className="search-result-main">{p.label}</span><span className="search-result-go">Go to page</span></button>)}</div> : null}
         {matchedProducts.length > 0 ? <div className="search-result-group"><h3>Products</h3>{matchedProducts.map((p) => <button key={p.id} type="button" className="search-result-item" onClick={() => { onClose(); onOpenProduct(p.id); }}><Icon name="box" /><span className="search-result-main">{p.name}</span><span className="search-result-meta">{money(p.unit_price, currency)} · {p.stock_quantity} in stock</span></button>)}{allProducts.length > 5 ? <p className="search-more">{allProducts.length - 5} more</p> : null}</div> : null}
         {matchedContacts.length > 0 ? <div className="search-result-group"><h3>Contacts</h3>{matchedContacts.map((c) => <button key={c.id} type="button" className="search-result-item" onClick={() => { onClose(); onOpenContact(c.id); }}><Icon name="people" /><span className="search-result-main">{c.name}</span><span className="search-result-meta">{c.phone || ""}</span></button>)}{allContacts.length > 5 ? <p className="search-more">{allContacts.length - 5} more</p> : null}</div> : null}
         {matchedInvoices.length > 0 ? <div className="search-result-group"><h3>Invoices</h3>{matchedInvoices.map((i) => <button key={i.id} type="button" className="search-result-item" onClick={() => { onClose(); onOpenInvoice(i.id); }}><Icon name="invoice" /><span className="search-result-main">{i.invoice_number}</span><span className="search-result-meta">{i.customer_name} · {money(i.total, i.currency || currency)}</span></button>)}{allInvoices.length > 5 ? <p className="search-more">{allInvoices.length - 5} more</p> : null}</div> : null}

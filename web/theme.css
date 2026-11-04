@@ -6334,3 +6334,6 @@ html[data-theme="dark"] .search-modal { background: rgba(30, 30, 30, .92); borde
 .search-result-main { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
 .search-result-meta { flex: 0 0 auto; font-size: 12px; font-weight: 500; color: var(--dim); white-space: nowrap; }
 .search-more { margin: 2px 10px 6px; font-size: 12px; font-weight: 600; color: var(--dim); }
+
+/* Search modal "Go to page" label (Corbel-style) */
+.search-result-go { margin-left: auto; color: var(--dim); font-size: 12px; white-space: nowrap; }
