@@ -6211,3 +6211,66 @@ html[data-theme="dark"] .cb-years button.active { background: #333e34; color: #f
     box-shadow: 0 12px 32px rgba(0,0,0,.35);
   }
 }
+
+/* ===== Corbel full-app design language (Nov 4) — all views, Urbanist everywhere ===== */
+.app-shell:not(.admin-shell) {
+  font-family: "Urbanist", "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+}
+/* Type scale: h1 33px/600 */
+.app-shell:not(.admin-shell) .manage-view .manage-head h1 {
+  font-size: 33px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+.app-shell:not(.admin-shell) .manage-view .manage-head .eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+/* Buttons: 13.5px/600, 12px radius, Corbel easing */
+.app-shell:not(.admin-shell) .primary,
+.app-shell:not(.admin-shell) .secondary {
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: background-color .2s cubic-bezier(.2,.8,.2,1), color .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s cubic-bezier(.2,.8,.2,1), filter .2s cubic-bezier(.2,.8,.2,1);
+}
+/* Cards: 22px radius, subtle Corbel shadow */
+.app-shell:not(.admin-shell) .corbel-kpi,
+.app-shell:not(.admin-shell) .extra-card,
+.app-shell:not(.admin-shell) .activity-card,
+.app-shell:not(.admin-shell) .ws-card,
+.app-shell:not(.admin-shell) .ws-board-card,
+.app-shell:not(.admin-shell) .ws-col,
+.app-shell:not(.admin-shell) .product-grid-card,
+.app-shell:not(.admin-shell) .contact-profile-card,
+.app-shell:not(.admin-shell) .bill-summary,
+.app-shell:not(.admin-shell) .product-table-wrap,
+.app-shell:not(.admin-shell) .analytics-table-wrap {
+  border-radius: 22px;
+  box-shadow: 0 2px 8px rgba(20,40,56,.10);
+}
+/* Pills: full radius */
+.app-shell:not(.admin-shell) .product-status-pill,
+.app-shell:not(.admin-shell) .corbel-seg,
+.app-shell:not(.admin-shell) .filter-tabs,
+.app-shell:not(.admin-shell) .delta-pill {
+  border-radius: 999px;
+}
+/* Table polish */
+.app-shell:not(.admin-shell) .product-table th,
+.app-shell:not(.admin-shell) .analytics-table th {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.app-shell:not(.admin-shell) .product-table td,
+.app-shell:not(.admin-shell) .analytics-table td {
+  font-size: 14px;
+  font-weight: 500;
+}
