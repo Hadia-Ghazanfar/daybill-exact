@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.vercel.daybillofficial.twa",
+    "sha256_cert_fingerprints": ["B3:4B:6D:09:31:8F:01:C3:9F:D3:6C:8E:F1:4D:1C:37:CC:DA:0B:CA:C5:6B:01:1F:A6:83:E9:23:4E:58:38:45"]
+  }
+}]
