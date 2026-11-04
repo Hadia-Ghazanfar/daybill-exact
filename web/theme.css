@@ -6367,3 +6367,10 @@ html[data-theme="dark"] .search-modal { background: rgba(30, 30, 30, .92); borde
   .icon-rail .rail-create { background: transparent; color: #fff; }
   .icon-rail .rail-create:hover { background: rgba(255,255,255,.14); color: #fff; }
 }
+
+/* Dark mode fixes (Nov 4) — topbar buttons and tab dividers */
+html[data-theme="dark"] .topbar-bell { background: #1c1c1c !important; color: #f2f2f2 !important; border-color: #2c2c2c !important; }
+html[data-theme="dark"] .topbar-avatar { background: #1c1c1c !important; }
+html[data-theme="dark"] .topbar-avatar img { background: #1c1c1c; }
+/* Subtle tab dividers in dark mode */
+html[data-theme="dark"] .filter-tabs.bill-status-tabs button + button { border-left: 1px solid rgba(255,255,255,.08); }
