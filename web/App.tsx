@@ -1781,12 +1781,10 @@ function ReceiptPrintModal({ invoice, settings, onClose }: { invoice: ReceiptInv
             </ReceiptPrinter.Output>
           </ReceiptPrinter.Root>
           {error ? <p className="bulk-error" role="alert">{error}</p> : null}
-          {stage === "complete" && !error ? (
-            <div className="receipt-print-actions">
-              <button type="button" className="primary" onClick={printReceipt}>Print receipt</button>
-              <button type="button" className="secondary" onClick={onClose}>Done</button>
-            </div>
-          ) : null}
+          <div className="receipt-print-actions">
+            <button type="button" className="primary" onClick={printReceipt}>Print receipt</button>
+            <button type="button" className="secondary" onClick={onClose}>Done</button>
+          </div>
           {stage !== "complete" ? <p className="rp-wait-note" role="status">Please wait while your receipt is prepared…</p> : null}
         </div>
       </div>
