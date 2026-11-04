@@ -6342,3 +6342,28 @@ html[data-theme="dark"] .search-modal { background: rgba(30, 30, 30, .92); borde
 .receipt-print-modal { max-height: 90vh; display: flex; flex-direction: column; }
 .receipt-print-modal .receipt-print-body { overflow-y: auto; }
 .receipt-print-actions { position: sticky; bottom: 0; background: var(--surface); padding-top: 8px; }
+
+/* Corbel match fixes (Nov 4) — larger type, rectangular KPI cards, bigger nav, slimmer rail, + not always highlighted */
+@media (min-width: 760px) {
+  /* 1. Larger fonts to match Corbel */
+  .app-shell:not(.admin-shell) { font-size: 15px; }
+  .app-shell:not(.admin-shell) .manage-view .manage-head h1 { font-size: 38px; }
+  .cb-kpi-head { font-size: 15px; }
+  .cb-kpi-main > strong { font-size: 36px; }
+  .cb-delta { font-size: 13px; }
+
+  /* 2. KPI cards more rectangular (less tall, like Corbel) */
+  .cb-kpi { min-height: 180px; padding: 18px 18px 14px; }
+
+  /* 3. Bigger top nav menu */
+  .app-topbar .pill-nav button { padding: 12px 20px; font-size: 15px; }
+
+  /* 4. Slimmer side rail */
+  .icon-rail { width: 48px; padding: 10px 0; }
+  .icon-rail .rail-btn { width: 34px; height: 34px; }
+  .icon-rail .rail-btn svg { width: 17px; height: 17px; }
+
+  /* 5. + button not always highlighted — matches other rail buttons */
+  .icon-rail .rail-create { background: transparent; color: #fff; }
+  .icon-rail .rail-create:hover { background: rgba(255,255,255,.14); color: #fff; }
+}
