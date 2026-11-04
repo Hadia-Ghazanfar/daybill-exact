@@ -5007,7 +5007,8 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
   .settings-row:first-of-type { border-top: 0; padding-top: 4px; }
   .settings-row > div:first-child strong { display: block; font-size: 14.5px; }
   .settings-row > div:first-child small { display: block; margin-top: 3px; color: var(--dim); font-size: 12.5px; }
-  .settings-row .theme-switch, .settings-row .language-switch { flex: 0 0 auto; }
+  .settings-row .theme-switch, .settings-row .language-switch { flex: 0 0 auto; min-width: 210px; }
+  .settings-row .theme-switch button, .settings-row .language-switch button { padding: 0 18px; white-space: nowrap; }
   .settings-row .theme-switch button.active, .settings-row .language-switch button.active { background: #111; color: #fff; }
   html[data-theme="dark"] .settings-row .theme-switch button.active, html[data-theme="dark"] .settings-row .language-switch button.active { background: #fff; color: #111; }
   .colour-pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
