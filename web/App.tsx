@@ -4216,7 +4216,7 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const pendingSeries = lastSixMonths.map((key) => monthPending(key) / 100);
   const invoiceCountSeries = lastSixMonths.map((key) => monthInvoiceCount(key));
   const gaugeTotal = paidRevenue + workspace.dashboard.outstanding;
-  const gaugeScore = gaugeTotal > 0 ? Math.round((paidRevenue / gaugeTotal) * 100) : 100;
+  const gaugeScore = gaugeTotal > 0 ? Math.round((paidRevenue / gaugeTotal) * 100) : 0;
   const prevGaugeTotal = monthPaid(prevMonth) + monthPending(prevMonth);
   const prevGaugeScore = prevGaugeTotal > 0 ? Math.round((monthPaid(prevMonth) / prevGaugeTotal) * 100) : 100;
   const gaugeDelta = gaugeScore - prevGaugeScore;
