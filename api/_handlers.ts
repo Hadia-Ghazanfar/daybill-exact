@@ -137,13 +137,15 @@ export const Actions = {
     ...actionDefs.createAccount,
     async handler(ctx, args) {
       const db = ctx.db;
-      // OTP verification disabled for now — skip when no code provided
-      if (args.otp_code) {
-        const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
-        const submittedLocal = args.phone.replace(/\D/g, "");
-        if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
-          throw new Error("Phone number does not match the verified number");
-        }
+      // OTP verification is REQUIRED — account creation without a verified code
+      // would let anyone create accounts with other people's phone numbers.
+      if (!args.otp_code) {
+        throw new Error("Verification code is required to reset your PIN");
+      }
+      const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
+      const submittedLocal = args.phone.replace(/\D/g, "");
+      if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
+        throw new Error("Phone number does not match the verified number");
       }
       const existingPhone = await db.select({ id: schema.accounts.id }).from(schema.accounts).where(eq(schema.accounts.phone, args.phone)).limit(1);
       if (existingPhone[0]) throw new Error("An account already exists with this phone number. Please log in.");
@@ -270,13 +272,15 @@ export const Actions = {
     ...actionDefs.resetPin,
     async handler(ctx, args): Promise<{ ok: true }> {
       const db = ctx.db;
-      // OTP verification disabled for now — skip when no code provided
-      if (args.otp_code) {
-        const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
-        const submittedLocal = args.phone.replace(/\D/g, "");
-        if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
-          throw new Error("Phone number does not match the verified number");
-        }
+      // OTP verification is REQUIRED — a PIN reset without a verified code
+      // would let anyone take over any account with just its phone number.
+      if (!args.otp_code) {
+        throw new Error("Verification code is required to reset your PIN");
+      }
+      const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
+      const submittedLocal = args.phone.replace(/\D/g, "");
+      if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
+        throw new Error("Phone number does not match the verified number");
       }
       const rows = await db.select().from(schema.accounts).where(and(eq(schema.accounts.phone, args.phone), eq(schema.accounts.claimed, true))).limit(1);
       const account = rows[0];
