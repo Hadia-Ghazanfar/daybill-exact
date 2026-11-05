@@ -2281,12 +2281,27 @@ function SessionExpiredNotice({ onLogout }: { onLogout: () => void }) {
 }
 
 function ProductCatalogPicker({ products, currency, selectedId, onSelect, language }: { products: Product[]; currency: string; selectedId: number | null; onSelect: (id: number | null) => void; language: Language }) {
-  return <div className="catalog-strip" role="listbox" aria-label={ui(language, "Choose product")}>
-    {products.map((product) => <button type="button" key={product.id} role="option" aria-selected={product.id === selectedId} disabled={product.stock_quantity <= 0} className={"catalog-card" + (product.id === selectedId ? " selected" : "")} onClick={() => onSelect(product.id === selectedId ? null : product.id)}>
-      {product.image_url ? <img src={product.image_url} alt="" /> : <span className="catalog-thumb empty"><Icon name="box" /></span>}
-      <strong>{product.name}</strong><small>{money(product.unit_price, currency)}</small><em>{product.stock_quantity} {ui(language, "in stock")}</em>
-      {product.id === selectedId ? <span className="catalog-check">✓</span> : null}
-    </button>)}
+  const selected = products.find((p) => p.id === selectedId) ?? null;
+  const categories = useMemo(() => {
+    const seen = new Set<string>();
+    products.forEach((p) => { if (p.category?.trim()) seen.add(p.category.trim()); });
+    return [...seen].sort();
+  }, [products]);
+  const [category, setCategory] = useState<string>(selected?.category?.trim() || "all");
+  const shown = category === "all" ? products : products.filter((p) => (p.category?.trim() || "") === category);
+  const handleCategory = (value: string) => {
+    setCategory(value);
+    if (selected && value !== "all" && (selected.category?.trim() || "") !== value) onSelect(null);
+  };
+  return <div className="catalog-dropdowns">
+    <label className="field"><span>{ui(language, "Category")}</span><select value={category} onChange={(e) => handleCategory(e.target.value)} aria-label={ui(language, "Category")}>
+      <option value="all">{ui(language, "All categories")}</option>
+      {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+    </select></label>
+    <label className="field"><span>{ui(language, "Product")}</span><select value={selectedId ?? ""} onChange={(e) => onSelect(e.target.value ? Number(e.target.value) : null)} aria-label={ui(language, "Product")}>
+      <option value="">{ui(language, "Choose product")}</option>
+      {shown.map((p) => <option key={p.id} value={p.id} disabled={p.stock_quantity <= 0}>{p.name} · {money(p.unit_price, currency)}{p.stock_quantity <= 0 ? ` · ${ui(language, "Out of stock")}` : ` · ${p.stock_quantity} ${ui(language, "in stock")}`}</option>)}
+    </select></label>
   </div>;
 }
 

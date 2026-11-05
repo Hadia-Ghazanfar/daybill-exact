@@ -6467,3 +6467,6 @@ html.phone-layout .received-card--welcome { padding: 14px 16px; }
 .hero-ranges--below button { padding: 8px 18px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--dim); font-size: 13px; font-weight: 700; cursor: pointer; }
 .hero-ranges--below button.active { background: var(--ink, #111); color: #fff; border-color: transparent; }
 html[data-theme="dark"] .hero-ranges--below button.active { background: #fff; color: #111; }
+
+/* Category + product dropdowns in the Create invoice item picker */
+.catalog-dropdowns { display: grid; gap: 12px; }
