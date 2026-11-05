@@ -2868,7 +2868,6 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
                   </div>
                   <aside className="desktop-preview"><div className="preview-label"><span>LIVE PREVIEW</span><span>Updates as you type</span></div><InvoicePaper invoice={displayInvoice} settings={settings} /></aside>
                 </div>
-                {!savedInvoiceId && step < 3 ? <div className="mobile-running-total"><span>{draftItems.length} {draftItems.length === 1 ? "item" : "items"}</span><strong>{money(draftTotal, settings.currency)}</strong></div> : null}
               </>
             )}
           </section>
