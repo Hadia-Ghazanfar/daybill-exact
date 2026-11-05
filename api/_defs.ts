@@ -274,6 +274,15 @@ export const actionDefs = {
     }),
     response: z.object({ ok: z.literal(true) }),
   },
+  changePin: {
+    request: z.object({
+      ...authFields,
+      old_pin: passwordSchema,
+      new_pin: passwordSchema,
+      otp_code: z.string().regex(/^\d{3,8}$/, "Invalid verification code"),
+    }),
+    response: z.object({ ok: z.literal(true) }),
+  },
   getAdminDashboard: {
     request: z.object({ ...authFields }),
     response: adminDashboardShape,

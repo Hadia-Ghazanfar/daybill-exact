@@ -294,6 +294,36 @@ export const Actions = {
       return { ok: true };
     },
   }),
+  changePin: defineAction({
+    ...actionDefs.changePin,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireAccount(ctx, args);
+      if (!account?.pinSalt || !account.pinHash) throw new Error("Account not found");
+      // 1. Old PIN must match
+      let oldValid = false;
+      const candidateNew = await hashPin(args.old_pin, account.pinSalt);
+      if (secureEqual(candidateNew, account.pinHash)) {
+        oldValid = true;
+      } else if ((account.pinVersion ?? 0) === 0) {
+        const candidateOld = await hashPinLegacy(args.old_pin, account.pinSalt);
+        if (secureEqual(candidateOld, account.pinHash)) oldValid = true;
+      }
+      if (!oldValid) throw new Error("Current PIN is incorrect");
+      // 2. One verification code must match the code sent to the phone
+      const verifiedLocal = await verifyOtp(account.phone ?? "", args.otp_code);
+      const accountDigits = (account.phone ?? "").replace(/\D/g, "");
+      if (verifiedLocal.replace(/\D/g, "") !== accountDigits) {
+        throw new Error("Phone number does not match the verified number");
+      }
+      // 3. Set the new PIN
+      const salt = crypto.randomUUID();
+      const pinHash = await hashPin(args.new_pin, salt);
+      await db.update(schema.accounts).set({ pinSalt: salt, pinHash, pinVersion: 1, updatedAt: new Date() }).where(eq(schema.accounts.id, account.id));
+      ctx.invalidateQueries();
+      return { ok: true };
+    },
+  }),
   getAdminDashboard: defineAction({
     ...actionDefs.getAdminDashboard,
     async handler(ctx, args) {
