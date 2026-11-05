@@ -6456,3 +6456,14 @@ html[data-theme="dark"][data-accent="sage"] .cb-k4 { background: #1e2e24; }
 .security-row > div:first-child small { display: block; margin-top: 3px; color: var(--dim); font-size: 12.5px; }
 .security-row .secondary { flex: 0 0 auto; }
 .pin-change-form .settings-field > span { display: block; margin-bottom: 6px; color: var(--dim); font-size: 12px; font-weight: 700; }
+
+/* Welcome-only top bar (Received moved into the KPI grid) */
+.received-card--welcome { min-height: 0; padding: 16px 20px; }
+.received-card--welcome .received-welcome { margin: 0; }
+html.phone-layout .received-card--welcome { padding: 14px 16px; }
+
+/* Duration pills moved below the dashboard controls, above the KPI cards */
+.hero-ranges--below { display: flex; gap: 8px; margin: 4px 0 16px; }
+.hero-ranges--below button { padding: 8px 18px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--dim); font-size: 13px; font-weight: 700; cursor: pointer; }
+.hero-ranges--below button.active { background: var(--ink, #111); color: #fff; border-color: transparent; }
+html[data-theme="dark"] .hero-ranges--below button.active { background: #fff; color: #111; }
