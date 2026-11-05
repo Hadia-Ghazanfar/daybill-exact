@@ -6441,3 +6441,18 @@ html[data-theme="dark"][data-accent="sage"] .cb-k4 { background: #1e2e24; }
 .reset-pin-prompt p { margin: 0; color: var(--text-muted, #666); font-size: 14px; line-height: 1.5; }
 .reset-pin-prompt .settings-field { display: flex; flex-direction: column; gap: 4px; }
 .reset-pin-prompt .settings-field input { padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 10px; font-size: 16px; letter-spacing: 4px; background: var(--surface, #fff); color: inherit; }
+
+/* Centered dialog popup (used by the reset-PIN prompt after login) */
+.dialog-backdrop { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(7,18,28,.6); }
+.dialog { width: min(420px, 100%); max-height: 90svh; overflow: auto; border-radius: 18px; background: var(--bg); box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+
+/* Security card in the mobile (legacy) Profile view */
+.security-card { margin-top: 16px; padding: 20px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+.security-card h2 { margin: 0; font-size: 18px; font-weight: 800; }
+.security-card > p { margin: 4px 0 8px; color: var(--dim); font-size: 13px; }
+.security-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--border); }
+.security-row:first-of-type { border-top: 0; }
+.security-row > div:first-child strong { display: block; font-size: 14.5px; }
+.security-row > div:first-child small { display: block; margin-top: 3px; color: var(--dim); font-size: 12.5px; }
+.security-row .secondary { flex: 0 0 auto; }
+.pin-change-form .settings-field > span { display: block; margin-bottom: 6px; color: var(--dim); font-size: 12px; font-weight: 700; }
