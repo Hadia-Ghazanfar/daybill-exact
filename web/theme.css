@@ -6435,6 +6435,27 @@ html[data-theme="dark"][data-accent="sage"] .cb-k2 { background: #203228; }
 html[data-theme="dark"][data-accent="sage"] .cb-k3 { background: #2a4032; }
 html[data-theme="dark"][data-accent="sage"] .cb-k4 { background: #1e2e24; }
 /* Pastel: keep the Corbel pastel set (already default) */
+/* Mono: white and black only */
+html[data-accent="mono"] .cb-k1 { background: #111111; }
+html[data-accent="mono"] .cb-k2 { background: #ffffff; }
+html[data-accent="mono"] .cb-k3 { background: #ededed; }
+html[data-accent="mono"] .cb-k4 { background: #dcdcdc; }
+html[data-accent="mono"] .cb-k1 { color: #f5f5f5; }
+html[data-accent="mono"] .cb-k1 .cb-kpi-head { color: #d9d9d9; }
+html[data-accent="mono"] .cb-k1 .cb-delta { color: #c9c9c9; }
+html[data-accent="mono"] .cb-k1 .cb-see { color: #f5f5f5; }
+html[data-accent="mono"] .cb-k1 .cb-info { border-color: #8a8a8a; color: #8a8a8a; }
+html[data-accent="mono"] .cb-k1 .cb-div { background: rgba(255,255,255,.18); }
+html[data-accent="mono"] .cb-gauge { background: #111111; }
+html[data-theme="dark"][data-accent="mono"] .cb-k1 { background: #f2f2f2; }
+html[data-theme="dark"][data-accent="mono"] .cb-k2 { background: #ededed; }
+html[data-theme="dark"][data-accent="mono"] .cb-k3 { background: #cfcfcf; }
+html[data-theme="dark"][data-accent="mono"] .cb-k4 { background: #b8b8b8; }
+html[data-theme="dark"][data-accent="mono"] .cb-kpi { color: #121212; }
+html[data-theme="dark"][data-accent="mono"] .cb-kpi-head { color: #4c4c4c; }
+html[data-theme="dark"][data-accent="mono"] .cb-delta { color: #555555; }
+html[data-theme="dark"][data-accent="mono"] .cb-see { color: #121212; }
+html[data-theme="dark"][data-accent="mono"] .cb-gauge { background: #1e1e1e; }
 
 /* Profile PIN change form */
 .pin-change-form { display: flex; flex-direction: column; gap: 10px; padding: 12px 0 4px; }
