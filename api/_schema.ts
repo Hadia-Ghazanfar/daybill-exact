@@ -20,6 +20,8 @@ export const accounts = pgTable("accounts", {
   phone: text("phone").unique(),
   pinSalt: text("pin_salt"),
   pinHash: text("pin_hash"),
+  resetPinSalt: text("reset_pin_salt"),
+  resetPinHash: text("reset_pin_hash"),
   sessionToken: text("session_token"),
   claimed: boolean("claimed").notNull().default(false),
   isOwner: boolean("is_owner").notNull().default(false),

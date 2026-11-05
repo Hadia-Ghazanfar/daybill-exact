@@ -88,6 +88,8 @@ ALTER TABLE accounts ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER NOT 
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP;
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS pin_version INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS account_type TEXT NOT NULL DEFAULT 'full';
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS reset_pin_salt TEXT;
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS reset_pin_hash TEXT;
 -- Performance: indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_contacts_account ON contacts(account_id);
 CREATE INDEX IF NOT EXISTS idx_products_account ON products(account_id);

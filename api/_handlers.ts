@@ -9,7 +9,7 @@
 //   - `ctx.invalidateQueries()` -> no-op (the web client invalidates via
 //     react-query directly, exactly as the artifact UI already did)
 // Request/response zod schemas live in ./_defs.ts (extracted verbatim).
-import { sendOtp, verifyOtp } from "./_myotp.js";
+import { sendOtp } from "./_myotp.js";
 import { z } from "zod";
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, like, lte } from "drizzle-orm";
 import * as schema from "./_schema.js";
@@ -137,20 +137,12 @@ export const Actions = {
     ...actionDefs.createAccount,
     async handler(ctx, args) {
       const db = ctx.db;
-      // OTP verification is REQUIRED — account creation without a verified code
-      // would let anyone create accounts with other people's phone numbers.
-      if (!args.otp_code) {
-        throw new Error("Verification code is required to reset your PIN");
-      }
-      const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
-      const submittedLocal = args.phone.replace(/\D/g, "");
-      if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
-        throw new Error("Phone number does not match the verified number");
-      }
       const existingPhone = await db.select({ id: schema.accounts.id }).from(schema.accounts).where(eq(schema.accounts.phone, args.phone)).limit(1);
       if (existingPhone[0]) throw new Error("An account already exists with this phone number. Please log in.");
       const salt = crypto.randomUUID();
       const pinHash = await hashPin(args.pin, salt);
+      const resetPinSalt = crypto.randomUUID();
+      const resetPinHash = await hashPin(args.reset_pin, resetPinSalt);
       const sessionToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
       const accountType = args.account_type === "supplier_only" ? "supplier_only" : "full";
       const unclaimed = await db.select().from(schema.accounts).where(eq(schema.accounts.claimed, false)).orderBy(asc(schema.accounts.id)).limit(1);
@@ -162,6 +154,8 @@ export const Actions = {
           pinSalt: salt,
           pinHash,
           pinVersion: 1,
+          resetPinSalt,
+          resetPinHash,
           sessionToken,
           claimed: true,
           accountType,
@@ -197,6 +191,8 @@ export const Actions = {
         pinSalt: salt,
         pinHash,
         pinVersion: 1,
+        resetPinSalt,
+        resetPinHash,
         sessionToken,
         claimed: true,
         accountType,
@@ -272,19 +268,17 @@ export const Actions = {
     ...actionDefs.resetPin,
     async handler(ctx, args): Promise<{ ok: true }> {
       const db = ctx.db;
-      // OTP verification is REQUIRED — a PIN reset without a verified code
-      // would let anyone take over any account with just its phone number.
-      if (!args.otp_code) {
-        throw new Error("Verification code is required to reset your PIN");
-      }
-      const verifiedLocal = await verifyOtp(args.phone, args.otp_code);
-      const submittedLocal = args.phone.replace(/\D/g, "");
-      if (verifiedLocal.replace(/\D/g, "") !== submittedLocal) {
-        throw new Error("Phone number does not match the verified number");
-      }
       const rows = await db.select().from(schema.accounts).where(and(eq(schema.accounts.phone, args.phone), eq(schema.accounts.claimed, true))).limit(1);
       const account = rows[0];
       if (!account) throw new Error("No account found with this phone number");
+      // The 4-digit reset PIN (chosen by the user at signup) must match.
+      if (!account.resetPinSalt || !account.resetPinHash) {
+        throw new Error("No reset PIN was set on this account. Log in and set one in Profile first.");
+      }
+      const candidate = await hashPin(args.reset_pin, account.resetPinSalt);
+      if (!secureEqual(candidate, account.resetPinHash)) {
+        throw new Error("Reset PIN is incorrect");
+      }
       const salt = crypto.randomUUID();
       const pinHash = await hashPin(args.new_pin, salt);
       // Invalidate all sessions by rotating the session token
@@ -310,16 +304,37 @@ export const Actions = {
         if (secureEqual(candidateOld, account.pinHash)) oldValid = true;
       }
       if (!oldValid) throw new Error("Current PIN is incorrect");
-      // 2. One verification code must match the code sent to the phone
-      const verifiedLocal = await verifyOtp(account.phone ?? "", args.otp_code);
-      const accountDigits = (account.phone ?? "").replace(/\D/g, "");
-      if (verifiedLocal.replace(/\D/g, "") !== accountDigits) {
-        throw new Error("Phone number does not match the verified number");
+      // 2. The 4-digit reset PIN (chosen at signup) must match.
+      if (!account.resetPinSalt || !account.resetPinHash) {
+        throw new Error("No reset PIN was set on this account. Set one in Profile first.");
+      }
+      const resetCandidate = await hashPin(args.reset_pin, account.resetPinSalt);
+      if (!secureEqual(resetCandidate, account.resetPinHash)) {
+        throw new Error("Reset PIN is incorrect");
       }
       // 3. Set the new PIN
       const salt = crypto.randomUUID();
       const pinHash = await hashPin(args.new_pin, salt);
       await db.update(schema.accounts).set({ pinSalt: salt, pinHash, pinVersion: 1, updatedAt: new Date() }).where(eq(schema.accounts.id, account.id));
+      ctx.invalidateQueries();
+      return { ok: true };
+    },
+  }),
+  setResetPin: defineAction({
+    ...actionDefs.setResetPin,
+    async handler(ctx, args): Promise<{ ok: true }> {
+      const db = ctx.db;
+      const account = await requireAccount(ctx, args);
+      if (!account) throw new Error("Account not found");
+      // If a reset PIN already exists, the old one must match.
+      if (account.resetPinSalt && account.resetPinHash) {
+        if (!args.old_reset_pin) throw new Error("Enter your current reset PIN");
+        const candidate = await hashPin(args.old_reset_pin, account.resetPinSalt);
+        if (!secureEqual(candidate, account.resetPinHash)) throw new Error("Current reset PIN is incorrect");
+      }
+      const salt = crypto.randomUUID();
+      const resetPinHash = await hashPin(args.new_reset_pin, salt);
+      await db.update(schema.accounts).set({ resetPinSalt: salt, resetPinHash, updatedAt: new Date() }).where(eq(schema.accounts.id, account.id));
       ctx.invalidateQueries();
       return { ok: true };
     },
