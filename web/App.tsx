@@ -2842,7 +2842,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
         ) : tab === "products" ? <ProductsView products={products} contacts={contacts} invoices={workspace.data.invoices} currency={settings.currency} categories={workspace.data.categories ?? []} onDone={() => setTab("create")} />
         : tab === "contacts" ? <ContactsView contacts={contacts} invoices={workspace.data.invoices} onDone={() => setTab("create")} onOpenContact={setSelectedContactId} supplierOnly={supplierOnly} />
         : tab === "history" ? <HistoryView invoices={workspace.data.invoices} purchases={workspace.data.purchases} settings={settings} supplierOnly={supplierOnly} onOpen={(id) => { armMobileBillsReturn(); setCreateKind("sale"); setSavedInvoiceId(id); setTab("create"); setStep(3); }} onOpenPurchase={(id) => { armMobileBillsReturn(); setCreateKind("purchase"); setSavedPurchaseId(id); setTab("create"); }} onOpenContact={setSelectedContactId} />
-        : tab === "analytics" ? <AnalyticsView invoices={workspace.data.invoices} currency={settings.currency} /> : tab === "workspace" ? <WorkspaceView /> : <ProfileView settings={settings} account={workspace.data.account} onEdit={() => setShowSettings(true)} onLogout={onLogout} onNotifOpen={() => setShowNotifications(true)} onResetPin={() => { setAuthInitialMode("forgot-pin"); onLogout(); }} />}
+        : tab === "analytics" ? <AnalyticsView invoices={workspace.data.invoices} currency={settings.currency} /> : tab === "workspace" ? <WorkspaceView /> : <ProfileView settings={settings} account={workspace.data.account} onEdit={() => setShowSettings(true)} onLogout={onLogout} onNotifOpen={() => setShowNotifications(true)} />}
       </main>
 
       <nav className="mobile-tabbar" aria-label="Main menu">
@@ -2956,7 +2956,7 @@ function NotFoundPage({ loggedIn, onHome }: { loggedIn: boolean; onHome: () => v
   </main>;
 }
 
-function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthenticated: (session: AccountSession) => void; initialMode?: "user-login" | "create" | "forgot-pin" }) {
+function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthenticated: (session: AccountSession) => void; initialMode?: "user-login" | "create" }) {
   const { language, setLanguage } = useLanguage();
   const [mode, setMode] = useState<"user-login" | "create" | "admin" | "forgot-pin">(initialMode);
   const [remember, setRemember] = useState(true);
@@ -3192,7 +3192,7 @@ function AppContent() {
   const queryClient = useQueryClient();
   const [phase, setPhase] = useState<LaunchPhase>("splash");
   const [session, setSession] = useState<AccountSession | null>(null);
-  const [authInitialMode, setAuthInitialMode] = useState<"user-login" | "create" | "forgot-pin">("user-login");
+  const [authInitialMode, setAuthInitialMode] = useState<"user-login" | "create">("user-login");
   const [unknownRoute, setUnknownRoute] = useState(() => {
     const tail = routeTail();
     if (tail === "/404error") return true;
@@ -3826,11 +3826,45 @@ function SearchModal({ products, contacts, invoices, currency, onClose, onOpenPr
   </div></div>;
 }
 
-function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen, onResetPin }: { settings: Workspace["settings"]; account: Workspace["account"]; onEdit: () => void; onLogout: () => void; onNotifOpen?: () => void; onResetPin: () => void }) {
+function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { settings: Workspace["settings"]; account: Workspace["account"]; onEdit: () => void; onLogout: () => void; onNotifOpen?: () => void }) {
   const { language, setLanguage } = useLanguage();
   const { theme, setTheme, accent, setAccent } = useTheme();
   const [showFeedback, setShowFeedback] = useState(false);
   const [backupState, setBackupState] = useState<"idle" | "working" | "done" | "error">("idle");
+  const [pinFormOpen, setPinFormOpen] = useState(false);
+  const [oldPin, setOldPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [newPinConfirm, setNewPinConfirm] = useState("");
+  const [pinCode, setPinCode] = useState("");
+  const [pinCodeSent, setPinCodeSent] = useState(false);
+  const [pinSending, setPinSending] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [pinDone, setPinDone] = useState(false);
+  const pinValid = newPin.length >= 8 && /\d/.test(newPin) && /[^a-zA-Z0-9]/.test(newPin);
+  const handleSendPinCode = async () => {
+    setPinError(null);
+    if (pinSending) return;
+    setPinSending(true);
+    try {
+      await sendOtpCode(account.phone ?? "");
+      setPinCodeSent(true);
+    } catch (err) {
+      setPinError(err instanceof Error ? err.message : "Could not send the code. Try again.");
+    } finally {
+      setPinSending(false);
+    }
+  };
+  const handleChangePin = async () => {
+    setPinError(null);
+    if (!oldPin || !pinValid || newPin !== newPinConfirm || pinCode.length !== 6) return;
+    try {
+      await api.changePin({ old_pin: oldPin, new_pin: newPin, otp_code: pinCode });
+      setPinDone(true);
+      setOldPin(""); setNewPin(""); setNewPinConfirm(""); setPinCode("");
+    } catch (err) {
+      setPinError(err instanceof Error ? err.message : "Could not change PIN.");
+    }
+  };
   const handleBackup = async () => {
     setBackupState("working");
     try {
@@ -3882,7 +3916,7 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen, onReset
         <div className="settings-row"><div><strong>Language</strong><small>Choose the app language.</small></div><div className="language-switch" role="group" aria-label="Language"><button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button><button type="button" className={language === "ur" ? "active" : ""} aria-pressed={language === "ur"} onClick={() => setLanguage("ur")}>اردو</button></div></div>
       </section>
       <section className="settings-card"><div><strong>Feedback</strong><small>Help us improve Daybill.</small></div><button className="secondary compact" type="button" onClick={() => setShowFeedback(true)}>Share feedback</button></section>
-      <section className="settings-card"><h2>Security &amp; data</h2><p>Keep your account safe and your records backed up.</p><div className="settings-row"><div><strong>Reset PIN</strong><small>Change your password with a code sent to your phone.</small></div><button className="secondary compact" type="button" onClick={onResetPin}>Reset PIN</button></div><div className="settings-row"><div><strong>Backup data</strong><small>Download all your invoices, products and contacts as a file.</small></div><button className="secondary compact" type="button" onClick={handleBackup} disabled={backupState === "working"}>{backupState === "working" ? "Preparing…" : backupState === "done" ? "✓ Downloaded" : backupState === "error" ? "Try again" : "Download backup"}</button></div></section>
+      <section className="settings-card"><h2>Security &amp; data</h2><p>Keep your account safe and your records backed up.</p><div className="settings-row"><div><strong>Reset PIN</strong><small>Change your password with a code sent to your phone.</small></div><button className="secondary compact" type="button" onClick={() => { setPinFormOpen(o => !o); setPinDone(false); setPinError(null); }}>{pinFormOpen ? "Close" : "Reset PIN"}</button></div>{pinFormOpen ? <div className="pin-change-form">{pinDone ? <p className="otp-verified" role="status">✓ PIN changed successfully.</p> : <><label className="settings-field"><span>Current PIN</span><input aria-label="Current PIN" type="password" value={oldPin} onChange={(e) => setOldPin(e.target.value)} placeholder="••••••••" /></label><label className="settings-field"><span>New PIN</span><input aria-label="New PIN" type="password" value={newPin} onChange={(e) => setNewPin(e.target.value)} placeholder="••••••••" /></label>{newPin && !pinValid ? <p className="auth-error" role="alert">PIN must be 8+ characters with a number and special character.</p> : null}<label className="settings-field"><span>Confirm new PIN</span><input aria-label="Confirm new PIN" type="password" value={newPinConfirm} onChange={(e) => setNewPinConfirm(e.target.value)} placeholder="••••••••" /></label>{newPinConfirm && newPin !== newPinConfirm ? <p className="auth-error" role="alert">PINs do not match.</p> : null}<div className="otp-section"><p className="auth-field-help" style={{ marginTop: 0 }}>We will send one code to {account.phone ? formatPhoneDisplay(account.phone) : "your phone"} — enter it to confirm.</p>{pinCodeSent ? <><label className="settings-field"><span>Verification code</span><input aria-label="Verification code" inputMode="numeric" maxLength={6} value={pinCode} onChange={(e) => setPinCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="••••••" /></label><button type="button" className="secondary" onClick={handleSendPinCode} disabled={pinSending}>{pinSending ? "Sending…" : "Resend code"}</button></> : <button type="button" className="secondary wide" onClick={handleSendPinCode} disabled={pinSending}>{pinSending ? "Sending code…" : "Send verification code"}</button>}</div>{pinError ? <p className="auth-error" role="alert">{pinError}</p> : null}<button className="primary wide" type="button" onClick={handleChangePin} disabled={!oldPin || !pinValid || newPin !== newPinConfirm || pinCode.length !== 6}>Change PIN</button></>}</div> : null}<div className="settings-row"><div><strong>Backup data</strong><small>Download all your invoices, products and contacts as a file.</small></div><button className="secondary compact" type="button" onClick={handleBackup} disabled={backupState === "working"}>{backupState === "working" ? "Preparing…" : backupState === "done" ? "✓ Downloaded" : backupState === "error" ? "Try again" : "Download backup"}</button></div></section>
       </> : settingsTab === "store" ? <><section className="settings-card"><h2>Store details</h2><p>Shown on receipts, invoices and the sidebar.</p><div className="profile-fields"><label className="settings-field"><span>Store name</span><span className="settings-field-value">{settings.business_name || "—"}</span></label><label className="settings-field"><span>Phone / WhatsApp</span><span className="settings-field-value">{settings.phone ? formatPhoneDisplay(settings.phone) : "—"}</span></label><label className="settings-field"><span>Currency</span><span className="settings-field-value">{settings.currency}</span></label><label className="settings-field wide"><span>Address</span><span className="settings-field-value">{settings.address || "—"}</span></label><button className="secondary compact" type="button" onClick={onEdit}><Icon name="pencil" />Edit shop details</button></div></section><section className="settings-card"><h2>Shops</h2><p>Where customers collect orders and walk in. Daybill has one shop.</p><div className="shop-card"><strong>{settings.business_name || "Your shop"}</strong><span>{settings.address || "No address added"}</span>{settings.phone ? <span>{formatPhoneDisplay(settings.phone)}</span> : null}</div></section></> : <section className="settings-card"><h2>Notify me about</h2><p>Shown in your notification panel, on this device.</p>
         {notifRows.map(r => <div className="settings-row" key={r.key}><div><strong>{r.label}</strong><small>{r.note}</small></div><button type="button" role="switch" aria-checked={notifPrefs[r.key]} aria-label={r.label} className={`settings-toggle ${notifPrefs[r.key] ? "on" : ""}`} onClick={() => toggleNotif(r.key)}><span /></button></div>)}
       </section>}

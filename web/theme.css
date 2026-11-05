@@ -6429,3 +6429,8 @@ html[data-theme="dark"][data-accent="sage"] .cb-k2 { background: #203228; }
 html[data-theme="dark"][data-accent="sage"] .cb-k3 { background: #2a4032; }
 html[data-theme="dark"][data-accent="sage"] .cb-k4 { background: #1e2e24; }
 /* Pastel: keep the Corbel pastel set (already default) */
+
+/* Profile PIN change form */
+.pin-change-form { display: flex; flex-direction: column; gap: 10px; padding: 12px 0 4px; }
+.pin-change-form .settings-field { display: flex; flex-direction: column; gap: 4px; }
+.pin-change-form .settings-field input { padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 10px; font-size: 14px; background: var(--surface, #fff); color: inherit; }
