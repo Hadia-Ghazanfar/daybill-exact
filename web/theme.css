@@ -1559,6 +1559,12 @@ body { background: var(--bg); color: var(--text); }
 .line-price strong, .line-total strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .line-total strong { color: var(--accent); }
 .invoice-detail-panel { display: grid; gap: 16px; padding: 20px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+/* The bill always stays in the default white (light) theme, even in dark mode */
+html[data-theme="dark"] .invoice-detail-panel { color-scheme: light; color: var(--text); --bg: #f1f1f1; --surface: #ffffff; --surface-2: #e8e8e8; --text: #111111; --dim: #707070; --border: #dedede; --accent: #168a45; }
+html[data-theme="dark"][data-accent="mono"] .invoice-detail-panel { --accent: #111111; }
+html[data-theme="dark"][data-accent="pastel"] .invoice-detail-panel { --accent: #D4A017; --bg: #fdf8fa; --surface-2: #f9eef2; --border: #f0dbe2; }
+html[data-theme="dark"][data-accent="ocean"] .invoice-detail-panel { --accent: #1d5578; --bg: #f4f8fb; --surface-2: #e8f0f7; --border: #d2e0ec; }
+html[data-theme="dark"][data-accent="sage"] .invoice-detail-panel { --accent: #2F6B4F; --bg: #f6f8f4; --surface-2: #e9efe6; --border: #d8e2d2; }
 .invoice-detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .invoice-detail-head span { color: var(--accent); font-size: 9px; font-weight: 850; letter-spacing: .11em; }
 .invoice-detail-head h2 { margin: 5px 0 3px; font-size: 25px; }
