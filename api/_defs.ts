@@ -306,7 +306,7 @@ export const actionDefs = {
   getWorkspace: {
     request: z.object({ ...authFields }),
     response: z.object({
-      account: z.object({ shopkeeper_name: z.string(), phone: z.string(), is_owner: z.boolean(), admin_email: z.string().nullable(), session_kind: sessionKindSchema, account_type: z.string() }),
+      account: z.object({ shopkeeper_name: z.string(), phone: z.string(), is_owner: z.boolean(), admin_email: z.string().nullable(), session_kind: sessionKindSchema, account_type: z.string(), has_reset_pin: z.boolean() }),
       settings: settingsShape,
       contacts: z.array(contactShape),
       products: z.array(productShape),

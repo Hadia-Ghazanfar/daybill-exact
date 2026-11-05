@@ -468,6 +468,7 @@ export const Actions = {
           admin_email: args.session_kind === "admin" ? account.adminEmail : null,
           session_kind: args.session_kind,
           account_type: account.accountType ?? "full",
+          has_reset_pin: !!(account.resetPinHash && account.resetPinSalt),
         },
         settings: {
           business_name: saved?.businessName ?? "",
