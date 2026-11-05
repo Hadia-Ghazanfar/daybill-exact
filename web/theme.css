@@ -6131,8 +6131,8 @@ html.phone-layout .cb-head { display: none; }
 .cb-kpi-main { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin: 0 0 12px; min-height: 56px; }
 .cb-kpi-main > strong { font-size: 29px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
 .cb-bars { display: flex; align-items: flex-end; gap: 4px; height: 52px; flex: none; }
-.cb-bars i { width: 9px; border-radius: 3px; background: #22301f; font-style: normal; }
-.cb-bars.grey i { background: #aaa59a; }
+.cb-bars i { width: 9px; border-radius: 3px; background: currentColor; font-style: normal; }
+.cb-bars.grey i { background: currentColor; opacity: .55; }
 .cb-line { width: 112px; height: 46px; flex: none; }
 .cb-donut { position: relative; width: 64px; height: 64px; flex: none; display: inline-block; }
 .cb-donut svg { width: 64px; height: 64px; display: block; }

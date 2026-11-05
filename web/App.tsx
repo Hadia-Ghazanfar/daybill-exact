@@ -4141,8 +4141,8 @@ function CbBars({ values, tone }: { values: number[]; tone: "dark" | "grey" }) {
     return v;
   });
   const bmax = Math.max(1, ...buckets);
-  const zeroBg = tone === "dark" ? "rgba(34,48,31,0.16)" : "rgba(170,165,154,0.30)";
-  return <div className={`cb-bars ${tone}`} aria-hidden="true">{buckets.map((v, i) => <i key={i} style={v <= 0 ? { height: "4%", background: zeroBg } : { height: `${Math.max(10, Math.round((v / bmax) * 100))}%` }} />)}</div>;
+  const zeroBg = "currentColor";
+  return <div className={`cb-bars ${tone}`} aria-hidden="true">{buckets.map((v, i) => <i key={i} style={v <= 0 ? { height: "4%", background: zeroBg, opacity: 0.16 } : { height: `${Math.max(10, Math.round((v / bmax) * 100))}%` }} />)}</div>;
 }
 
 function CbLine({ values }: { values: number[] }) {
@@ -4152,13 +4152,13 @@ function CbLine({ values }: { values: number[] }) {
   const pts = values.map((v, i) => `${((i / (n - 1)) * w).toFixed(1)},${(h - 5 - (v / max) * (h - 12)).toFixed(1)}`).join(" ");
   const last = values[values.length - 1] ?? 0;
   const ly = h - 5 - (last / max) * (h - 12);
-  return <svg className="cb-line" viewBox={`0 0 ${w} ${h}`} aria-hidden="true"><polyline points={pts} fill="none" stroke="#1e2d22" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /><circle cx={w - 3} cy={ly} r="3.6" fill="#1e2d22" /></svg>;
+  return <svg className="cb-line" viewBox={`0 0 ${w} ${h}`} aria-hidden="true"><polyline points={pts} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /><circle cx={w - 3} cy={ly} r="3.6" fill="currentColor" /></svg>;
 }
 
 function CbDonut({ pct }: { pct: number }) {
   const r = 26, circ = 2 * Math.PI * r;
   const frac = Math.max(0, Math.min(100, pct)) / 100;
-  return <span className="cb-donut" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r={r} fill="none" stroke="rgba(30,45,34,0.14)" strokeWidth="7" /><circle cx="32" cy="32" r={r} fill="none" stroke="#1e2d22" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(frac * circ).toFixed(1)} ${circ.toFixed(1)}`} transform="rotate(-90 32 32)" /></svg><b>{pct}%</b></span>;
+  return <span className="cb-donut" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r={r} fill="none" stroke="currentColor" strokeOpacity="0.14" strokeWidth="7" /><circle cx="32" cy="32" r={r} fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(frac * circ).toFixed(1)} ${circ.toFixed(1)}`} transform="rotate(-90 32 32)" /></svg><b>{pct}%</b></span>;
 }
 
 function CbRevTip({ active, payload, label, currency, year }: any) {
