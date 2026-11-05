@@ -2290,6 +2290,39 @@ function ProductCatalogPicker({ products, currency, selectedId, onSelect, langua
   </div>;
 }
 
+/** One-time popup after login for accounts that never set a 4-digit reset PIN.
+ *  Blocks the app until a PIN is saved; never shows again once set. */
+function ResetPinPrompt({ onSaved }: { onSaved: () => void }) {
+  const [pin, setPin] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const handleSave = async () => {
+    setError(null);
+    if (pin.length !== 4 || pin !== confirm) return;
+    setSaving(true);
+    try {
+      await api.setResetPin({ new_reset_pin: pin });
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save reset PIN.");
+    } finally {
+      setSaving(false);
+    }
+  };
+  return <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="reset-pin-prompt-title">
+    <div className="dialog reset-pin-prompt">
+      <h2 id="reset-pin-prompt-title">Set your reset PIN</h2>
+      <p>Pick a 4-digit PIN you will remember. You will need it if you ever forget your password.</p>
+      <label className="settings-field"><span>Reset PIN (4 digits)</span><input autoFocus aria-label="Reset PIN" type="password" inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
+      <label className="settings-field"><span>Confirm reset PIN</span><input aria-label="Confirm reset PIN" type="password" inputMode="numeric" maxLength={4} value={confirm} onChange={(e) => setConfirm(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
+      {confirm && pin !== confirm ? <p className="auth-error" role="alert">PINs do not match.</p> : null}
+      {error ? <p className="auth-error" role="alert">{error}</p> : null}
+      <button className="primary wide" type="button" onClick={handleSave} disabled={pin.length !== 4 || pin !== confirm || saving}>{saving ? "Saving…" : "Save reset PIN"}</button>
+    </div>
+  </div>;
+}
+
 function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const queryClient = useQueryClient();
   const { language } = useLanguage();
@@ -2854,6 +2887,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
       </nav>
 
       <ChatBot workspace={workspace} />
+      {workspace.data.account.has_reset_pin === false ? <ResetPinPrompt onSaved={() => { queryClient.invalidateQueries({ queryKey: ["workspace"] }); }} /> : null}
       {showInvoiceDelete && savedInvoiceId ? <TrashDeleteDialog kind="sales" id={savedInvoiceId} label={displayInvoice?.invoice_number ?? "Invoice"} onClose={() => setShowInvoiceDelete(false)} onDeleted={() => { setShowInvoiceDelete(false); resetDraft(); }} /> : null}
       {showReceiptPrint && savedInvoiceId && displayInvoice ? <ReceiptPrintModal invoice={displayInvoice} settings={settings} onClose={() => setShowReceiptPrint(false)} /> : null}
       {showPurchaseDelete && savedPurchaseId ? <TrashDeleteDialog kind="purchases" id={savedPurchaseId} label="Purchase" onClose={() => setShowPurchaseDelete(false)} onDeleted={() => { setShowPurchaseDelete(false); setSavedPurchaseId(null); setStep(1); }} /> : null}

@@ -6434,3 +6434,10 @@ html[data-theme="dark"][data-accent="sage"] .cb-k4 { background: #1e2e24; }
 .pin-change-form { display: flex; flex-direction: column; gap: 10px; padding: 12px 0 4px; }
 .pin-change-form .settings-field { display: flex; flex-direction: column; gap: 4px; }
 .pin-change-form .settings-field input { padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 10px; font-size: 14px; background: var(--surface, #fff); color: inherit; }
+
+/* Reset PIN prompt (one-time popup after login for old accounts) */
+.reset-pin-prompt { max-width: 420px; width: calc(100vw - 48px); padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+.reset-pin-prompt h2 { margin: 0; font-size: 20px; }
+.reset-pin-prompt p { margin: 0; color: var(--text-muted, #666); font-size: 14px; line-height: 1.5; }
+.reset-pin-prompt .settings-field { display: flex; flex-direction: column; gap: 4px; }
+.reset-pin-prompt .settings-field input { padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 10px; font-size: 16px; letter-spacing: 4px; background: var(--surface, #fff); color: inherit; }
