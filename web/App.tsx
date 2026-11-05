@@ -4177,6 +4177,15 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const [showExport, setShowExport] = useState(false);
   const [heroRange, setHeroRange] = useState<"1W" | "1M" | "1Y" | "All">("1W");
   const today = localDate();
+  // ---- The selected range (1W/1M/1Y/All) drives EVERY number on this page ----
+  const rangeDays = heroRange === "All" ? null : heroRange === "1Y" ? 365 : heroRange === "1M" ? 30 : 7;
+  const addDaysStr = (iso: string, days: number) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + days); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+  const rangeStart = rangeDays === null ? null : addDaysStr(today, -(rangeDays - 1));
+  const rangePrevStart = rangeDays === null || !rangeStart ? null : addDaysStr(rangeStart, -rangeDays);
+  const rangePrevEnd = rangeDays === null || !rangeStart ? null : addDaysStr(rangeStart, -1);
+  const inRange = (dateStr: string) => !rangeStart || dateStr >= rangeStart;
+  const inPrevRange = (dateStr: string) => !!rangePrevStart && !!rangePrevEnd && dateStr >= rangePrevStart && dateStr <= rangePrevEnd;
+  const rangeLabel = heroRange === "1W" ? "Last 7 days" : heroRange === "1M" ? "Last 30 days" : heroRange === "1Y" ? "Last 12 months" : "All time";
   const overdue = workspace.invoices.filter((invoice) => invoice.payment_status === "pending" && invoice.due_date && invoice.due_date < today);
   const overduePurchases = workspace.purchases.filter((purchase) => purchase.delivery_status === "delivered" && purchase.payment_status === "pending" && purchase.due_date && purchase.due_date < today);
   const recentActivity = [
@@ -4184,18 +4193,9 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
     ...workspace.purchases.slice(0, 4).map((purchase) => ({ id: `purchase-${purchase.id}`, kind: "purchase" as const, isOrder: purchase.document_type === "purchase_order" && purchase.delivery_status === "pending", rowId: purchase.id, contactId: purchase.supplier_id, name: purchase.supplier_name, phone: purchase.supplier_phone, number: `${purchase.document_type === "purchase_order" ? "Purchase Order" : "Delivered Purchase"} · ${purchase.purchase_number}`, date: purchase.issue_date, amount: purchase.total, currency: purchase.currency, status: purchase.delivery_status === "pending" ? "pending-delivery" : purchase.payment_status, overdue: purchase.delivery_status === "delivered" && purchase.payment_status === "pending" && Boolean(purchase.due_date && purchase.due_date < today) })),
   ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
   const unpaidCount = workspace.invoices.filter((invoice) => invoice.payment_status === "pending").length;
-  const paidRevenue = workspace.invoices.filter((invoice) => invoice.payment_status === "paid").reduce((sum, invoice) => sum + invoice.total, 0);
-  const salesSeries = useMemo(() => {
-    const days = Array.from({ length: 7 }, (_, offset) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (6 - offset));
-      const key = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-      return { key, label: new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(date), sales: 0 };
-    });
-    const byDate = new Map(days.map((day) => [day.key, day]));
-    for (const invoice of workspace.invoices) { const day = byDate.get(invoice.issue_date); if (day) day.sales += invoice.total / 100; }
-    return days;
-  }, [workspace.invoices]);
+  const paidRevenue = workspace.invoices.filter((invoice) => invoice.payment_status === "paid" && inRange(invoice.issue_date)).reduce((sum, invoice) => sum + invoice.total, 0);
+  const prevPaidRevenue = workspace.invoices.filter((invoice) => invoice.payment_status === "paid" && inPrevRange(invoice.issue_date)).reduce((sum, invoice) => sum + invoice.total, 0);
+  const trendPercent = prevPaidRevenue > 0 ? Math.round(((paidRevenue - prevPaidRevenue) / prevPaidRevenue) * 100) : paidRevenue > 0 ? 100 : 0;
   const heroSeries = useMemo(() => {
     const end = new Date(`${today}T12:00:00`);
     const earliest = workspace.invoices.reduce<string | null>((value, invoice) => value === null || invoice.issue_date < value ? invoice.issue_date : value, null);
@@ -4260,9 +4260,6 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
     return buckets;
   }, [chartRange, today, workspace.invoices, workspace.purchases]);
   const latestCashFlow = cashFlowSeries[cashFlowSeries.length - 1];
-  const recentThreeDaySales = salesSeries.slice(4).reduce((sum, day) => sum + day.sales, 0);
-  const previousThreeDaySales = salesSeries.slice(1, 4).reduce((sum, day) => sum + day.sales, 0);
-  const trendPercent = previousThreeDaySales > 0 ? Math.round(((recentThreeDaySales - previousThreeDaySales) / previousThreeDaySales) * 100) : recentThreeDaySales > 0 ? 100 : 0;
   const attentionCount = overdue.length + overduePurchases.length;
   const monthKey = (dateStr: string) => dateStr.slice(0, 7);
   const currentMonth = today.slice(0, 7);
@@ -4309,10 +4306,12 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const lastSixMonths = (() => { const keys: string[] = []; const d = new Date(`${today}T12:00:00`); for (let k = 5; k >= 0; k--) { const t = new Date(d.getFullYear(), d.getMonth() - k, 1); keys.push(`${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}`); } return keys; })();
   const pendingSeries = lastSixMonths.map((key) => monthPending(key) / 100);
   const invoiceCountSeries = lastSixMonths.map((key) => monthInvoiceCount(key));
-  const gaugeTotal = paidRevenue + workspace.dashboard.outstanding;
+  const rangeOutstanding = workspace.invoices.filter((i) => i.payment_status === "pending" && inRange(i.issue_date)).reduce((s, i) => s + i.total, 0);
+  const prevRangeOutstanding = workspace.invoices.filter((i) => i.payment_status === "pending" && inPrevRange(i.issue_date)).reduce((s, i) => s + i.total, 0);
+  const gaugeTotal = paidRevenue + rangeOutstanding;
   const gaugeScore = gaugeTotal > 0 ? Math.round((paidRevenue / gaugeTotal) * 100) : 0;
-  const prevGaugeTotal = monthPaid(prevMonth) + monthPending(prevMonth);
-  const prevGaugeScore = prevGaugeTotal > 0 ? Math.round((monthPaid(prevMonth) / prevGaugeTotal) * 100) : 100;
+  const prevGaugeTotal = prevPaidRevenue + prevRangeOutstanding;
+  const prevGaugeScore = prevGaugeTotal > 0 ? Math.round((prevPaidRevenue / prevGaugeTotal) * 100) : 100;
   const gaugeDelta = gaugeScore - prevGaugeScore;
   const gaugeNote = gaugeScore >= 80 ? "Ahead of plan — collections are running strong." : gaugeScore >= 50 ? "On track — steady collections this month." : "Needs attention — dues need chasing.";
   const gaugeAngle = (score: number) => (180 - (score / 100) * 180) * (Math.PI / 180);
@@ -4343,50 +4342,58 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
   const donutSegs = (() => { let off = 0; return methodSplit.map((m, i) => { const len = (m.pct / 100) * donutCirc; const seg = { ...m, color: methodColors[i % methodColors.length]!, len, off }; off += len; return seg; }); })();
   const [donutSel, setDonutSel] = useState(0);
   const donutSelSafe = donutSegs.length > 0 ? Math.min(donutSel, donutSegs.length - 1) : 0;
-  // ---- Corbel replica: channel filter + KPI data (real numbers only, never demo data) ----
+  // ---- Corbel replica: KPI data (real numbers only, never demo data) ----
+  // All KPIs follow the selected range (1W/1M/1Y/All), compared with the
+  // previous equal-length period. No channel filter — it showed the same
+  // numbers on every tab.
   type CbInv = (typeof workspace.invoices)[number];
-  const [cbChannel, setCbChannel] = useState<"overview" | "online" | "instore">("overview");
-  const cbInvoices = useMemo(() => workspace.invoices.filter((inv) => {
-    if (cbChannel === "overview") return true;
-    const m = (inv.payment_method || "").toLowerCase();
-    if (cbChannel === "online") return m === "transfer" || m === "card";
-    return m === "cash" || m === "credit" || m === "";
-  }), [workspace.invoices, cbChannel]);
+  const cbInvoices = workspace.invoices;
   const cbIsPending = (i: CbInv) => i.payment_status === "pending";
   const cbIsPaid = (i: CbInv) => i.payment_status === "paid";
-  const cbSum = (key: string, pred: (i: CbInv) => boolean) => cbInvoices.filter((i) => monthKey(i.issue_date) === key && pred(i)).reduce((s, i) => s + i.total, 0);
-  const cbCount = (key: string, pred: (i: CbInv) => boolean) => cbInvoices.filter((i) => monthKey(i.issue_date) === key && pred(i)).length;
-  const cbUnits = (key: string) => cbInvoices.filter((i) => monthKey(i.issue_date) === key).reduce((s, i) => s + (i.items ?? []).reduce((t, it) => t + (it.quantity || 0), 0), 0);
-  const cbActive = cbSum(currentMonth, cbIsPending);
-  const cbRevenue = cbSum(currentMonth, () => true);
-  const cbUnitsVal = cbUnits(currentMonth);
-  const cbActiveDelta = deltaOf(cbActive, cbSum(prevMonth, cbIsPending));
-  const cbRevenueDelta = deltaOf(cbRevenue, cbSum(prevMonth, () => true));
-  const cbUnitsDelta = deltaOf(cbUnitsVal, cbUnits(prevMonth));
+  const cbSum = (pred: (i: CbInv) => boolean) => cbInvoices.filter((i) => inRange(i.issue_date) && pred(i)).reduce((s, i) => s + i.total, 0);
+  const cbSumPrev = (pred: (i: CbInv) => boolean) => cbInvoices.filter((i) => inPrevRange(i.issue_date) && pred(i)).reduce((s, i) => s + i.total, 0);
+  const cbCount = (pred: (i: CbInv) => boolean) => cbInvoices.filter((i) => inRange(i.issue_date) && pred(i)).length;
+  const cbCountPrev = (pred: (i: CbInv) => boolean) => cbInvoices.filter((i) => inPrevRange(i.issue_date) && pred(i)).length;
+  const cbUnits = () => cbInvoices.filter((i) => inRange(i.issue_date)).reduce((s, i) => s + (i.items ?? []).reduce((t, it) => t + (it.quantity || 0), 0), 0);
+  const cbUnitsPrev = () => cbInvoices.filter((i) => inPrevRange(i.issue_date)).reduce((s, i) => s + (i.items ?? []).reduce((t, it) => t + (it.quantity || 0), 0), 0);
+  const cbActive = cbSum(cbIsPending);
+  const cbRevenue = cbSum(() => true);
+  const cbUnitsVal = cbUnits();
+  const cbActiveDelta = deltaOf(cbActive, cbSumPrev(cbIsPending));
+  const cbRevenueDelta = deltaOf(cbRevenue, cbSumPrev(() => true));
+  const cbUnitsDelta = deltaOf(cbUnitsVal, cbUnitsPrev());
   const cbStockQty = (workspace.products ?? []).reduce((s, p) => s + (p.stock_quantity || 0), 0);
   const cbSellThrough = cbUnitsVal + cbStockQty > 0 ? Math.min(100, Math.round((cbUnitsVal / (cbUnitsVal + cbStockQty)) * 100)) : 0;
-  const cbPaidN = cbCount(currentMonth, cbIsPaid);
-  const cbTotalN = cbCount(currentMonth, () => true);
+  const cbPaidN = cbCount(cbIsPaid);
+  const cbTotalN = cbCount(() => true);
   const cbConv = cbTotalN > 0 ? (cbPaidN / cbTotalN) * 100 : 0;
-  const cbPaidNPrev = cbCount(prevMonth, cbIsPaid);
-  const cbTotalNPrev = cbCount(prevMonth, () => true);
+  const cbPaidNPrev = cbCountPrev(cbIsPaid);
+  const cbTotalNPrev = cbCountPrev(() => true);
   const cbConvPrev = cbTotalNPrev > 0 ? (cbPaidNPrev / cbTotalNPrev) * 100 : 0;
   const cbConvDeltaPts = cbConv - cbConvPrev;
   const cbDaily = useMemo(() => {
-    const now = new Date(`${today}T12:00:00`);
-    const dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const rev = Array.from({ length: dim }, () => 0);
-    const pend = Array.from({ length: dim }, () => 0);
+    // Sparkline buckets spanning the selected range: daily for 1W/1M,
+    // monthly for 1Y/All.
+    const monthly = heroRange === "1Y" || heroRange === "All";
+    const count = monthly ? 12 : (rangeDays ?? 7);
+    const rev = Array.from({ length: count }, () => 0);
+    const pend = Array.from({ length: count }, () => 0);
+    const end = new Date(`${today}T12:00:00`);
     for (const i of cbInvoices) {
-      if (monthKey(i.issue_date) !== currentMonth) continue;
-      const day = new Date(`${i.issue_date}T12:00:00`).getDate() - 1;
-      if (day < 0 || day >= dim) continue;
-      rev[day] = (rev[day] ?? 0) + i.total / 100;
-      if (i.payment_status === "pending") pend[day] = (pend[day] ?? 0) + i.total / 100;
+      if (!inRange(i.issue_date)) continue;
+      const d = new Date(`${i.issue_date}T12:00:00`);
+      let idx: number;
+      if (monthly) {
+        idx = count - 1 - ((end.getFullYear() - d.getFullYear()) * 12 + (end.getMonth() - d.getMonth()));
+      } else {
+        idx = count - 1 - Math.floor((end.getTime() - d.getTime()) / 86_400_000);
+      }
+      if (idx < 0 || idx >= count) continue;
+      rev[idx] = (rev[idx] ?? 0) + i.total / 100;
+      if (i.payment_status === "pending") pend[idx] = (pend[idx] ?? 0) + i.total / 100;
     }
     return { rev, pend };
-  }, [cbInvoices, currentMonth, today]);
-  const cbMonthLabel = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(new Date(`${today}T12:00:00`));
+  }, [cbInvoices, heroRange, rangeDays, today]);
   const cbBarData = (() => {
     const sums = Array.from({ length: 12 }, () => 0);
     const counts = Array.from({ length: 12 }, () => 0);
@@ -4410,10 +4417,7 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
     </section>
     <div className="cb-head"><h1>Dashboard</h1></div>
     <div className="cb-controls">
-      <div className="cb-seg" role="group" aria-label="Sales channel">
-        {(["overview", "online", "instore"] as const).map((c) => <button key={c} type="button" className={cbChannel === c ? "active" : ""} aria-pressed={cbChannel === c} onClick={() => setCbChannel(c)}>{c === "overview" ? "Overview" : c === "online" ? "Online" : "In store"}</button>)}
-      </div>
-      <p className="cb-month"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 4.6V8l2.6 1.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{cbMonthLabel}, month to date</p>
+      <p className="cb-month"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 4.6V8l2.6 1.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{rangeLabel}</p>
       <div className="cb-actions">
         <button type="button" className="cb-full" onClick={onAnalytics}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 13.6h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><rect x="3" y="8.4" width="2.6" height="3.8" rx="1" fill="currentColor" /><rect x="6.7" y="5.4" width="2.6" height="6.8" rx="1" fill="currentColor" /><rect x="10.4" y="2.6" width="2.6" height="9.6" rx="1" fill="currentColor" /></svg>Full analytics</button>
         <button type="button" className="cb-export" onClick={() => setShowExport(true)}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 2v8.6M4.6 7.4 8 10.8l3.4-3.4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /><path d="M2.4 12.6h11.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>Export</button>
@@ -4421,30 +4425,30 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
     </div>
     <div className="cb-kpis">
       <article className="cb-kpi cb-k1">
-        <div className="cb-kpi-head"><span>Active sales</span><i className="cb-info" title="Value of unpaid sales invoices, month to date">i</i></div>
+        <div className="cb-kpi-head"><span>Active sales</span><i className="cb-info" title="Value of unpaid sales invoices in the selected range">i</i></div>
         <div className="cb-kpi-main"><strong><AnimatedMoney value={cbActive} currency={workspace.settings.currency} /></strong><CbBars values={cbDaily.pend} tone="dark" /></div>
-        <span className="cb-delta"><i className={`delta-pill ${cbActiveDelta.dir}`}>{cbActiveDelta.label}</i> vs last month</span>
+        <span className="cb-delta"><i className={`delta-pill ${cbActiveDelta.dir}`}>{cbActiveDelta.label}</i> vs previous period</span>
         <span className="cb-div" />
         <button type="button" className="cb-see" onClick={onBills}>See orders</button>
       </article>
       <article className="cb-kpi cb-k2">
-        <div className="cb-kpi-head"><span>Revenue</span><i className="cb-info" title="Total invoiced sales, month to date">i</i></div>
+        <div className="cb-kpi-head"><span>Revenue</span><i className="cb-info" title="Total invoiced sales in the selected range">i</i></div>
         <div className="cb-kpi-main"><strong><AnimatedMoney value={cbRevenue} currency={workspace.settings.currency} /></strong><CbLine values={cbDaily.rev} /></div>
-        <span className="cb-delta"><i className={`delta-pill ${cbRevenueDelta.dir}`}>{cbRevenueDelta.label}</i> vs last month</span>
+        <span className="cb-delta"><i className={`delta-pill ${cbRevenueDelta.dir}`}>{cbRevenueDelta.label}</i> vs previous period</span>
         <span className="cb-div" />
         <button type="button" className="cb-see" onClick={onAnalytics}>See analytics</button>
       </article>
       <article className="cb-kpi cb-k3">
-        <div className="cb-kpi-head"><span>Units sold</span><i className="cb-info" title="Item quantities sold, month to date">i</i></div>
+        <div className="cb-kpi-head"><span>Units sold</span><i className="cb-info" title="Item quantities sold in the selected range">i</i></div>
         <div className="cb-kpi-main"><strong><CountUp value={cbUnitsVal} /></strong><CbDonut pct={cbSellThrough} /></div>
-        <span className="cb-delta"><i className={`delta-pill ${cbUnitsDelta.dir}`}>{cbUnitsDelta.label}</i> vs last month</span>
+        <span className="cb-delta"><i className={`delta-pill ${cbUnitsDelta.dir}`}>{cbUnitsDelta.label}</i> vs previous period</span>
         <span className="cb-div" />
         <button type="button" className="cb-see" onClick={onInventory}>See products</button>
       </article>
       <article className="cb-kpi cb-k4">
-        <div className="cb-kpi-head"><span>Conversion rate</span><i className="cb-info" title="Share of this month's invoices already paid">i</i></div>
+        <div className="cb-kpi-head"><span>Conversion rate</span><i className="cb-info" title="Share of invoices in the selected range already paid">i</i></div>
         <div className="cb-kpi-main"><strong>{cbConv.toFixed(1)}%</strong><CbBars values={cbDaily.rev} tone="grey" /></div>
-        <span className="cb-delta"><i className={`delta-pill ${cbConvDeltaPts >= 0 ? "up" : "down"}`}>{cbConvDeltaPts >= 0 ? "↑" : "↓"} {Math.abs(cbConvDeltaPts).toFixed(1)} pt</i> vs last month</span>
+        <span className="cb-delta"><i className={`delta-pill ${cbConvDeltaPts >= 0 ? "up" : "down"}`}>{cbConvDeltaPts >= 0 ? "↑" : "↓"} {Math.abs(cbConvDeltaPts).toFixed(1)} pt</i> vs previous period</span>
         <span className="cb-div" />
         <button type="button" className="cb-see" onClick={onAnalytics}>See funnel</button>
       </article>
