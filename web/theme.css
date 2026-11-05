@@ -3078,14 +3078,14 @@ button:active { transform: scale(.96); }
   .product-table .cell-meta .price { font-weight: 800; color: var(--text); font-size: 13px; }
   .product-table .cell-id, .product-table .cell-brand, .product-table .cell-count,
   .product-table .cell-type, .product-table .cell-shelf, .product-table .cell-supplier,
-  .product-table .cell-updated { display: none; }
-  .product-table .cell-edit-left { display: block !important; flex: 0 0 auto; order: -1; }
+  .product-table .cell-updated, .product-table .cell-status, .product-table td.num { display: none; }
+  .product-table .cell-edit-left { display: none !important; }
   .product-table .cell-edit-left button { width: 38px; height: 38px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border)); color: var(--accent); display: grid; place-items: center; cursor: pointer; }
   .product-table .cell-edit-left button svg { width: 17px; height: 17px; }
   .product-table .cell-edit-left button:active { transform: scale(.93); }
-  .product-table .row-actions { flex: 0 0 auto !important; display: flex !important; gap: 4px; margin-left: auto; }
-  .product-table .row-actions .btn-edit { display: none !important; }
-  .product-table .row-actions button { padding: 9px; border-radius: 10px; color: #d33f3f; background: #fdecec; border: 1px solid #f5c6c6; display: grid; place-items: center; }
+  .product-table .row-actions { flex: 0 0 auto !important; display: flex !important; gap: 6px; margin-left: auto; }
+  .product-table .row-actions .btn-edit { display: grid !important; padding: 9px; border-radius: 10px; color: var(--text); background: var(--surface); border: 1px solid var(--border); place-items: center; cursor: pointer; }
+  .product-table .row-actions .btn-delete { padding: 9px; border-radius: 10px; color: #d33f3f; background: #fdecec; border: 1px solid #f5c6c6; display: grid; place-items: center; }
   .product-table .row-actions button svg { width: 15px; height: 15px; }
   .product-table .hide-desktop { display: none; }
 }
