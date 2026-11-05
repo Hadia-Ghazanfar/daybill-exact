@@ -2970,6 +2970,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   const [pin, setPin] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [confirmation, setConfirmation] = useState("");
+  const [resetPinChoice, setResetPinChoice] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminConfirmation, setAdminConfirmation] = useState("");
@@ -2996,7 +2997,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   });
   const create = useMutation({
     mutationFn: () => {
-      return api.createAccount({ shopkeeper_name: name, shop_name: shopName, shop_address: shopAddress, phone, pin, account_type: signupAccountType });
+      return api.createAccount({ shopkeeper_name: name, shop_name: shopName, shop_address: shopAddress, phone, pin, account_type: signupAccountType, reset_pin: resetPinChoice });
     },
     onSuccess: (result) => {
       const session: AccountSession = { account_id: result.account_id, session_token: result.session_token, session_kind: result.session_kind, shopkeeper_name: result.shopkeeper_name, phone: result.phone };
@@ -3006,7 +3007,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
   });
   const doResetPin = useMutation({
     mutationFn: () => {
-      return api.resetPin({ phone: resetPhone, new_pin: resetPin, otp_code: otpCode });
+      return api.resetPin({ phone: resetPhone, new_pin: resetPin, reset_pin: otpCode });
     },
     onSuccess: () => { setResetDone(true); },
   });
@@ -3108,17 +3109,13 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
               <label><span>New password</span><input aria-label="New password" type="password" value={resetPin} onChange={(e) => setResetPin(e.target.value)} placeholder="••••••••" /></label>
               <label><span>Confirm new password</span><input aria-label="Confirm new password" type="password" value={resetConfirm} onChange={(e) => setResetConfirm(e.target.value)} placeholder="••••••••" /></label>
               <div className="otp-section">
-                <p className="auth-field-help" style={{ marginTop: 0 }}>We will send a 6-digit code to your phone to verify it is you.</p>
-                {otpStep === "form" ? <button type="button" className="secondary wide" onClick={() => handleSendOtp(resetPhone)} disabled={!resetPhone || otpSending || otpCooldown > 0}>{otpSending ? "Sending code…" : otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Send verification code"}</button> : <>
-                  <label><span>Enter the 6-digit code sent to {resetPhone}</span><input aria-label="Verification code" inputMode="numeric" maxLength={6} value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="••••••" /></label>
-                  <button type="button" className="secondary" onClick={() => handleSendOtp(resetPhone)} disabled={otpSending || otpCooldown > 0}>{otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Resend code"}</button>
-                </>}
-                {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
+                <p className="auth-field-help" style={{ marginTop: 0 }}>Enter the 4-digit reset PIN you chose when you created this account.</p>
+                <label><span>Reset PIN (4 digits)</span><input aria-label="Reset PIN" type="password" inputMode="numeric" maxLength={4} value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>
               </div>
               {resetPin && !(resetPin.length >= 8 && /\d/.test(resetPin) && /[^a-zA-Z0-9]/.test(resetPin)) ? <p className="auth-error" role="alert">Password must be 8+ characters with a number and special character.</p> : null}
               {resetConfirm && resetPin !== resetConfirm ? <p className="auth-error" role="alert">Passwords do not match.</p> : null}
               {doResetPin.error ? <p className="auth-error" role="alert">{doResetPin.error instanceof Error ? doResetPin.error.message : "Could not reset password."}</p> : null}
-              <button className="primary wide login-submit" type="submit" disabled={!(resetPin.length >= 8 && /\d/.test(resetPin) && /[^a-zA-Z0-9]/.test(resetPin)) || resetPin !== resetConfirm || otpCode.length !== 6 || doResetPin.isPending}>{doResetPin.isPending ? "Please wait…" : "Set new password"}</button>
+              <button className="primary wide login-submit" type="submit" disabled={!(resetPin.length >= 8 && /\d/.test(resetPin) && /[^a-zA-Z0-9]/.test(resetPin)) || resetPin !== resetConfirm || otpCode.length !== 4 || doResetPin.isPending}>{doResetPin.isPending ? "Please wait…" : "Set new password"}</button>
             </>}
             <button className="auth-switch" type="button" onClick={() => changeMode("user-login")}>Back to login</button>
           </form>
@@ -3138,7 +3135,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             event.preventDefault();
             if (!phoneValid || !pinValid) return;
             if (isCreating) {
-              if (pin !== confirmation || name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3) return;
+              if (pin !== confirmation || name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || resetPinChoice.length !== 4) return;
               create.mutate();
             } else login.mutate();
           }}>
@@ -3152,6 +3149,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             <p className="auth-field-help">Use the local format 0300-0000000.</p>
             <label><span>Password</span><span className="password-field"><input aria-label={isCreating ? "Set password" : "Password"} type={showPassword ? "text" : "password"} autoComplete={isCreating ? "new-password" : "current-password"} placeholder="••••••••" value={pin} onChange={(event) => setPin(event.target.value)} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide PIN" : "Show PIN"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Icon name="eye-off" /> : <Icon name="eye" />}</button></span></label>
             {isCreating ? <label><span>Confirm password</span><span className="password-field"><input aria-label="Confirm password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="••••••••" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /><button type="button" className="password-toggle" aria-label={showPassword ? "Hide PIN" : "Show PIN"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <Icon name="eye-off" /> : <Icon name="eye" />}</button></span></label> : null}
+            {isCreating ? <><label><span>Reset PIN (4 digits)</span><input aria-label="Reset PIN" type="password" inputMode="numeric" maxLength={4} autoComplete="off" value={resetPinChoice} onChange={(event) => setResetPinChoice(event.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label><p className="auth-field-help">Pick 4 digits you will remember. You will need this PIN if you ever forget your password.</p></> : null}
             {!phoneValid && phone.length > 0 ? <p className="auth-error" role="alert">Phone number must use the 0300-0000000 format.</p> : null}
             {isCreating && confirmation && pin !== confirmation ? <p className="auth-error" role="alert">Passwords do not match.</p> : null}
             {isCreating && pin && !pinValid ? <p className="auth-error" role="alert">Password must be 8+ characters with a number and special character.</p> : null}
@@ -3168,7 +3166,7 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
               </>}
               {otpError ? <p className="auth-error" role="alert">{otpError}</p> : null}
             </div> : null}
-            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
+            <button className="primary wide login-submit" type="submit" disabled={!phoneValid || !pinValid || (isCreating && (name.trim().length < 2 || shopName.trim().length < 2 || shopAddress.trim().length < 3 || pin !== confirmation || resetPinChoice.length !== 4)) || login.isPending || create.isPending}>{login.isPending || create.isPending ? "Please wait…" : isCreating ? "Create account" : "User Login"}</button>
             {!isCreating ? <button className="auth-switch" type="button" onClick={() => changeMode("forgot-pin")}>Forgot PIN?</button> : null}
             <button className="auth-switch" type="button" onClick={() => changeMode(isCreating ? "user-login" : "create")}>{isCreating ? "Already have a user account? Log in" : "New here? Create user account"}</button>
             <p className="auth-legal">By continuing you agree to our <button type="button" className="link-inline" onClick={() => setShowPrivacy(true)}>Privacy Policy</button> and <button type="button" className="link-inline" onClick={() => setShowTerms(true)}>Terms of Service</button>.</p>
@@ -3836,29 +3834,31 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
   const [newPin, setNewPin] = useState("");
   const [newPinConfirm, setNewPinConfirm] = useState("");
   const [pinCode, setPinCode] = useState("");
-  const [pinCodeSent, setPinCodeSent] = useState(false);
-  const [pinSending, setPinSending] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinDone, setPinDone] = useState(false);
-  const pinValid = newPin.length >= 8 && /\d/.test(newPin) && /[^a-zA-Z0-9]/.test(newPin);
-  const handleSendPinCode = async () => {
-    setPinError(null);
-    if (pinSending) return;
-    setPinSending(true);
+  const [resetPinFormOpen, setResetPinFormOpen] = useState(false);
+  const [oldResetPin, setOldResetPin] = useState("");
+  const [newResetPin, setNewResetPin] = useState("");
+  const [newResetPinConfirm, setNewResetPinConfirm] = useState("");
+  const [resetPinError, setResetPinError] = useState<string | null>(null);
+  const [resetPinDone, setResetPinDone] = useState(false);
+  const handleSetResetPin = async () => {
+    setResetPinError(null);
+    if (newResetPin.length !== 4 || newResetPin !== newResetPinConfirm) return;
     try {
-      await sendOtpCode(account.phone ?? "");
-      setPinCodeSent(true);
+      await api.setResetPin({ old_reset_pin: oldResetPin.length === 4 ? oldResetPin : undefined, new_reset_pin: newResetPin });
+      setResetPinDone(true);
+      setOldResetPin(""); setNewResetPin(""); setNewResetPinConfirm("");
     } catch (err) {
-      setPinError(err instanceof Error ? err.message : "Could not send the code. Try again.");
-    } finally {
-      setPinSending(false);
+      setResetPinError(err instanceof Error ? err.message : "Could not save reset PIN.");
     }
   };
+  const pinValid = newPin.length >= 8 && /\d/.test(newPin) && /[^a-zA-Z0-9]/.test(newPin);
   const handleChangePin = async () => {
     setPinError(null);
-    if (!oldPin || !pinValid || newPin !== newPinConfirm || pinCode.length !== 6) return;
+    if (!oldPin || !pinValid || newPin !== newPinConfirm || pinCode.length !== 4) return;
     try {
-      await api.changePin({ old_pin: oldPin, new_pin: newPin, otp_code: pinCode });
+      await api.changePin({ old_pin: oldPin, new_pin: newPin, reset_pin: pinCode });
       setPinDone(true);
       setOldPin(""); setNewPin(""); setNewPinConfirm(""); setPinCode("");
     } catch (err) {
@@ -3916,7 +3916,7 @@ function ProfileView({ settings, account, onEdit, onLogout, onNotifOpen }: { set
         <div className="settings-row"><div><strong>Language</strong><small>Choose the app language.</small></div><div className="language-switch" role="group" aria-label="Language"><button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button><button type="button" className={language === "ur" ? "active" : ""} aria-pressed={language === "ur"} onClick={() => setLanguage("ur")}>اردو</button></div></div>
       </section>
       <section className="settings-card"><div><strong>Feedback</strong><small>Help us improve Daybill.</small></div><button className="secondary compact" type="button" onClick={() => setShowFeedback(true)}>Share feedback</button></section>
-      <section className="settings-card"><h2>Security &amp; data</h2><p>Keep your account safe and your records backed up.</p><div className="settings-row"><div><strong>Reset PIN</strong><small>Change your password with a code sent to your phone.</small></div><button className="secondary compact" type="button" onClick={() => { setPinFormOpen(o => !o); setPinDone(false); setPinError(null); }}>{pinFormOpen ? "Close" : "Reset PIN"}</button></div>{pinFormOpen ? <div className="pin-change-form">{pinDone ? <p className="otp-verified" role="status">✓ PIN changed successfully.</p> : <><label className="settings-field"><span>Current PIN</span><input aria-label="Current PIN" type="password" value={oldPin} onChange={(e) => setOldPin(e.target.value)} placeholder="••••••••" /></label><label className="settings-field"><span>New PIN</span><input aria-label="New PIN" type="password" value={newPin} onChange={(e) => setNewPin(e.target.value)} placeholder="••••••••" /></label>{newPin && !pinValid ? <p className="auth-error" role="alert">PIN must be 8+ characters with a number and special character.</p> : null}<label className="settings-field"><span>Confirm new PIN</span><input aria-label="Confirm new PIN" type="password" value={newPinConfirm} onChange={(e) => setNewPinConfirm(e.target.value)} placeholder="••••••••" /></label>{newPinConfirm && newPin !== newPinConfirm ? <p className="auth-error" role="alert">PINs do not match.</p> : null}<div className="otp-section"><p className="auth-field-help" style={{ marginTop: 0 }}>We will send one code to {account.phone ? formatPhoneDisplay(account.phone) : "your phone"} — enter it to confirm.</p>{pinCodeSent ? <><label className="settings-field"><span>Verification code</span><input aria-label="Verification code" inputMode="numeric" maxLength={6} value={pinCode} onChange={(e) => setPinCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="••••••" /></label><button type="button" className="secondary" onClick={handleSendPinCode} disabled={pinSending}>{pinSending ? "Sending…" : "Resend code"}</button></> : <button type="button" className="secondary wide" onClick={handleSendPinCode} disabled={pinSending}>{pinSending ? "Sending code…" : "Send verification code"}</button>}</div>{pinError ? <p className="auth-error" role="alert">{pinError}</p> : null}<button className="primary wide" type="button" onClick={handleChangePin} disabled={!oldPin || !pinValid || newPin !== newPinConfirm || pinCode.length !== 6}>Change PIN</button></>}</div> : null}<div className="settings-row"><div><strong>Backup data</strong><small>Download all your invoices, products and contacts as a file.</small></div><button className="secondary compact" type="button" onClick={handleBackup} disabled={backupState === "working"}>{backupState === "working" ? "Preparing…" : backupState === "done" ? "✓ Downloaded" : backupState === "error" ? "Try again" : "Download backup"}</button></div></section>
+      <section className="settings-card"><h2>Security &amp; data</h2><p>Keep your account safe and your records backed up.</p><div className="settings-row"><div><strong>Reset PIN</strong><small>Change your password with a code sent to your phone.</small></div><button className="secondary compact" type="button" onClick={() => { setPinFormOpen(o => !o); setPinDone(false); setPinError(null); }}>{pinFormOpen ? "Close" : "Reset PIN"}</button></div>{pinFormOpen ? <div className="pin-change-form">{pinDone ? <p className="otp-verified" role="status">✓ PIN changed successfully.</p> : <><label className="settings-field"><span>Current PIN</span><input aria-label="Current PIN" type="password" value={oldPin} onChange={(e) => setOldPin(e.target.value)} placeholder="••••••••" /></label><label className="settings-field"><span>New PIN</span><input aria-label="New PIN" type="password" value={newPin} onChange={(e) => setNewPin(e.target.value)} placeholder="••••••••" /></label>{newPin && !pinValid ? <p className="auth-error" role="alert">PIN must be 8+ characters with a number and special character.</p> : null}<label className="settings-field"><span>Confirm new PIN</span><input aria-label="Confirm new PIN" type="password" value={newPinConfirm} onChange={(e) => setNewPinConfirm(e.target.value)} placeholder="••••••••" /></label>{newPinConfirm && newPin !== newPinConfirm ? <p className="auth-error" role="alert">PINs do not match.</p> : null}<div className="otp-section"><p className="auth-field-help" style={{ marginTop: 0 }}>Enter the 4-digit reset PIN you chose when you created this account.</p><label className="settings-field"><span>Reset PIN (4 digits)</span><input aria-label="Reset PIN" type="password" inputMode="numeric" maxLength={4} value={pinCode} onChange={(e) => setPinCode(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label></div>{pinError ? <p className="auth-error" role="alert">{pinError}</p> : null}<button className="primary wide" type="button" onClick={handleChangePin} disabled={!oldPin || !pinValid || newPin !== newPinConfirm || pinCode.length !== 4}>Change PIN</button></>}</div> : null}<div className="settings-row"><div><strong>Reset PIN</strong><small>Your 4-digit PIN for password recovery. Set one if you never chose one.</small></div><button className="secondary compact" type="button" onClick={() => { setResetPinFormOpen(o => !o); setResetPinDone(false); setResetPinError(null); }}>{resetPinFormOpen ? "Close" : "Set reset PIN"}</button></div>{resetPinFormOpen ? <div className="pin-change-form">{resetPinDone ? <p className="otp-verified" role="status">✓ Reset PIN saved.</p> : <><label className="settings-field"><span>Current reset PIN (leave empty if you never set one)</span><input aria-label="Current reset PIN" type="password" inputMode="numeric" maxLength={4} value={oldResetPin} onChange={(e) => setOldResetPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label><label className="settings-field"><span>New reset PIN (4 digits)</span><input aria-label="New reset PIN" type="password" inputMode="numeric" maxLength={4} value={newResetPin} onChange={(e) => setNewResetPin(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label><label className="settings-field"><span>Confirm new reset PIN</span><input aria-label="Confirm new reset PIN" type="password" inputMode="numeric" maxLength={4} value={newResetPinConfirm} onChange={(e) => setNewResetPinConfirm(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="••••" /></label>{newResetPinConfirm && newResetPin !== newResetPinConfirm ? <p className="auth-error" role="alert">PINs do not match.</p> : null}{resetPinError ? <p className="auth-error" role="alert">{resetPinError}</p> : null}<button className="primary wide" type="button" onClick={handleSetResetPin} disabled={newResetPin.length !== 4 || newResetPin !== newResetPinConfirm}>Save reset PIN</button></>}</div> : null}<div className="settings-row"><div><strong>Backup data</strong><small>Download all your invoices, products and contacts as a file.</small></div><button className="secondary compact" type="button" onClick={handleBackup} disabled={backupState === "working"}>{backupState === "working" ? "Preparing…" : backupState === "done" ? "✓ Downloaded" : backupState === "error" ? "Try again" : "Download backup"}</button></div></section>
       </> : settingsTab === "store" ? <><section className="settings-card"><h2>Store details</h2><p>Shown on receipts, invoices and the sidebar.</p><div className="profile-fields"><label className="settings-field"><span>Store name</span><span className="settings-field-value">{settings.business_name || "—"}</span></label><label className="settings-field"><span>Phone / WhatsApp</span><span className="settings-field-value">{settings.phone ? formatPhoneDisplay(settings.phone) : "—"}</span></label><label className="settings-field"><span>Currency</span><span className="settings-field-value">{settings.currency}</span></label><label className="settings-field wide"><span>Address</span><span className="settings-field-value">{settings.address || "—"}</span></label><button className="secondary compact" type="button" onClick={onEdit}><Icon name="pencil" />Edit shop details</button></div></section><section className="settings-card"><h2>Shops</h2><p>Where customers collect orders and walk in. Daybill has one shop.</p><div className="shop-card"><strong>{settings.business_name || "Your shop"}</strong><span>{settings.address || "No address added"}</span>{settings.phone ? <span>{formatPhoneDisplay(settings.phone)}</span> : null}</div></section></> : <section className="settings-card"><h2>Notify me about</h2><p>Shown in your notification panel, on this device.</p>
         {notifRows.map(r => <div className="settings-row" key={r.key}><div><strong>{r.label}</strong><small>{r.note}</small></div><button type="button" role="switch" aria-checked={notifPrefs[r.key]} aria-label={r.label} className={`settings-toggle ${notifPrefs[r.key] ? "on" : ""}`} onClick={() => toggleNotif(r.key)}><span /></button></div>)}
       </section>}
