@@ -1081,13 +1081,15 @@ function whatsappDigits(phone: string) {
   return /^03\d{9}$/.test(digits) ? `92${digits.slice(1)}` : digits;
 }
 
-function openWhatsAppReminder(invoice: Pick<Workspace["invoices"][number], "customer_phone" | "customer_name" | "invoice_number" | "total" | "currency" | "due_date">, businessName: string, language: Language) {
+function openWhatsAppReminder(invoice: Pick<Workspace["invoices"][number], "customer_phone" | "customer_name" | "invoice_number" | "total" | "currency" | "due_date" | "issue_date" | "items">, businessName: string, language: Language) {
   const phone = whatsappDigits(invoice.customer_phone);
-  if (!phone || !invoice.due_date) return false;
+  if (!phone) return false;
   const amount = money(invoice.total, invoice.currency);
+  const due = invoice.due_date || (language === "ur" ? "کوئی آخری تاریخ نہیں" : "No due date");
+  const items = (invoice.items ?? []).map((item) => `- ${item.description} x ${item.quantity} - ${money(item.unit_price, invoice.currency)} each = ${money(item.line_total, invoice.currency)}`).join("\n");
   const message = language === "ur"
-    ? `السلام علیکم ${invoice.customer_name}، ${businessName || "ہماری دکان"} کی طرف سے یاد دہانی ہے کہ رسید ${invoice.invoice_number} کی ${amount} رقم ${invoice.due_date} کو واجب الادا تھی۔ براہِ کرم ادائیگی کر دیں۔ شکریہ۔`
-    : `Hello ${invoice.customer_name}, this is a polite reminder from ${businessName || "our shop"} that invoice ${invoice.invoice_number} for ${amount} was due on ${invoice.due_date}. Please arrange payment. Thank you.`;
+    ? `السلام علیکم ${invoice.customer_name}، ${businessName || "ہماری دکان"} کی طرف سے ادائیگی کی یاد دہانی ہے۔\n\nرسید: ${invoice.invoice_number}\nتاریخ: ${invoice.issue_date}\nآخری تاریخ: ${due}\n\nخریدی گئی اشیاء:\n${items}\n\nکل رقم: ${amount}\n\nبراہِ کرم ادائیگی کر دیں۔ شکریہ۔`
+    : `Hello ${invoice.customer_name}, this is a payment reminder from ${businessName || "our shop"}.\n\nInvoice ${invoice.invoice_number}\nDate: ${invoice.issue_date}\nDue date: ${due}\n\nItems purchased:\n${items}\n\nTotal: ${amount}\n\nPlease arrange payment. Thank you.`;
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   return true;
 }
@@ -3201,6 +3203,10 @@ function AccountAuth({ onAuthenticated, initialMode = "user-login" }: { onAuthen
             {!phoneValid && phone.length > 0 ? <p className="auth-error" role="alert">Phone number must use the 0300-0000000 format.</p> : null}
             {isCreating && confirmation && pin !== confirmation ? <p className="auth-error" role="alert">Passwords do not match.</p> : null}
             {isCreating && pin && !pinValid ? <p className="auth-error" role="alert">Password must be 8+ characters with a number and special character.</p> : null}
+            {isCreating && name.trim().length > 0 && name.trim().length < 2 ? <p className="auth-error" role="alert">Account holder name needs at least 2 characters.</p> : null}
+            {isCreating && shopName.trim().length > 0 && shopName.trim().length < 2 ? <p className="auth-error" role="alert">Shop name needs at least 2 characters.</p> : null}
+            {isCreating && shopAddress.trim().length > 0 && shopAddress.trim().length < 3 ? <p className="auth-error" role="alert">Shop address needs at least 3 characters.</p> : null}
+            {isCreating && resetPinChoice.length > 0 && resetPinChoice.length !== 4 ? <p className="auth-error" role="alert">Reset PIN needs all 4 digits.</p> : null}
             {error ? <p className="auth-error" role="alert">{error instanceof Error ? error.message : "Could not continue. Try again."}</p> : null}
             <label className="remember-row"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} /><span>Remember me</span></label>
             {/* OTP verification hidden for now - will be re-enabled later */}
