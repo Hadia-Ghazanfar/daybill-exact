@@ -4407,13 +4407,12 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
     </section>
     <div className="cb-head"><h1>Dashboard</h1></div>
     <div className="cb-controls">
-      <p className="cb-month"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 4.6V8l2.6 1.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{rangeLabel}</p>
       <div className="cb-actions">
         <button type="button" className="cb-full" onClick={onAnalytics}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 13.6h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><rect x="3" y="8.4" width="2.6" height="3.8" rx="1" fill="currentColor" /><rect x="6.7" y="5.4" width="2.6" height="6.8" rx="1" fill="currentColor" /><rect x="10.4" y="2.6" width="2.6" height="9.6" rx="1" fill="currentColor" /></svg>Full analytics</button>
         <button type="button" className="cb-export" onClick={() => setShowExport(true)}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 2v8.6M4.6 7.4 8 10.8l3.4-3.4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /><path d="M2.4 12.6h11.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>Export</button>
       </div>
     </div>
-<div className="hero-ranges hero-ranges--below" role="group" aria-label="Balance chart range">{(["1W", "1M", "1Y", "All"] as const).map((range) => <button type="button" key={range} className={heroRange === range ? "active" : ""} aria-pressed={heroRange === range} onClick={() => setHeroRange(range)}>{range}</button>)}</div>
+<div className="hero-ranges hero-ranges--below" role="group" aria-label="Balance chart range">{(["1W", "1M", "1Y", "All"] as const).map((range) => <button type="button" key={range} className={heroRange === range ? "active" : ""} aria-pressed={heroRange === range} onClick={() => setHeroRange(range)}>{range}</button>)}<p className="cb-month"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 4.6V8l2.6 1.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{rangeLabel}</p></div>
         <div className="cb-kpis">
       <article className="cb-kpi cb-k1">
         <div className="cb-kpi-head"><span>Active sales</span><i className="cb-info" title="Value of unpaid sales invoices in the selected range">i</i></div>
