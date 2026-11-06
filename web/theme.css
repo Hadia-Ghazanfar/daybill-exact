@@ -6116,12 +6116,12 @@ html[data-theme="dark"] .login-page .login-form .auth-label { color: #a3a19e; }
 .dashboard-view { font-family: "Urbanist", "Outfit", system-ui, -apple-system, sans-serif; }
 .cb-head h1 { font-size: 33px; font-weight: 600; letter-spacing: -0.025em; color: #121212; margin: 6px 2px 20px; }
 html.phone-layout .cb-head { display: none; }
-.cb-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 0 2px 20px; }
+.cb-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 0 2px 8px; }
 .cb-seg { display: inline-flex; background: #e9ece5; border-radius: 999px; padding: 4px; gap: 2px; }
 .cb-seg button { border: 0; background: transparent; border-radius: 999px; padding: 8px 18px; font-family: "Urbanist", sans-serif; font-weight: 600; font-size: 13px; color: #5f6a60; cursor: pointer; }
 .cb-seg button.active { background: #fff; color: #17251a; box-shadow: 0 2px 8px rgba(20,40,25,.14); }
 .cb-month { display: flex; align-items: center; gap: 7px; margin: 0 auto; color: #7d887d; font-size: 13px; font-weight: 500; }
-.cb-actions { display: flex; gap: 10px; align-items: center; }
+.cb-actions { display: flex; gap: 10px; align-items: center; margin-left: auto; }
 .cb-full { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #e3e6e0; border-radius: 999px; padding: 10px 18px; font-family: "Urbanist", sans-serif; font-weight: 600; font-size: 13px; color: #17251a; cursor: pointer; box-shadow: 0 2px 6px rgba(20,40,25,.06); }
 .cb-export { display: inline-flex; align-items: center; gap: 8px; background: #131313; color: #fff; border: 0; border-radius: 999px; padding: 10px 20px; font-family: "Urbanist", sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; }
 .cb-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0 0 16px; }
@@ -6490,7 +6490,12 @@ html[data-theme="dark"][data-accent="mono"] .cb-gauge { background: #1e1e1e; }
 html.phone-layout .received-card--welcome { padding: 14px 16px; }
 
 /* Duration pills moved below the dashboard controls, above the KPI cards */
-.hero-ranges--below { display: flex; gap: 8px; margin: 12px 0 16px; }
+.hero-ranges--below { display: flex; gap: 8px; margin: 8px 0 16px; align-items: center; }
+.hero-ranges--below .cb-month { margin: 0 0 0 auto; }
+@media (min-width: 760px) {
+  .cb-controls { margin-bottom: 0; }
+  .hero-ranges--below { margin-top: 0; }
+}
 .hero-ranges--below button { padding: 8px 18px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--dim); font-size: 13px; font-weight: 700; cursor: pointer; }
 .hero-ranges--below button.active { background: var(--ink, #111); color: #fff; border-color: transparent; }
 html[data-theme="dark"] .hero-ranges--below button.active { background: #fff; color: #111; }
