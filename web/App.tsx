@@ -4116,6 +4116,11 @@ function AnimatedMoney({ value, currency }: { value: number; currency: string })
   return <>{money(display, currency)}</>;
 }
 
+function kpiSizeCls(label: string) {
+  const len = label.length;
+  return len > 13 ? "cb-xlong" : len > 9 ? "cb-long" : "";
+}
+
 function CountUp({ value }: { value: number }) {
   const [display, setDisplay] = useState(0);
   useEffect(() => {
@@ -4416,28 +4421,28 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
         <div className="cb-kpis">
       <article className="cb-kpi cb-k1">
         <div className="cb-kpi-head"><span>Active sales</span><i className="cb-info" title="Value of unpaid sales invoices in the selected range">i</i></div>
-        <div className="cb-kpi-main"><strong><AnimatedMoney value={cbActive} currency={workspace.settings.currency} /></strong><CbBars values={cbDaily.pend} tone="dark" /></div>
+        <div className="cb-kpi-main"><strong className={kpiSizeCls(money(cbActive, workspace.settings.currency))}><AnimatedMoney value={cbActive} currency={workspace.settings.currency} /></strong><CbBars values={cbDaily.pend} tone="dark" /></div>
         <span className="cb-delta"><i className={`delta-pill ${cbActiveDelta.dir}`}>{cbActiveDelta.label}</i> vs previous period</span>
         <span className="cb-div" />
         <button type="button" className="cb-see" onClick={onBills}>See orders</button>
       </article>
       <article className="cb-kpi cb-k2">
         <div className="cb-kpi-head"><span>Revenue</span><i className="cb-info" title="Total invoiced sales in the selected range">i</i></div>
-        <div className="cb-kpi-main"><strong><AnimatedMoney value={cbRevenue} currency={workspace.settings.currency} /></strong><CbLine values={cbDaily.rev} /></div>
+        <div className="cb-kpi-main"><strong className={kpiSizeCls(money(cbRevenue, workspace.settings.currency))}><AnimatedMoney value={cbRevenue} currency={workspace.settings.currency} /></strong><CbLine values={cbDaily.rev} /></div>
         <span className="cb-delta"><i className={`delta-pill ${cbRevenueDelta.dir}`}>{cbRevenueDelta.label}</i> vs previous period</span>
         <span className="cb-div" />
         <button type="button" className="cb-see" onClick={onAnalytics}>See analytics</button>
       </article>
       <article className="cb-kpi cb-k3">
         <div className="cb-kpi-head"><span>Units sold</span><i className="cb-info" title="Item quantities sold in the selected range">i</i></div>
-        <div className="cb-kpi-main"><strong><CountUp value={cbUnitsVal} /></strong><CbDonut pct={cbSellThrough} /></div>
+        <div className="cb-kpi-main"><strong className={kpiSizeCls(cbUnitsVal.toLocaleString())}><CountUp value={cbUnitsVal} /></strong><CbDonut pct={cbSellThrough} /></div>
         <span className="cb-delta"><i className={`delta-pill ${cbUnitsDelta.dir}`}>{cbUnitsDelta.label}</i> vs previous period</span>
         <span className="cb-div" />
         <button type="button" className="cb-see" onClick={onInventory}>See products</button>
       </article>
       <article className="cb-kpi cb-k4">
         <div className="cb-kpi-head"><span>Received</span><i className="cb-info" title="Payments collected from paid invoices in the selected range">i</i></div>
-        <div className="cb-kpi-main"><strong><AnimatedMoney value={paidRevenue} currency={workspace.settings.currency} /></strong><CbLine values={cbDaily.rev} /></div>
+        <div className="cb-kpi-main"><strong className={kpiSizeCls(money(paidRevenue, workspace.settings.currency))}><AnimatedMoney value={paidRevenue} currency={workspace.settings.currency} /></strong><CbLine values={cbDaily.rev} /></div>
         <span className="cb-delta"><i className={`delta-pill ${receivedDelta.dir}`}>{receivedDelta.label}</i> vs previous period</span>
         <span className="cb-div" />
         <button type="button" className="cb-see" onClick={onBills}>See orders</button>
