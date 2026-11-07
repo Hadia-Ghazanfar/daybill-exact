@@ -79,7 +79,10 @@ function shouldRetryAction(failureCount: number, error: unknown): boolean {
   const status = (error as { status?: unknown } | null)?.status;
   // Permanent action failures (validation, auth, business-rule errors) must
   // not retry — they would just replay the same user-facing error.
-  if (typeof status === "number") return status === 0 || status >= 500;
+  // Network/5xx failures retry a few times, then stop: with offline support
+  // enabled (networkMode "always") an uncached offline query would otherwise
+  // retry forever instead of surfacing its error.
+  if (typeof status === "number") return (status === 0 || status >= 500) && failureCount < 3;
   return failureCount < 2;
 }
 
@@ -87,9 +90,17 @@ export const spaceQueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: shouldRetryAction,
+      // Offline support: queries must run even while navigator.onLine is
+      // false — the api client serves the IndexedDB cache for getWorkspace
+      // and details, so a paused query would never reach that fallback.
+      networkMode: "always",
     },
     mutations: {
       retry: false,
+      // Offline support: mutations must run even while offline — the api
+      // client queues queueable mutations in the outbox instead of letting
+      // React Query park them until the connection returns.
+      networkMode: "always",
     },
   },
 });

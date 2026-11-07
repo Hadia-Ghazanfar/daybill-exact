@@ -4,6 +4,14 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import "./theme.css";
+import { bindOfflineQueryClient, startSyncEngine } from "./offline";
+import { getApiSession, rawPostAction } from "./api-client";
+import type { ActionName } from "../api/_defs";
+
+// Offline layer: the workspace cache and mutation outbox live in IndexedDB,
+// and the sync engine replays queued mutations when the connection returns.
+bindOfflineQueryClient(spaceQueryClient);
+startSyncEngine((name, args) => rawPostAction(name as ActionName, args), getApiSession);
 
 const rootEl = document.getElementById("root");
 if (!rootEl) {

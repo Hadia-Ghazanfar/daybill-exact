@@ -4324,6 +4324,16 @@ html.phone-layout .bottom-nav.admin-nav { background: var(--surface) !important;
 .pill-nav button.active { background: var(--accent); color: #fff; }
 
 .topbar-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+/* Offline sync status pill next to the bell. */
+.sync-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; background: var(--surface-2); color: var(--dim); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.sync-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--dim); opacity: .55; flex: none; }
+.sync-pill[data-state="offline"] { color: var(--text); }
+.sync-pill[data-state="offline"]::before { background: #d97706; opacity: 1; }
+.sync-pill[data-state="syncing"]::before { background: var(--accent); opacity: 1; }
+@media (max-width: 759px) {
+  .sync-pill { font-size: 11px; padding: 4px 9px; }
+  .sync-pill[data-state="synced"] { display: none; }
+}
 .topbar-util {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 8px 12px; border: 0; border-radius: 999px;

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { fileToBase64, SafeAreaTopScrim } from "./sdk-shim";
 import { api, setApiSession, type AccountSession, type ApiResponse } from "./api";
+import { useSyncStatus, resolveTempId } from "./offline";
 import daybillLogoDark from "./assets/daybill-logo-dark.png";
 import daybillLogoWhite from "./assets/daybill-logo-white.png";
 import daybillSymbol from "./assets/daybill-symbol.png";
@@ -2340,6 +2341,28 @@ function ResetPinPrompt({ onSaved }: { onSaved: () => void }) {
   </div>;
 }
 
+/** Offline sync status pill in the topbar: "Synced" when online with nothing
+ *  queued, "Offline" (+ waiting count) without a connection, "Syncing…" while
+ *  the outbox is being replayed. */
+function SyncPill() {
+  const status = useSyncStatus();
+  const label = !status.online
+    ? status.pending > 0
+      ? `Offline · ${status.pending} waiting`
+      : "Offline"
+    : status.syncing
+      ? "Syncing…"
+      : status.pending > 0
+        ? `${status.pending} waiting`
+        : "Synced";
+  const state = !status.online ? "offline" : status.syncing || status.pending > 0 ? "syncing" : "synced";
+  return (
+    <span className="sync-pill" data-state={state} role="status">
+      {label}
+    </span>
+  );
+}
+
 function InvoiceApp({ onLogout }: { onLogout: () => void }) {
   const queryClient = useQueryClient();
   const { language } = useLanguage();
@@ -2752,6 +2775,7 @@ function InvoiceApp({ onLogout }: { onLogout: () => void }) {
           {nav.map((item) => <button key={item.id} type="button" aria-label={item.label} aria-current={tab === item.id ? "page" : undefined} className={tab === item.id ? "active" : ""} onClick={() => goTab(item.id)}><Icon name={item.icon} /><span>{item.label}</span>{item.id === "history" && unpaidBadge > 0 ? <span className="nav-badge">{unpaidBadge > 99 ? "99+" : unpaidBadge}</span> : null}</button>)}
         </nav>
         <div className="topbar-actions">
+          <SyncPill />
           <button className="topbar-bell" type="button" aria-label={`${notifUnread} unread notifications`} onClick={() => setShowNotifications(true)}><Icon name="bell" />{notifUnread > 0 ? <span className="bell-dot" /> : null}</button>
           <button className="topbar-avatar" type="button" aria-label={workspace.data.account.shopkeeper_name || settings.business_name || "Profile"} title={workspace.data.account.shopkeeper_name || settings.business_name || "Profile"} onClick={() => goTab("profile")}>{settings.logo_url ? <img src={settings.logo_url} alt="" /> : settings.avatar_choice && SHOP_AVATARS[Number(settings.avatar_choice) - 1] ? <img src={SHOP_AVATARS[Number(settings.avatar_choice) - 1]} alt="" /> : <span className="sidebar-avatar-fallback"><Icon name="profile" /></span>}</button>
         </div>
@@ -3519,6 +3543,25 @@ function PurchaseFlow({ workspace, savedPurchaseId, onSaved, onAddSupplier, onAd
   const create = useMutation({ mutationFn: () => api.createPurchaseInvoice({ supplier_id: supplierId ?? 0, document_type: documentType, issue_date: issueDate, due_date: dueDate || null, payment_method: paymentMethod, payment_status: purchasePaymentStatus, supplier_reference: supplierReference, notes, template: purchaseTemplate, items: draftItems.map((item) => ({ product_id: item.product_id, quantity: item.quantity, unit_cost: item.unit_cost })) }), onSuccess: async (result) => { onSaved(result.id); setStep(3); await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
   const payment = useMutation({ mutationFn: (status: "pending" | "paid") => api.setPurchasePaymentStatus({ id: savedPurchaseId ?? 0, status }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
   const deliver = useMutation({ mutationFn: () => api.markPurchaseDelivered({ id: savedPurchaseId ?? 0 }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["workspace"] }); } });
+  // An offline-created purchase opens its detail on a temp (negative) id.
+  // After the sync maps it to the real id, point this flow at the real id
+  // so the detail keeps working instead of showing "Could not find this purchase".
+  const onSavedRef = useRef(onSaved);
+  onSavedRef.current = onSaved;
+  const resolvedPurchaseRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!savedPurchaseId || savedPurchaseId >= 0) return;
+    if (resolvedPurchaseRef.current === savedPurchaseId) return;
+    let cancelled = false;
+    void resolveTempId(savedPurchaseId).then((realId) => {
+      if (cancelled) return;
+      if (realId) {
+        resolvedPurchaseRef.current = savedPurchaseId;
+        onSavedRef.current(realId);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [savedPurchaseId, workspace.purchases]);
   // Defensive: if workspace data isn't ready, show loading instead of crashing
   // (placed AFTER all hooks to comply with React rules)
   if (!workspace || !workspace.contacts || !workspace.products || !workspace.settings) return <div className="purchase-flow"><div className="loading-panel"><p>Loading…</p></div></div>;
