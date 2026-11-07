@@ -238,7 +238,18 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
 CREATE INDEX IF NOT EXISTS idx_invoices_account ON invoices(account_id);
 CREATE INDEX IF NOT EXISTS idx_contacts_account ON contacts(account_id);
 CREATE INDEX IF NOT EXISTS idx_products_account ON products(account_id);
-CREATE INDEX IF NOT EXISTS idx_purchases_account ON purchase_invoices(account_id);`;
+CREATE INDEX IF NOT EXISTS idx_purchases_account ON purchase_invoices(account_id);
+-- Offline sync: idempotency keys for queued mutations. A replayed mutation
+-- with the same (account_id, key) returns the stored result instead of
+-- running again, so a retried sync can never create a duplicate.
+CREATE TABLE IF NOT EXISTS idempotency_keys (
+  account_id INTEGER NOT NULL,
+  key TEXT NOT NULL,
+  action TEXT NOT NULL,
+  result_json TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (account_id, key)
+);`;
 
 let migrated = false;
 

@@ -16,7 +16,36 @@ import { Actions } from "./_handlers.js";
 import type { Ctx } from "./_handlers.js";
 import { AuthError } from "./_auth.js";
 import { blobs } from "./_blobs.js";
-import { ensureInit, getDb } from "./_db.js";
+import { ensureInit, getDb, getSql } from "./_db.js";
+
+/** Mutations the offline outbox replays. The client sends a stable __idem
+ *  with every one of these (online or off); a replay with the same key
+ *  returns the stored result instead of running the handler again. Auth
+ *  actions and reads are never idempotent. */
+const IDEMPOTENT_ACTIONS: ReadonlySet<string> = new Set([
+  "createInvoice",
+  "createPurchaseInvoice",
+  "setInvoicePaymentStatus",
+  "setPurchasePaymentStatus",
+  "markPurchaseDelivered",
+  "saveProduct",
+  "archiveProduct",
+  "adjustStock",
+  "saveContact",
+  "archiveContact",
+  "saveCategory",
+  "deleteCategory",
+  "saveSettings",
+  "trashInvoice",
+  "trashPurchase",
+  "restoreInvoice",
+  "restorePurchase",
+  "deleteInvoiceForever",
+  "deletePurchaseForever",
+  "submitFeedback",
+  "markNotificationRead",
+  "markAllNotificationsRead",
+]);
 
 type HandlerDef = {
   request: z.ZodTypeAny;
@@ -62,6 +91,27 @@ export default async function handler(req: any, res: any) {
     return res.status(500).json({ error: asError(err).message });
   }
 
+  // Idempotency: zod strips the unknown __idem key, so it is read from the
+  // raw body before parsing. The lookup needs the parsed account_id.
+  const rawIdem =
+    req.body && typeof req.body === "object" && typeof (req.body as any).__idem === "string"
+      ? ((req.body as any).__idem as string)
+      : null;
+  const idemKey = IDEMPOTENT_ACTIONS.has(name) ? rawIdem : null;
+  const idemAccountId = (parsedArgs as any)?.account_id;
+  if (idemKey && typeof idemAccountId === "number") {
+    try {
+      const rows = await getSql()`SELECT result_json FROM idempotency_keys WHERE account_id = ${idemAccountId} AND key = ${idemKey}`;
+      const found = (rows as unknown as Array<{ result_json?: string }>)[0];
+      if (found?.result_json) {
+        return res.status(200).json(def.response.parse(JSON.parse(found.result_json)));
+      }
+    } catch {
+      // Idempotency bookkeeping must never break the request; fall through
+      // and run the handler normally.
+    }
+  }
+
   let result: unknown;
   try {
     result = await def.handler(serverCtx(), parsedArgs);
@@ -73,9 +123,18 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: asError(err).message });
   }
 
+  let validated: unknown;
   try {
-    return res.status(200).json(def.response.parse(result));
+    validated = def.response.parse(result);
   } catch (err) {
     return res.status(500).json({ error: asError(err).message });
   }
+  if (idemKey && typeof idemAccountId === "number") {
+    try {
+      await getSql()`INSERT INTO idempotency_keys (account_id, key, action, result_json) VALUES (${idemAccountId}, ${idemKey}, ${name}, ${JSON.stringify(validated)}) ON CONFLICT (account_id, key) DO NOTHING`;
+    } catch {
+      // Never fail a successful request on idempotency bookkeeping.
+    }
+  }
+  return res.status(200).json(validated);
 }
