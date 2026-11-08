@@ -6588,3 +6588,39 @@ html[data-theme="dark"] .hero-ranges--below button.active { background: #fff; co
   html[data-theme="dark"] .contact-summary-grid > article:first-child small { color: rgba(0,0,0,.6); }
   html[data-theme="dark"] .contact-summary-grid > article:first-child strong { color: #111; }
 }
+
+/* ===== Mobile: dashboard cards + duration track, Corbel reference (Nov 8) =
+   Mobile only. Her screenshot vs the reference showed three gaps:
+   1. the mini-charts (bars / line / donut) overlap the amounts at phone
+      width - the reference has no charts inside the four cards;
+   2. the delta is a bulky pill plus "vs previous period" wrapping to two
+      lines - the reference shows just the small delta pill, a dashed
+      divider and an underlined See link;
+   3. the 1W/1M/1Y/All pills are separate round buttons with a dark active
+      one - the reference uses one grey segmented track with a white
+      active pill. */
+
+/* Desktop: the track wrapper is invisible, buttons render exactly as before. */
+.hero-ranges-track { display: contents; }
+
+@media (max-width: 759px) {
+  /* 1. No mini-charts inside the four KPI cards on phones. */
+  .cb-kpi .cb-bars, .cb-kpi .cb-line, .cb-kpi .cb-donut { display: none; }
+  .cb-kpi-main { min-height: 0; }
+  /* 2. Delta shows the pill only (the "vs previous period" text is hidden
+     by zeroing the parent font size; the pill keeps its own size). */
+  .cb-kpi .cb-delta { font-size: 0; }
+  /* Dashed divider, like the reference. */
+  .cb-kpi .cb-div { height: 0; background: none; border-top: 1px dashed rgba(23,37,26,.28); }
+  html[data-theme="dark"] .cb-kpi .cb-div { background: none; border-top-color: rgba(255,255,255,.25); }
+  html:not([data-theme="dark"]) .cb-kpi.cb-k1 .cb-div { background: none !important; border-top-color: rgba(255,255,255,.35); }
+  html[data-theme="dark"] .cb-kpi.cb-k1 .cb-div { background: none !important; border-top-color: rgba(0,0,0,.25); }
+  .cb-kpi .cb-see { text-decoration: underline; text-underline-offset: 3px; }
+  /* 3. Duration as one grey segmented track, active pill white. */
+  .hero-ranges-track { display: flex; flex: 1 1 0; min-width: 0; gap: 2px; padding: 4px; border-radius: 999px; background: #e9e9e7; }
+  .hero-ranges-track button { flex: 1 1 0; min-width: 0; padding: 7px 0; border: 0; border-radius: 999px; background: transparent; color: #555; font-size: 13px; font-weight: 700; }
+  .hero-ranges-track button.active { background: #fff !important; color: #111 !important; box-shadow: 0 1px 4px rgba(0,0,0,.14); }
+  html[data-theme="dark"] .hero-ranges-track { background: rgba(255,255,255,.09); }
+  html[data-theme="dark"] .hero-ranges-track button { color: #b9c4b9; }
+  html[data-theme="dark"] .hero-ranges-track button.active { background: #f5f5f5 !important; color: #111 !important; }
+}
