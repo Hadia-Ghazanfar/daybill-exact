@@ -6617,10 +6617,20 @@ html[data-theme="dark"] .hero-ranges--below button.active { background: #fff; co
   html[data-theme="dark"] .cb-kpi.cb-k1 .cb-div { background: none !important; border-top-color: rgba(0,0,0,.25); }
   .cb-kpi .cb-see { text-decoration: underline; text-underline-offset: 3px; }
   /* 3. Duration as one grey segmented track, active pill white. */
-  .hero-ranges-track { display: flex; flex: 1 1 0; min-width: 0; gap: 2px; padding: 4px; border-radius: 999px; background: #e9e9e7; }
+  .hero-ranges-track { display: flex; flex: 1 1 100%; min-width: 0; gap: 2px; padding: 4px; border-radius: 999px; background: #e9e9e7; }
   .hero-ranges-track button { flex: 1 1 0; min-width: 0; padding: 7px 0; border: 0; border-radius: 999px; background: transparent; color: #555; font-size: 13px; font-weight: 700; }
   .hero-ranges-track button.active { background: #fff !important; color: #111 !important; box-shadow: 0 1px 4px rgba(0,0,0,.14); }
   html[data-theme="dark"] .hero-ranges-track { background: rgba(255,255,255,.09); }
   html[data-theme="dark"] .hero-ranges-track button { color: #b9c4b9; }
   html[data-theme="dark"] .hero-ranges-track button.active { background: #f5f5f5 !important; color: #111 !important; }
+  /* Duration track takes the full row, like the reference's Overview
+     control; "Last 7 days" sits below it, right-aligned under Export.
+     (Fixes the squeeze: the label's old width:100% basis used to starve
+     the track to 0px wide on phones, clipping the 1W/1M pills.) */
+  .hero-ranges--below { flex-wrap: wrap; }
+  .hero-ranges--below .cb-month { width: auto; margin: 0 0 0 auto; justify-content: flex-end; }
+  /* Full analytics / Export: equal halves with the reference's
+     rounded-rect corners (16px), not full pills. */
+  .cb-actions { flex: 1 1 0; min-width: 0; margin-left: 0; }
+  .cb-full, .cb-export { flex: 1 1 0; min-width: 0; justify-content: center; border-radius: 16px; padding: 10px 12px; }
 }
