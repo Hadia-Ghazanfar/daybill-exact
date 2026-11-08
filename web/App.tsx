@@ -4500,7 +4500,7 @@ function DashboardView({ workspace, onCreate, onCreatePurchase, onOpenInvoice, o
             {gaugeTicks.map((t, i) => <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="rgba(255,255,255,0.3)" strokeWidth="1.6" strokeLinecap="round" />)}
             <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="15" strokeLinecap="round" pathLength={100} />
             <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="url(#cbGaugeArc)" strokeWidth="15" strokeLinecap="round" pathLength={100} strokeDasharray={`${gaugeScore} 100`} />
-            <circle cx={gaugeKnob.x} cy={gaugeKnob.y} r="8.5" fill="#f4efdb" stroke="#1d4a2a" strokeWidth="3" />
+            <circle className="cb-gauge-knob" cx={gaugeKnob.x} cy={gaugeKnob.y} r="8.5" fill="#f4efdb" stroke="#1d4a2a" strokeWidth="3" />
           </svg>
           <div className="cb-gauge-score"><strong><CountUp value={gaugeScore} /></strong><span className={`cb-gauge-badge ${gaugeDelta >= 0 ? "up" : "down"}`}>{gaugeDelta >= 0 ? `↑ +${gaugeDelta}` : `↓ ${gaugeDelta}`}</span></div>
           <p className="cb-gauge-sub">of 100 points</p>
