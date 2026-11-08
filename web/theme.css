@@ -6217,7 +6217,10 @@ html[data-theme="dark"] .cb-years button.active { background: #333e34; color: #f
   .cb-kpi-main > strong { font-size: 24px; }
 }
 @media (max-width: 480px) {
-  .cb-kpis { grid-template-columns: 1fr; }
+  /* Corbel mobile placement (Nov 8): the four KPI boxes stay 2x2 on phones,
+     like the reference - the old 1-column stack is what made ours look
+     different. Long amounts already shrink via .cb-long / .cb-xlong. */
+  .cb-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Corbel-exact floating top nav (desktop, Nov 4) — matches the reference's floating frosted-glass bar */
@@ -6514,3 +6517,74 @@ html[data-theme="dark"] .hero-ranges--below button.active { background: #fff; co
 
 /* Category + product dropdowns in the Create invoice item picker */
 .catalog-dropdowns { display: grid; gap: 12px; }
+
+/* ===== Mobile: Corbel reference card placement (Nov 8) ==================
+   Mobile only (max-width 759px). The reference (Corbel demo, mobile) shows
+   the four stat boxes in a 2x2 grid with the first card dark, and the
+   customer detail as a full page (heading + actions + profile card with
+   lifetime value + 2x2 stats + history). The bottom tab bar and the
+   sidebar/drawer are NOT touched by this block. */
+
+/* Mobile-only customer-view pieces: hidden on desktop. */
+.contact-mobile-head, .contact-actions-row, .contact-lifetime { display: none; }
+.contact-profile-top { display: flex; align-items: center; gap: 17px; min-width: 0; }
+
+@media (max-width: 759px) {
+  /* Four stat boxes: show them on mobile again, in a 2x2 grid. */
+  .corbel-kpis.desktop-only-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .corbel-kpis .corbel-kpi { padding: 16px; min-height: 0; }
+  .corbel-kpis .corbel-kpi > strong { font-size: 24px; overflow-wrap: anywhere; }
+  .corbel-kpis .corbel-kpi small { font-size: 11px; }
+  /* First card dark, like the reference. !important beats the per-accent
+     first-card fills (light pastels in every palette). */
+  html:not([data-theme="dark"]) .corbel-kpis > article:nth-child(1) { background: #111 !important; border-color: #111 !important; color: #fff !important; }
+  html:not([data-theme="dark"]) .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+  html:not([data-theme="dark"]) .corbel-kpis > article:nth-child(1) small,
+  html:not([data-theme="dark"]) .corbel-kpis > article:nth-child(1) .tile-delta { color: rgba(255,255,255,.75) !important; }
+  html:not([data-theme="dark"]) .corbel-kpis > article:nth-child(1) .see-all-link { color: rgba(255,255,255,.75) !important; }
+  html[data-theme="dark"] .corbel-kpis > article:nth-child(1) { background: #f5f5f5 !important; border-color: #f5f5f5 !important; color: #111 !important; }
+  html[data-theme="dark"] .corbel-kpis > article:nth-child(1) .corbel-kpi-head span:first-child,
+  html[data-theme="dark"] .corbel-kpis > article:nth-child(1) small,
+  html[data-theme="dark"] .corbel-kpis > article:nth-child(1) .tile-delta { color: rgba(0,0,0,.6) !important; }
+  html[data-theme="dark"] .corbel-kpis > article:nth-child(1) .see-all-link { color: rgba(0,0,0,.65) !important; }
+  /* Bills summary strip (Paid / Unpaid / Overdue / Draft): 4 cells -> 2x2. */
+  .bills-view .bill-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  /* Dashboard KPI cards: tighter padding, first card dark like the rest. */
+  .cb-kpis { gap: 12px; }
+  .cb-kpi { padding: 16px 16px 14px; }
+  html:not([data-theme="dark"]) .cb-kpi.cb-k1 { background: #111 !important; color: #fff !important; }
+  html:not([data-theme="dark"]) .cb-kpi.cb-k1 .cb-kpi-head,
+  html:not([data-theme="dark"]) .cb-kpi.cb-k1 .cb-delta { color: rgba(255,255,255,.75) !important; }
+  html:not([data-theme="dark"]) .cb-kpi.cb-k1 .cb-info { border-color: rgba(255,255,255,.6) !important; color: rgba(255,255,255,.75) !important; }
+  html:not([data-theme="dark"]) .cb-kpi.cb-k1 .cb-div { background: rgba(255,255,255,.18) !important; }
+  html:not([data-theme="dark"]) .cb-kpi.cb-k1 .cb-see { color: #fff !important; }
+  html[data-theme="dark"] .cb-kpi.cb-k1 { background: #f5f5f5 !important; color: #111 !important; }
+  html[data-theme="dark"] .cb-kpi.cb-k1 .cb-kpi-head,
+  html[data-theme="dark"] .cb-kpi.cb-k1 .cb-delta { color: rgba(0,0,0,.6) !important; }
+  html[data-theme="dark"] .cb-kpi.cb-k1 .cb-info { border-color: rgba(0,0,0,.45) !important; color: rgba(0,0,0,.6) !important; }
+  html[data-theme="dark"] .cb-kpi.cb-k1 .cb-div { background: rgba(0,0,0,.12) !important; }
+  html[data-theme="dark"] .cb-kpi.cb-k1 .cb-see { color: #111 !important; }
+  /* Customer detail, mobile only: heading + actions + profile card + 2x2 stats. */
+  .contact-mobile-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 2px 0 12px; }
+  .contact-mobile-head h1 { margin: 0; font-size: 30px; letter-spacing: -.03em; }
+  .contact-actions-row { display: flex; gap: 10px; margin: 0 0 14px; }
+  .contact-actions-row .contact-action { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; }
+  .contact-actions-row .contact-action.secondary { border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+  .contact-actions-row .contact-action.primary { border: 1px solid #111; background: #111; color: #fff; }
+  .contact-profile-card { flex-direction: column; align-items: stretch; gap: 0; background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .contact-profile-card p { color: var(--dim); }
+  .contact-profile-card .contact-type-pill { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); }
+  .contact-lifetime { display: block; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .contact-lifetime span { display: block; color: var(--dim); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .contact-lifetime strong { display: block; margin-top: 6px; font-size: 32px; font-weight: 800; letter-spacing: -.03em; }
+  .contact-lifetime small { display: block; margin-top: 4px; color: var(--dim); font-size: 12px; }
+  .contact-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .contact-summary-grid > article:first-child { background: #111; border-color: #111; color: #fff; }
+  .contact-summary-grid > article:first-child span,
+  .contact-summary-grid > article:first-child small { color: rgba(255,255,255,.75); }
+  .contact-summary-grid > article:first-child strong { color: #fff; }
+  html[data-theme="dark"] .contact-summary-grid > article:first-child { background: #f5f5f5; border-color: #f5f5f5; color: #111; }
+  html[data-theme="dark"] .contact-summary-grid > article:first-child span,
+  html[data-theme="dark"] .contact-summary-grid > article:first-child small { color: rgba(0,0,0,.6); }
+  html[data-theme="dark"] .contact-summary-grid > article:first-child strong { color: #111; }
+}

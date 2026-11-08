@@ -5064,6 +5064,13 @@ function ContactsView({ contacts, invoices, onDone, onOpenContact, supplierOnly 
 function ContactHistoryView({ contact, invoices, purchases, currency, onBack, onOpenInvoice, onOpenPurchase }: { contact: Contact | null; invoices: Workspace["invoices"]; purchases: Workspace["purchases"]; currency: string; onBack: () => void; onOpenInvoice: (id: number) => void; onOpenPurchase: (id: number) => void }) {
   const { language } = useLanguage();
   const label = (value: string) => ui(language, value);
+  const [copied, setCopied] = useState(false);
+  const copyPhone = async () => {
+    if (!contact?.phone) return;
+    try { await navigator.clipboard?.writeText(contact.phone); } catch { /* clipboard unavailable */ }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
+  };
   if (!contact) return <section className="contact-history-view"><button className="return-link" onClick={onBack}>← {label("Back to contacts")}</button><Empty title={label("Contact not found")} body={label("This contact is no longer available.")} /></section>;
 
   const rows = contact.kind === "customer"
@@ -5095,11 +5102,21 @@ function ContactHistoryView({ contact, invoices, purchases, currency, onBack, on
     }
   }
 
+  const oldestDate = rows.length ? rows[rows.length - 1]?.date ?? null : null;
+
   return <section className="contact-history-view">
     <button className="return-link contact-back" onClick={onBack}>← {label("Back to contacts")}</button>
+    <div className="contact-mobile-head"><h1>{contact.name}</h1><span className="count-badge">{rows.length}</span></div>
+    {contact.phone ? <div className="contact-actions-row">
+      <button type="button" className="contact-action secondary" onClick={copyPhone}>{copied ? `✓ ${label("Copied")}` : label("Copy phone")}</button>
+      <a className="contact-action primary" href={`https://wa.me/${whatsappDigits(contact.phone)}`} target="_blank" rel="noreferrer">{label("WhatsApp")}</a>
+    </div> : null}
     <header className="contact-profile-card">
-      <ContactAvatar name={contact.name} kind={contact.kind} contactKey={String(contact.id)} className="profile-contact-avatar" />
-      <div><span className={`contact-type-pill ${contact.kind}`}>{label(contact.kind === "customer" ? "Customer" : "Supplier")}</span><h1>{contact.name}</h1><p>{contact.phone ? formatPhoneDisplay(contact.phone) : label("No phone saved")}</p><p>{contact.address || label("No address saved")}</p></div>
+      <div className="contact-profile-top">
+        <ContactAvatar name={contact.name} kind={contact.kind} contactKey={String(contact.id)} className="profile-contact-avatar" />
+        <div><span className={`contact-type-pill ${contact.kind}`}>{label(contact.kind === "customer" ? "Customer" : "Supplier")}</span><h1>{contact.name}</h1><p>{contact.phone ? formatPhoneDisplay(contact.phone) : label("No phone saved")}</p><p>{contact.address || label("No address saved")}</p></div>
+      </div>
+      <div className="contact-lifetime"><span>{label("Lifetime value")}</span><strong>{money(total, currency)}</strong><small>{rows.length} {label(rows.length === 1 ? "invoice" : "invoices")}{oldestDate ? ` · ${contact.kind === "customer" ? label("Customer since") : label("First order")} ${oldestDate}` : ""}</small></div>
     </header>
     <section className="contact-summary-grid" aria-label={label("Contact billing summary")}>
       <article className="contact-total-stat"><span>{label("Total billed")}</span><strong>{money(total, currency)}</strong><small>{rows.length} {label(rows.length === 1 ? "invoice" : "invoices")}</small></article>
